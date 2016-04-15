@@ -10,7 +10,7 @@ namespace magnesium {
   class MG_DLLEXPORT mgSystemBase
   {
   public:
-    mgSystemBase(ComponentBitfield required, ComponentID iterator = ~(ComponentID)0, int priority = 0);
+    mgSystemBase(ComponentBitfield required, ComponentID iterator = (ComponentID)~0, int priority = 0);
     virtual ~mgSystemBase();
     virtual void Preprocess();
     virtual void Process(mgEntity* entity) = 0;
@@ -36,7 +36,7 @@ namespace magnesium {
   class BSS_COMPILER_DLLEXPORT mgSystem<void> : public mgSystemBase
   {
   public:
-    mgSystem(int priority = 0) : mgSystemBase(COMPONENTBITFIELD_EMPTY, ~(ComponentID)0, priority) {}
+    mgSystem(int priority = 0) : mgSystemBase(COMPONENTBITFIELD_EMPTY, (ComponentID)~0, priority) {}
   };
 
   class MG_DLLEXPORT mgSystemManager

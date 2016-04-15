@@ -28,11 +28,11 @@ namespace magnesium {
     void ComponentListRemove(ComponentID id);
     size_t& ComponentListGet(ComponentID id);
     template<class T> // Gets a component of type T if it belongs to this entity, otherwise returns NULL
-    T* Get() { return T::Store().Get(_componentlist[T::ID()]); }
+    T* Get() { ComponentID index = _componentlist.Get(T::ID()); return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); }
     template<class T> // Adds a component of type T to this entity
-    void Add() { T::Store().Add(this); }
+    T* Add() { T::Store().Add(this); return Get<T>(); }
     template<class T> // Removes a component of type T from this entity
-    bool Remove() { return T::Store().Remove(_componentlist[T::ID()]); }
+    bool Remove() { ComponentID index = _componentlist.Get(T::ID()); if(index != (ComponentID)~0) return T::Store().Remove(_componentlist[index]); }
 
     size_t id;
     ComponentBitfield components; // bitfield of what components this entity has.

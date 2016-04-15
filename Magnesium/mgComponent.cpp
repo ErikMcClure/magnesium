@@ -26,7 +26,7 @@ void mgEntity::ComponentListRemove(ComponentID id)
 }
 size_t& mgEntity::ComponentListGet(ComponentID id)
 {
-  return _componentlist[id];
+  return _componentlist[_componentlist.Get(id)];
 }
 mgComponentStoreBase::mgComponentStoreBase(ComponentID id) : _id(id), curIteration(0)
 {

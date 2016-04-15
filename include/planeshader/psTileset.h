@@ -50,6 +50,9 @@ namespace planeshader {
     }
     static inline psVeciu BSS_FASTCALL WangTile2D(uint32_t e0, uint32_t e1, uint32_t e2, uint32_t e3) { return psVeciu(WangTile1D(e0, e2), WangTile1D(e1, e3)); }
 
+    psTileset& operator=(const psTileset& copy);
+    psTileset& operator=(psTileset&& mov);
+
   protected:
     virtual void BSS_FASTCALL _render() override;
 

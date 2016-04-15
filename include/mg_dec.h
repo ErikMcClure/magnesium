@@ -10,15 +10,11 @@
 #define MG_VERSION_MINOR 1
 #define MG_VERSION_REVISION 0
 
-#ifndef H_STATIC_LIB
-#ifdef MAGNESIUM_EXPORTS
+#if defined(MAGNESIUM_EXPORTS) || defined(MG_STATIC_LIB)
 #pragma warning(disable:4251)
 #define MG_DLLEXPORT BSS_COMPILER_DLLEXPORT
 #else
 #define MG_DLLEXPORT BSS_COMPILER_DLLIMPORT
-#endif
-#else
-#define MG_DLLEXPORT
 #endif
 
 #endif
