@@ -1,0 +1,16 @@
+*.sdf
+*.suo
+*.opensdf
+*.opendb
+*.bak
+*.aps
+*.VC.db
+*.log
+bin/
+bin32/
+lib/
+Magnesium/x64/
+Magnesium/Win32/
+examples/Testbed/x64/
+examples/Testbed/Win32/
+

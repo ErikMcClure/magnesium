@@ -1,0 +1,3 @@
+Planeshader is proprietary software, and redistribution of its source code is strictly forbidden. In addition, this library may not be used, in part or in whole, in binary or source form, by any commercial endeavor in any way. Planeshader's binaries may only be used by non-commercial applications.
+
+Planeshader Copyright ©2016 by Black Sphere Studios, all rights reserved.
