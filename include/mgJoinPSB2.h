@@ -42,7 +42,6 @@ namespace magnesium {
     bss_util::cDynArray<DrawBuf, uint32_t> _drawbuf;
     bss_util::cDynArray<planeshader::psVec, uint32_t> _drawverts;
     float _alpha;
-    LiquidFunSystem* _world;
   };
 
   extern void Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos);

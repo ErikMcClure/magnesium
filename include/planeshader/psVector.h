@@ -101,6 +101,9 @@ namespace planeshader {
     static const int RRBUFSIZE = 64;
     static void DrawRoundedRect(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& corners, psFlag flags, psColor32 color32, psColor32 outline32, float edge);
 
+    psRoundedRect& operator=(const psRoundedRect& copy);
+    psRoundedRect& operator=(psRoundedRect&& mov);
+
   protected:
     virtual void BSS_FASTCALL _render() override;
 
@@ -135,6 +138,9 @@ namespace planeshader {
 
     static const int CIRCLEBUFSIZE = 64;
     static void DrawCircle(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& arcs, psFlag flags, psColor32 color32, psColor32 outline32, float edge);
+
+    psRenderCircle& operator=(const psRenderCircle& copy);
+    psRenderCircle& operator=(psRenderCircle&& mov);
 
   protected:
     virtual void BSS_FASTCALL _render() override;

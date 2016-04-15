@@ -37,6 +37,9 @@ namespace planeshader {
     inline const psTexFont::DELEGATE& GetFunc() const { return _func; }
     inline void SetFunc(psTexFont::DELEGATE func) { _func = func; }
 
+    psText& operator=(const psText& copy);
+    psText& operator=(psText&& mov);
+
   protected:
     virtual void BSS_FASTCALL _render() override;
     void _recalcdim();

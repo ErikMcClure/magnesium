@@ -6,6 +6,10 @@
 
 #include "mgSystem.h"
 #include "planeshader\psImage.h"
+#include "planeshader\psTileset.h"
+#include "planeshader\psText.h"
+#include "planeshader\psVector.h"
+#include "planeshader\psRenderGeometry.h"
 #include "planeshader\psEngine.h"
 
 namespace magnesium {
@@ -18,6 +22,30 @@ namespace magnesium {
     psImageComponent& operator=(psImageComponent&& mov) { planeshader::psImage::operator=(std::move(mov)); return *this; }
   };
 
+  struct MG_DLLEXPORT psTilesetComponent : planeshader::psTileset, mgComponent<psTilesetComponent, bss_util::CARRAY_MOVE> {
+    psTilesetComponent() {}
+    psTilesetComponent(psTilesetComponent&& mov) : planeshader::psTileset(std::move(mov)) {}
+    psTilesetComponent& operator=(psTilesetComponent&& mov) { planeshader::psTileset::operator=(std::move(mov)); return *this; }
+  };
+
+  struct MG_DLLEXPORT psTextComponent : planeshader::psText, mgComponent<psTextComponent, bss_util::CARRAY_MOVE> {
+    psTextComponent() {}
+    psTextComponent(psTextComponent&& mov) : planeshader::psText(std::move(mov)) {}
+    psTextComponent& operator=(psTextComponent&& mov) { planeshader::psText::operator=(std::move(mov)); return *this; }
+  };
+
+  struct MG_DLLEXPORT psRenderCircleComponent : planeshader::psRenderCircle, mgComponent<psRenderCircleComponent, bss_util::CARRAY_MOVE> {
+    psRenderCircleComponent() {}
+    psRenderCircleComponent(psRenderCircleComponent&& mov) : planeshader::psRenderCircle(std::move(mov)) {}
+    psRenderCircleComponent& operator=(psRenderCircleComponent&& mov) { planeshader::psRenderCircle::operator=(std::move(mov)); return *this; }
+  };
+
+  struct MG_DLLEXPORT psRoundedRectComponent : planeshader::psRoundedRect, mgComponent<psRoundedRectComponent, bss_util::CARRAY_MOVE> {
+    psRoundedRectComponent() {}
+    psRoundedRectComponent(psRoundedRectComponent&& mov) : planeshader::psRoundedRect(std::move(mov)) {}
+    psRoundedRectComponent& operator=(psRoundedRectComponent&& mov) { planeshader::psRoundedRect::operator=(std::move(mov)); return *this; }
+  };
+
   class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystem<psRenderableComponent, psRenderableComponent>
   {
   public:
@@ -25,6 +53,7 @@ namespace magnesium {
     ~PlaneshaderSystem();
     virtual void Process(mgEntity* entity);
     virtual void Postprocess();
+    static void InitComponents(mgEntity* entity);
   };
 }
 
