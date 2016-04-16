@@ -28,8 +28,8 @@ namespace magnesium {
       }
     };
 
-    LiquidFunSystem(const B2INIT& init);
-    LiquidFunSystem(const LFINIT& init);
+    LiquidFunSystem(const B2INIT& init, int priority = 0);
+    LiquidFunSystem(const LFINIT& init, int priority = 0);
     ~LiquidFunSystem();
     virtual void Preprocess() override;
     inline uint32_t GetParticleIters() const { return _particle_iters; }

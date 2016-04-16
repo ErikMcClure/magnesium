@@ -19,14 +19,14 @@ using namespace planeshader;
 #endif
 #endif
 
-PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init) : psEngine(init)
+PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngine(init), mgSystem(priority)
 {
   FlushMessages();
 }
 PlaneshaderSystem::~PlaneshaderSystem() {}
 void PlaneshaderSystem::Process(mgEntity* entity)
 {
-  entity->Get<psRenderableComponent>()->p->Render();
+  ResolveComponent<psRenderableComponent>(entity)->Render();
 }
 void PlaneshaderSystem::Postprocess()
 {
@@ -35,20 +35,20 @@ void PlaneshaderSystem::Postprocess()
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();
 }
-template<typename Cast, typename Arg, typename... Args>
-struct mgfindptr { static inline Cast* f(Arg* arg, Args*... args) { return (arg != nullptr) ? static_cast<Cast*>(arg) : mgfindptr<Cast, Args...>::f(args...); } };
-template<typename Cast, typename Arg>
-struct mgfindptr<Cast, Arg> { static inline Cast* f(Arg* arg) { return static_cast<Cast*>(arg); }; };
+template<typename Arg, typename... Args>
+struct mgfindptr { static inline ComponentID f(Arg* arg, Args*... args) { return (arg != nullptr) ? Arg::ID() : mgfindptr<Args...>::f(args...); } };
+template<typename Arg>
+struct mgfindptr<Arg> { static inline ComponentID f(Arg* arg) { return (arg != nullptr) ? Arg::ID() : (ComponentID)~0; }; };
 
-template<typename T, typename Cast, typename... Args>
+template<typename T, typename... Args>
 inline void mgPSInitComponent(mgEntity* e, Args*... args)
 {
-  Cast* p = mgfindptr<Cast, Args...>::f(args...);
-  if(p != 0)
+  ComponentID p = mgfindptr<Args...>::f(args...);
+  if(p != (ComponentID)~0)
   {
     T* r = e->Get<T>();
     if(!r) r = e->Add<T>();
-    r->p = p;
+    r->id = p;
   }
 }
 
@@ -60,7 +60,7 @@ void PlaneshaderSystem::InitComponents(mgEntity* e)
   psRenderCircleComponent* circ = e->Get<psRenderCircleComponent>();
   psRoundedRectComponent* rect = e->Get<psRoundedRectComponent>();
 
-  mgPSInitComponent<psRenderableComponent, psRenderable>(e, img, tile, text, circ, rect);
-  mgPSInitComponent<psLocatableComponent, psLocatable>(e, img, tile, text, circ, rect);
-  mgPSInitComponent<psSolidComponent, psSolid>(e, img, tile, text, circ, rect);
+  mgPSInitComponent<psRenderableComponent>(e, img, tile, text, circ, rect);
+  mgPSInitComponent<psLocatableComponent>(e, img, tile, text, circ, rect);
+  mgPSInitComponent<psSolidComponent>(e, img, tile, text, circ, rect);
 }

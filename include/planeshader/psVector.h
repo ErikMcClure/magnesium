@@ -137,7 +137,7 @@ namespace planeshader {
     void SetOutlineColor(psColor32 color) { _outline = color; }
 
     static const int CIRCLEBUFSIZE = 64;
-    static void DrawCircle(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& arcs, psFlag flags, psColor32 color32, psColor32 outline32, float edge);
+    static void DrawCircle(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& arcs, psFlag flags, psColor32 color32, psColor32 outline32, float edge, const float(&transform)[4][4] = psDriver::identity);
 
     psRenderCircle& operator=(const psRenderCircle& copy);
     psRenderCircle& operator=(psRenderCircle&& mov);

@@ -45,9 +45,15 @@ mgComponentStoreBase::~mgComponentStoreBase()
 
 bool mgComponentStoreBase::RemoveComponent(ComponentID id, size_t index)
 {
-  if(id >= _stores.Length())
+  if(id >= _stores.Length() || !_stores[id])
     return false;
   return _stores[id]->RemoveInternal(id, index);
+}
+size_t mgComponentStoreBase::MessageComponent(ComponentID id, size_t index, void* msg, ptrdiff_t msgint)
+{
+  if(id >= _stores.Length() || !_stores[id])
+    return 0;
+  return _stores[id]->MessageComponent(index, msg, msgint);
 }
 
 mgComponentStoreBase* mgComponentStoreBase::GetStore(ComponentID id)

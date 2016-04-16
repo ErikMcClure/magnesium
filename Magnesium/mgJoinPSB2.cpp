@@ -26,6 +26,11 @@ void psDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color&
   _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(p2));
 }
 void psDebugDraw::DrawTransform(const b2Transform& xf) {}
+void psDebugDraw::DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count)
+{
+
+}
+
 void psDebugDraw::_drawpolygon(const b2Vec2* vertices, int32 vertexCount, psColor& color, psColor& outline)
 {
   if(!vertexCount) return;
@@ -53,18 +58,21 @@ void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& col
 }
 void psDebugDraw::_render()
 {
+  Matrix<float, 4, 4>::Identity(_m);
+  Matrix<float, 4, 4>::AffineScaling(Box2DSystem::Instance()->F_PPM, Box2DSystem::Instance()->F_PPM, 1.0f, _m);
+
   for(DrawBuf& buf : _drawbuf)
   {
     if(buf.vcount > 0) // polygon
-      _driver->DrawPolygon(_driver->library.LINE, 0, _drawverts.begin() + buf.vindex, buf.vcount, VEC3D_ZERO, buf.color, 0);
+      _driver->DrawPolygon(_driver->library.POLYGON, 0, _drawverts.begin() + buf.vindex, buf.vcount, VEC3D_ZERO, buf.color, PSFLAG_DONOTBATCH, _m.v);
     if(!buf.vcount) // circle
     {
       psVec p = _drawverts[buf.vindex];
-      psRenderCircle::DrawCircle(0, 0, psRectRotateZ(p.x - buf.radius - 1, p.y - buf.radius - 1, p.x + buf.radius + 1, p.y + buf.radius + 1, 0), psRect(0, PI_DOUBLEf, 0, PI_DOUBLEf), 0, buf.color, buf.outline, 1.0f);
+      psRenderCircle::DrawCircle(0, 0, psRectRotateZ(p.x - buf.radius - 1, p.y - buf.radius - 1, p.x + buf.radius + 1, p.y + buf.radius + 1, 0), psRect(0, PI_DOUBLEf, 0, PI_DOUBLEf), 0, buf.color, buf.outline, 1.0f, _m.v);
     }
     if(buf.vcount == -2) // line
     {
-      psBatchObj* batch = _driver->DrawLinesStart(_driver->library.LINE, 0, 0);
+      psBatchObj* batch = _driver->DrawLinesStart(_driver->library.LINE, 0, 0, _m.v);
       _driver->DrawLines(batch, psLine(_drawverts[buf.vindex], _drawverts[buf.vindex + 1]), 0, 0, buf.color);
     }
   }
@@ -73,30 +81,30 @@ void psDebugDraw::_render()
 void magnesium::Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos)
 {
   b2PhysicsComponent* b = entity->Get<b2PhysicsComponent>();
-  psLocatableComponent* r = entity->Get<psLocatableComponent>();
-  if(r) r->p->SetPosition(pos);
+  psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
+  if(r) r->SetPosition(pos);
   if(b) b->SetPosition(b2Vec2(pos.x, pos.y));
 }
 void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 {
   b2PhysicsComponent* b = entity->Get<b2PhysicsComponent>();
-  psLocatableComponent* r = entity->Get<psLocatableComponent>();
-  if(r) r->p->SetRotation(rotation);
+  psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
+  if(r) r->SetRotation(rotation);
   if(b) b->SetRotation(rotation);
 }
 
-LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init) : LiquidFunSystem(init) {}
-LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init) : LiquidFunSystem(init) {}
+LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init, int priority) : LiquidFunSystem(init, priority) {}
+LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init, int priority) : LiquidFunSystem(init, priority) {}
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
 void LiquidFunPlaneshaderSystem::Process(mgEntity* entity)
 {
   b2PhysicsComponent* b = entity->Get<b2PhysicsComponent>();
-  psLocatableComponent* r = entity->Get<psLocatableComponent>();
+  psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
   if(r)
   {
     assert(b);
-    r->p->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= _init.ppm);
-    r->p->SetPosition(toVec(b->GetPosition()));
-    r->p->SetRotation(b->GetRotation());
+    r->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= _init.ppm);
+    r->SetPosition(toVec(b->GetPosition()));
+    r->SetRotation(b->GetRotation());
   }
 }

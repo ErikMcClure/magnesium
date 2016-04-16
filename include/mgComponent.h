@@ -68,11 +68,13 @@ namespace magnesium {
     mgComponentStoreBase(ComponentID id);
     ~mgComponentStoreBase();
     virtual bool RemoveInternal(ComponentID id, size_t index) = 0; // we have to pass a component's own ID to it's remove function because this gets called from inside the DLL, which does not have access to the correct static instances
+    virtual size_t MessageComponent(size_t index, void* msg, ptrdiff_t msgint) = 0;
     virtual const ENTITY_ARRAY& GetEntityArray() const = 0;
     virtual void FlushBuffer() = 0;
 
     static mgComponentStoreBase* GetStore(ComponentID id);
     static bool RemoveComponent(ComponentID id, size_t index);
+    static size_t MessageComponent(ComponentID id, size_t index, void* msg, ptrdiff_t msgint);
     static void* dllrealloc(void* p, size_t sz);
     static void dllfree(void* p);
 
@@ -97,6 +99,7 @@ namespace magnesium {
     { 
       _refs.Add(p);
       size_t index = _store.AddConstruct(); 
+      _store[index].Construct(p);
       p->ComponentListInsert(_id, index);
       p->components += _id;
       return index;
@@ -118,6 +121,11 @@ namespace magnesium {
         RemoveInternal(_id, index);
       _buf.Clear();
     }
+    virtual size_t MessageComponent(size_t index, void* msg, ptrdiff_t msgint) override
+    {
+      if(index >= _store.Length()) return 0;
+      return _store[index].Message(msg, msgint);
+    }
 
   protected:
     virtual bool RemoveInternal(ComponentID id, size_t index) override
@@ -131,8 +139,8 @@ namespace magnesium {
       size_t last = _refs.Length() - 1;
       if(index < last)
       {
+        _refs[index] = _refs[last]; // Update the reference FIRST so the moved entity can find itself
         _store[index] = std::move(_store[last]);
-        _refs[index] = _refs[last];
         _refs[index]->ComponentListGet(id) = index; // update the entity's tracked index
       }
       _store.RemoveLast();
@@ -151,6 +159,8 @@ namespace magnesium {
   {
     static ComponentID ID() { static ComponentID value = curID++; return value; }
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
+    size_t Message(void* msg, ptrdiff_t msgint) { return 0; } // Not virtual so we don't accidentally add a virtual function table to everything. Instead, this should be masked by the appropriate component, which will then get called by it's store.
+    void Construct(mgEntity* e) {}
   };
 }
 
