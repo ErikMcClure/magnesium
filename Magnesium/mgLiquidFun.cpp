@@ -19,11 +19,11 @@ using namespace magnesium;
 #endif
 #endif
 
-LiquidFunSystem::LiquidFunSystem(const LFINIT& init) : Box2DSystem(init.b2init), _particle_iters(init.particle_iters)
+LiquidFunSystem::LiquidFunSystem(const LFINIT& init, int priority) : Box2DSystem(init.b2init, priority), _particle_iters(init.particle_iters)
 {
   Reload();
 }
-LiquidFunSystem::LiquidFunSystem(const B2INIT& init) : Box2DSystem(init), _particle_iters(0)
+LiquidFunSystem::LiquidFunSystem(const B2INIT& init, int priority) : Box2DSystem(init, priority), _particle_iters(0)
 {
 }
 LiquidFunSystem::~LiquidFunSystem()

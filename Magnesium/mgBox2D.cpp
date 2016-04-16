@@ -77,9 +77,10 @@ b2PhysicsComponent& BSS_FASTCALL b2PhysicsComponent::operator =(b2PhysicsCompone
   return *this;
 }
 
-Box2DSystem::Box2DSystem(const B2INIT& init) : _totaldelta(0), _dt(0), _world(0), _init(init), _debugdraw(0),
-  _frozen(false), F_PPM(_init.ppm), INV_PPM(1.0f/_init.ppm)
+Box2DSystem::Box2DSystem(const B2INIT& init, int priority) : mgSystem(priority), _totaldelta(0), _dt(0), _world(0), _init(init), _debugdraw(0),
+  _frozen(false), F_PPM(init.ppm), INV_PPM(1.0f/ init.ppm)
 {
+  SetHertz(_init.hertz);
   _instance = this;
   Reload();
 }
@@ -100,6 +101,23 @@ void Box2DSystem::Preprocess()
     _world->Step(delta, _init.vel_iters, _init.pos_iters);
     _world->ClearForces();
     _world->DrawDebugData();
+    
+    // Process deletions
+    for(auto& pair : _deletions)
+    {
+      khiter_t iter = _collisionhash.Iterator(pair);
+      if(_collisionhash.ExistsIter(iter) && !_collisionhash.GetValue(iter))
+      {
+        b2CompoundFixture* a = (b2CompoundFixture*)pair.first;
+        b2CompoundFixture* b = (b2CompoundFixture*)pair.second;
+
+        if(a->rsp) a->rsp(b, nullptr);
+        if(b->rsp) b->rsp(a, nullptr);
+
+        _collisionhash.RemoveIter(iter);
+      }
+    }
+    _deletions.Clear();
   }
 }
 Box2DSystem* Box2DSystem::Instance() { return _instance; }
@@ -109,8 +127,39 @@ void Box2DSystem::Postprocess() {}
 void Box2DSystem::SayGoodbye(b2Joint* joint) {}
 void Box2DSystem::SayGoodbye(b2Fixture* fixture) {}
 void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold) {}
-void Box2DSystem::BeginContact(b2Contact* contact) {}
-void Box2DSystem::EndContact(b2Contact* contact) {}
+void Box2DSystem::BeginContact(b2Contact* contact)
+{
+  auto pair = _makepair(contact->GetFixtureA()->GetUserData(), contact->GetFixtureB()->GetUserData());
+
+  khiter_t iter = _collisionhash.Iterator(pair);
+  if(!_collisionhash.ExistsIter(iter)) // Note: It's important to NOT do a function call if the hash exists, even if it's set at 0, because this means a deletion has been canceled out.
+  {
+    b2CompoundFixture* a = (b2CompoundFixture*)pair.first;
+    b2CompoundFixture* b = (b2CompoundFixture*)pair.second;
+
+    if(a->rsp || b->rsp) // Only bother tracking this if there are actually callbacks to call
+    {
+      _collisionhash.Insert(pair, 1);
+      if(a->rsp) a->rsp(b, contact);
+      if(b->rsp) b->rsp(a, contact);
+    }
+  }
+  else
+    _collisionhash.SetValue(iter, _collisionhash.GetValue(iter) + 1);
+}
+void Box2DSystem::EndContact(b2Contact* contact)
+{
+  auto pair = _makepair(contact->GetFixtureA()->GetUserData(), contact->GetFixtureB()->GetUserData());
+
+  khiter_t iter = _collisionhash.Iterator(pair);
+  if(_collisionhash.ExistsIter(iter)) // If it doesn't exist we must have ignored it
+  {
+    uint32_t c = _collisionhash.GetValue(iter) - 1;
+    _collisionhash.SetValue(iter, c);
+    if(!c)
+      _deletions.Add(pair);
+  }
+}
 
 void Box2DSystem::SetHertz(double hertz)
 {

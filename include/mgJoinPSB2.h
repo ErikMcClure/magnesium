@@ -10,7 +10,7 @@
 namespace magnesium {
 #pragma warning(push)
 #pragma warning(disable:4275)
-  class MG_DLLEXPORT psDebugDraw : public mgDebugDraw, public planeshader::psDriverHold, public planeshader::psRenderable, public mgEntityT<psRenderableComponent>
+  class MG_DLLEXPORT psDebugDraw : public mgDebugDraw, public planeshader::psDriverHold, public planeshader::psRenderable
   {
 #pragma warning(pop)
   public:
@@ -21,10 +21,12 @@ namespace magnesium {
     inline virtual void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) override { _drawpolygon(vertices, vertexCount, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
     inline virtual void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) override { _drawcircle(center, radius, planeshader::psColor(0U), planeshader::psColor(color.r, color.g, color.b, _alpha)); }
     inline virtual void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) override { _drawcircle(center, radius, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
+    virtual void DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count) override;
     virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) override;
     virtual void DrawTransform(const b2Transform& xf) override;
     inline float GetAlpha() const { return _alpha; }
     inline void SetAlpha(float alpha) { _alpha = alpha; }
+    virtual psRenderable* Clone() const { return 0; }
 
   private:
     void _drawpolygon(const b2Vec2* vertices, int32 vertexCount, planeshader::psColor& color, planeshader::psColor& outline);
@@ -41,6 +43,7 @@ namespace magnesium {
 
     bss_util::cDynArray<DrawBuf, uint32_t> _drawbuf;
     bss_util::cDynArray<planeshader::psVec, uint32_t> _drawverts;
+    bss_util::Matrix<float, 4, 4> _m;
     float _alpha;
   };
 
@@ -50,8 +53,8 @@ namespace magnesium {
   class MG_DLLEXPORT LiquidFunPlaneshaderSystem : public LiquidFunSystem
   {
   public:
-    LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init);
-    LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init);
+    LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init, int priority = 0);
+    LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init, int priority = 0);
     ~LiquidFunPlaneshaderSystem();
     virtual void Process(mgEntity* entity) override;
     

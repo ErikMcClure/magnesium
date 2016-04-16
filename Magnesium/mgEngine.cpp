@@ -19,7 +19,7 @@ using namespace magnesium;
 
 mgEngine* mgEngine::_instance = 0;
 
-mgEngine::mgEngine() { _instance = this; }
+mgEngine::mgEngine() : _timewarp(1.0) { _instance = this; }
 mgEngine::~mgEngine() { _instance = 0; }
 
 mgEngine* mgEngine::Instance() { return _instance; }
