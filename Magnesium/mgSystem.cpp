@@ -39,13 +39,14 @@ void mgSystemManager::Process()
     mgComponentStoreBase* store = mgComponentStoreBase::GetStore(s->_iterator);
     if(store != 0)
     {
-      auto& entities = store->GetEntityArray();
+      auto& entities = store->GetEntities();
       store->curIteration = 0;
 
-      for(size_t i = 0; i < entities.Length(); ++i)
+      while(entities)
       {
         ++store->curIteration;
-        s->Process(entities[i]);
+        s->Process(*entities);
+        ++entities;
       }
       store->FlushBuffer(); // Delete all the entities whose deletion was postponed because we had already iterated over them.
     }

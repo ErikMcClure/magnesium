@@ -35,32 +35,3 @@ void PlaneshaderSystem::Postprocess()
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();
 }
-template<typename Arg, typename... Args>
-struct mgfindptr { static inline ComponentID f(Arg* arg, Args*... args) { return (arg != nullptr) ? Arg::ID() : mgfindptr<Args...>::f(args...); } };
-template<typename Arg>
-struct mgfindptr<Arg> { static inline ComponentID f(Arg* arg) { return (arg != nullptr) ? Arg::ID() : (ComponentID)~0; }; };
-
-template<typename T, typename... Args>
-inline void mgPSInitComponent(mgEntity* e, Args*... args)
-{
-  ComponentID p = mgfindptr<Args...>::f(args...);
-  if(p != (ComponentID)~0)
-  {
-    T* r = e->Get<T>();
-    if(!r) r = e->Add<T>();
-    r->id = p;
-  }
-}
-
-void PlaneshaderSystem::InitComponents(mgEntity* e)
-{
-  psImageComponent* img = e->Get<psImageComponent>();
-  psTilesetComponent* tile = e->Get<psTilesetComponent>();
-  psTextComponent* text = e->Get<psTextComponent>();
-  psRenderCircleComponent* circ = e->Get<psRenderCircleComponent>();
-  psRoundedRectComponent* rect = e->Get<psRoundedRectComponent>();
-
-  mgPSInitComponent<psRenderableComponent>(e, img, tile, text, circ, rect);
-  mgPSInitComponent<psLocatableComponent>(e, img, tile, text, circ, rect);
-  mgPSInitComponent<psSolidComponent>(e, img, tile, text, circ, rect);
-}

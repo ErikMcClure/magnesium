@@ -45,6 +45,9 @@
     <ClCompile Include="mgRefCounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mgLogic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\mgComponent.h">
@@ -78,6 +81,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\mgRefCounter.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mgLogic.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

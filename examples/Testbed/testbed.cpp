@@ -162,16 +162,15 @@ int main(int argc, char** argv)
 
   // Add the shape to the body.
   auto& fixref = mbody.Get<b2PhysicsComponent>()->AddCompoundFixture(fixtureDef);
-  PlaneshaderSystem::InitComponents(&mbody);
   mbody.Get<psImageComponent>()->SetTexture(psTex::Create("../media/blendtest.png"));
-  mbody.Get<psImageComponent>()->SetPass(&ps[0]);
+  mbody.Get<psImageComponent>()->SetPass();
 
   mgEntityT<psImageComponent, b2PhysicsComponent> test;
   b2BodyDef bd;
   test.Get<b2PhysicsComponent>()->Init(bd);
   mgEntityT<psImageComponent> test2;
   mgEntityT<psImageComponent> test3;
-  
+
   cAudioResource* songref = cAudioResource::Create("../media/idea803.ogg", 0);
   cAudio song(songref);
 
@@ -186,6 +185,8 @@ int main(int argc, char** argv)
     processGUI();
     engine.Process();
   }
+
+  delete player;
 }
 
 struct HINSTANCE__;
