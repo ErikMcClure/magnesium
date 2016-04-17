@@ -16,6 +16,11 @@ namespace magnesium {
     virtual void Process(mgEntity* entity) = 0;
     virtual void Postprocess();
 
+    //typedef unsigned short SystemID; // This doesn't work very well because most systems have singletons anyway
+    //static SystemID sysid;
+    //template<class T>
+    //static SystemID ID() { static SystemID value = sysid++; return value; }
+
   protected:
     friend class mgSystemManager;
 

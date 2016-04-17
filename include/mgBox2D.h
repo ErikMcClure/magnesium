@@ -24,8 +24,8 @@ namespace magnesium {
     b2CompoundFixture(b2Fixture* fixture);
     b2CompoundFixture(b2CompoundFixture&& mov);
     ~b2CompoundFixture();
-    b2Fixture* BSS_FASTCALL AddFixture(const b2FixtureDef& fd);
-    b2Fixture* BSS_FASTCALL AddFixture(const b2Shape& shape, float density);
+    //b2Fixture* BSS_FASTCALL AddFixture(const b2FixtureDef& fd);
+    //b2Fixture* BSS_FASTCALL AddFixture(const b2Shape& shape, float density);
     inline b2PhysicsComponent* GetParent();
 
     void* userdata;
@@ -42,10 +42,10 @@ namespace magnesium {
       b2Fixture* other;
       b2Vec2 point;
       b2Vec2 normal;
-      bool created;
+      enum : char { STATE_CHANGE = -1, STATE_DESTROYED = 1, STATE_CREATED = 0 } state;
     };
 
-    b2PhysicsComponent();
+    b2PhysicsComponent(mgEntity* e);
     b2PhysicsComponent(b2PhysicsComponent&& mov);
     ~b2PhysicsComponent();
     void Init(const b2BodyDef& def);
@@ -69,8 +69,8 @@ namespace magnesium {
     inline b2CompoundFixture& BSS_FASTCALL GetCompoundFixture(size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
     inline const b2CompoundFixture& BSS_FASTCALL GetCompoundFixture(size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
     // Creates a new compound fixture with a single fixture inside it
-    b2CompoundFixture& BSS_FASTCALL AddCompoundFixture(const b2FixtureDef& fd);
-    b2CompoundFixture& BSS_FASTCALL AddCompoundFixture(const b2Shape& shape, float density);
+    b2CompoundFixture& BSS_FASTCALL AddCompoundFixture(const b2FixtureDef& fd, bool append = true);
+    b2CompoundFixture& BSS_FASTCALL AddCompoundFixture(const b2Shape& shape, float density, bool append = true);
     // Gets/Sets the collision response 
     const std::function<void(b2PhysicsComponent*, ContactPoint&)>& GetCPResponse() const { return _rcp; }
     template<typename U> //void(b2PhysicsComponent*, ContactPoint&)

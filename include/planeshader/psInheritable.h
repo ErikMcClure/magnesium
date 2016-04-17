@@ -30,6 +30,7 @@ namespace planeshader {
     // Gets all the flags inherited from the parent
     virtual psFlag GetAllFlags() const override { return !_parent?_flags:(_flags|(_parent->GetAllFlags()&PSFLAG_INHERITABLE)); }
     // Overloads SetPass so it propogates to our children
+    inline void BSS_FASTCALL SetPass() { psRenderable::SetPass(); }
     virtual void BSS_FASTCALL SetPass(psPass* pass) override;
     // Clone function
     virtual psInheritable* Clone() const override { return 0; }

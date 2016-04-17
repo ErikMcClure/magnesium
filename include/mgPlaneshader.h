@@ -13,15 +13,20 @@
 #include "planeshader\psEngine.h"
 
 namespace magnesium {
-  struct MG_DLLEXPORT psRenderableComponent : mgComponent<psRenderableComponent> { ComponentID id; typedef planeshader::psRenderable TYPE; };
-  struct MG_DLLEXPORT psLocatableComponent : mgComponent<psLocatableComponent> { ComponentID id; typedef planeshader::psLocatable TYPE; };
-  struct MG_DLLEXPORT psSolidComponent : mgComponent<psSolidComponent> { ComponentID id; typedef planeshader::psSolid TYPE; };
+  struct MG_DLLEXPORT psRenderableComponent : mgComponent<psRenderableComponent> { explicit psRenderableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psRenderable TYPE; };
+  struct MG_DLLEXPORT psLocatableComponent : mgComponent<psLocatableComponent> { explicit psLocatableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psLocatable TYPE; };
+  struct MG_DLLEXPORT psSolidComponent : mgComponent<psSolidComponent> { explicit psSolidComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psSolid TYPE; };
 
   template<class T, class D>
   struct psGenericComponent : D, mgComponent<T, bss_util::CARRAY_MOVE>
   {
-    psGenericComponent() {}
-    psGenericComponent(psGenericComponent&& mov) : D(std::move(mov)) {}
+    psGenericComponent(mgEntity* e) : mgComponent<T, bss_util::CARRAY_MOVE>(e)
+    {
+      PlaneshaderSystem::InitComponent<psRenderableComponent>(e, ID());
+      PlaneshaderSystem::InitComponent<psLocatableComponent>(e, ID());
+      PlaneshaderSystem::InitComponent<psSolidComponent>(e, ID());
+    }
+    psGenericComponent(psGenericComponent&& mov) : mgComponent<T, bss_util::CARRAY_MOVE>(std::move(mov)), D(std::move(mov)) {}
     psGenericComponent& operator=(psGenericComponent&& mov) { D::operator=(std::move(mov)); return *this; }
     size_t Message(void* msg, ptrdiff_t msgint)
     {
@@ -33,23 +38,32 @@ namespace magnesium {
         return reinterpret_cast<size_t>(static_cast<psSolid*>(this));
       return 0; 
     }
-    void Construct(mgEntity* e) { PlaneshaderSystem::InitComponents(e); }
   };
 
-  struct MG_DLLEXPORT psImageComponent : psGenericComponent<psImageComponent, planeshader::psImage> { };
-  struct MG_DLLEXPORT psTilesetComponent : psGenericComponent<psTilesetComponent, planeshader::psTileset> { };
-  struct MG_DLLEXPORT psTextComponent : psGenericComponent<psTextComponent, planeshader::psText> { };
-  struct MG_DLLEXPORT psRenderCircleComponent : psGenericComponent<psRenderCircleComponent, planeshader::psRenderCircle> { };
-  struct MG_DLLEXPORT psRoundedRectComponent : psGenericComponent<psRoundedRectComponent, planeshader::psRoundedRect> { };
+  struct MG_DLLEXPORT psImageComponent : psGenericComponent<psImageComponent, planeshader::psImage> { explicit psImageComponent(mgEntity* e=0) : psGenericComponent(e) {} };
+  struct MG_DLLEXPORT psTilesetComponent : psGenericComponent<psTilesetComponent, planeshader::psTileset> { explicit psTilesetComponent(mgEntity* e=0) : psGenericComponent(e) {} };
+  struct MG_DLLEXPORT psTextComponent : psGenericComponent<psTextComponent, planeshader::psText> { explicit psTextComponent(mgEntity* e=0) : psGenericComponent(e) {} };
+  struct MG_DLLEXPORT psRenderCircleComponent : psGenericComponent<psRenderCircleComponent, planeshader::psRenderCircle> { explicit psRenderCircleComponent(mgEntity* e=0) : psGenericComponent(e) {} };
+  struct MG_DLLEXPORT psRoundedRectComponent : psGenericComponent<psRoundedRectComponent, planeshader::psRoundedRect> { explicit psRoundedRectComponent(mgEntity* e=0) : psGenericComponent(e) {} };
 
   class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystem<psRenderableComponent, psRenderableComponent>
   {
   public:
     PlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0);
     ~PlaneshaderSystem();
-    virtual void Process(mgEntity* entity);
-    virtual void Postprocess();
-    static void InitComponents(mgEntity* entity);
+    virtual void Process(mgEntity* entity) override;
+    virtual void Postprocess() override;
+
+    template<typename T>
+    inline static void InitComponent(mgEntity* e, ComponentID p)
+    {
+      if(p != (ComponentID)~0)
+      {
+        T* r = e->Get<T>();
+        if(!r) r = e->Add<T>();
+        r->id = p;
+      }
+    }
 
     template<typename C>
     static typename C::TYPE* ResolveComponent(mgEntity* entity)

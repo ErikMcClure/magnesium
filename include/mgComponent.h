@@ -6,6 +6,7 @@
 
 #include "mgRefCounter.h"
 #include "bss-util/cMap.h"
+#include "bss-util/LLBase.h"
 
 namespace magnesium {
   typedef unsigned short ComponentID;
@@ -20,9 +21,10 @@ namespace magnesium {
 
   static const ComponentBitfield COMPONENTBITFIELD_EMPTY = { 0 };
 
-  struct MG_DLLEXPORT mgEntity : public mgRefCounter
+  struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss_util::LLBase<mgEntity>
   {
     mgEntity();
+    mgEntity(mgEntity&& mov);
     virtual ~mgEntity();
     void ComponentListInsert(ComponentID id, size_t);
     void ComponentListRemove(ComponentID id);
@@ -37,8 +39,12 @@ namespace magnesium {
     size_t id;
     ComponentBitfield components; // bitfield of what components this entity has.
 
+    inline static mgEntity* GetEntityList() { return _entitylist; }
+
   protected: // You can't interact with componentlist directly because it violates DLL bounderies
     bss_util::cMap<ComponentID, size_t, bss_util::CompT<ComponentID>, ComponentID> _componentlist;
+
+    static mgEntity* _entitylist;
   };
 
   template<typename Component, typename... Components>
@@ -63,13 +69,30 @@ namespace magnesium {
       inline static void deallocate(pointer p, size_t = 0) noexcept { mgComponentStoreBase::dllfree(p); }
     };
 
-    typedef bss_util::cDynArray<mgEntity*, size_t, bss_util::CARRAY_SIMPLE, MagnesiumAllocPolicy<mgEntity*>> ENTITY_ARRAY;
+    struct EntityIterator : public std::iterator<std::bidirectional_iterator_tag, mgEntity*> {
+      inline EntityIterator(void* p_, size_t len_, size_t type_) : p(reinterpret_cast<uint8_t*>(p_)), end(reinterpret_cast<uint8_t*>(p_) + (len_*type_)), type(type_) {}
+      inline mgEntity* operator*() const { return *reinterpret_cast<mgEntity**>(p); }
+      inline EntityIterator& operator++() { p += type; return *this; } //prefix
+      inline EntityIterator operator++(int) { EntityIterator r(*this); ++*this; return r; } //postfix
+      inline EntityIterator& operator--() { p -= type; return *this; } //prefix
+      inline EntityIterator operator--(int) { EntityIterator r(*this); --*this; return r; } //postfix
+      inline bool operator==(const EntityIterator& _Right) const { return (p == _Right.p); }
+      inline bool operator!=(const EntityIterator& _Right) const { return (p != _Right.p); }
+      inline bool operator!() const { return !IsValid(); }
+      inline operator bool() const { return IsValid(); }
+      inline bool IsValid() const { return reinterpret_cast<size_t>(p) < reinterpret_cast<size_t>(end); }
+
+      uint8_t* p;
+      uint8_t* end;
+      size_t type;
+    };
 
     mgComponentStoreBase(ComponentID id);
     ~mgComponentStoreBase();
     virtual bool RemoveInternal(ComponentID id, size_t index) = 0; // we have to pass a component's own ID to it's remove function because this gets called from inside the DLL, which does not have access to the correct static instances
     virtual size_t MessageComponent(size_t index, void* msg, ptrdiff_t msgint) = 0;
-    virtual const ENTITY_ARRAY& GetEntityArray() const = 0;
+    virtual EntityIterator GetEntities() const = 0;
+    virtual mgEntity** GetEntity(size_t index) = 0;
     virtual void FlushBuffer() = 0;
 
     static mgComponentStoreBase* GetStore(ComponentID id);
@@ -97,19 +120,23 @@ namespace magnesium {
     }
     size_t Add(mgEntity* p)
     { 
-      _refs.Add(p);
-      size_t index = _store.AddConstruct(); 
-      _store[index].Construct(p);
+      size_t index = _store.AddConstruct(p); 
+      //_store.Back().entity = p; 
+      assert(_store.Back().entity == p);
       p->ComponentListInsert(_id, index);
       p->components += _id;
       return index;
     }
     T* Get(size_t index = 0) { return (index < _store.Length()) ? _store.begin() + index : nullptr; }
-    virtual const mgComponentStoreBase::ENTITY_ARRAY& GetEntityArray() const override { return _refs; }
+    virtual mgEntity** GetEntity(size_t index) override { return (index < _store.Length()) ? &_store[index].entity : nullptr; }
+    virtual EntityIterator GetEntities() const override // By getting the address of the entity, this will work no matter what the inheritance structure of T is
+    { 
+      return EntityIterator(const_cast<mgEntity**>(&_store.begin()->entity), _store.Length(), sizeof(T));
+    }
     bool Remove(size_t index)
     {
-      if(index >= _refs.Length()) return false;
-      mgEntity* e = _refs[index];
+      if(index >= _store.Length()) return false;
+      mgEntity* e = _store[index].entity;
       e->ComponentListRemove(_id);
       e->components -= _id;
       return RemoveInternal(_id, index);
@@ -136,19 +163,20 @@ namespace magnesium {
         _buf.Add(index);
         return true;
       }
-      size_t last = _refs.Length() - 1;
+      size_t last = _store.Length() - 1;
       if(index < last)
       {
-        _refs[index] = _refs[last]; // Update the reference FIRST so the moved entity can find itself
-        _store[index] = std::move(_store[last]);
-        _refs[index]->ComponentListGet(id) = index; // update the entity's tracked index
+        _store[index].~T();
+        new (_store.begin() + index) T(std::move(_store[last]));
+        //_store[index] = std::move(_store[last]);
+        //_store[index].entity = _store[last].entity;
+        assert(_store[index].entity == _store[last].entity);
+        _store[index].entity->ComponentListGet(id) = index; // update the entity's tracked index
       }
       _store.RemoveLast();
-      _refs.RemoveLast();
       return true;
     }
     bss_util::cDynArray<T, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<T>> _store;
-    mgComponentStoreBase::ENTITY_ARRAY _refs;
     bss_util::cDynArray<size_t, size_t, bss_util::CARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumAllocPolicy<size_t>> _buf; // Buffered deletes
   };
 
@@ -157,10 +185,16 @@ namespace magnesium {
   template<typename T, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
   struct mgComponent : mgComponentCounter
   {
+    explicit mgComponent(mgEntity* e) : entity(e) {}
+    mgComponent(const mgComponent& copy) : entity(copy.entity) {}
+    mgComponent(mgComponent&& copy) : entity(copy.entity) {}
     static ComponentID ID() { static ComponentID value = curID++; return value; }
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
     size_t Message(void* msg, ptrdiff_t msgint) { return 0; } // Not virtual so we don't accidentally add a virtual function table to everything. Instead, this should be masked by the appropriate component, which will then get called by it's store.
-    void Construct(mgEntity* e) {}
+    mgEntity* entity;
+
+    mgComponent& operator=(const mgComponent& copy) { entity = copy.entity; return *this; }
+    mgComponent& operator=(mgComponent&& copy) { entity = copy.entity; return *this; }
   };
 }
 

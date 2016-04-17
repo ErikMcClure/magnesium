@@ -21,6 +21,8 @@ int mgRefCounter::DropAll()
         cur->DestroyThis();
       cur = _refbuffer[cur];
     }
+    _reflast = nullptr;
+    _refbuffer.Clear();
   }
 
   return _refdefer;

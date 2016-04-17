@@ -352,6 +352,7 @@
     <ClCompile Include="mgEngine.cpp" />
     <ClCompile Include="mgJoinPSB2.cpp" />
     <ClCompile Include="mgLiquidFun.cpp" />
+    <ClCompile Include="mgLogic.cpp" />
     <ClCompile Include="mgPlaneshader.cpp" />
     <ClCompile Include="mgRefCounter.cpp" />
     <ClCompile Include="mgSystem.cpp" />
@@ -364,6 +365,7 @@
     <ClInclude Include="..\include\mgEngine.h" />
     <ClInclude Include="..\include\mgJoinPSB2.h" />
     <ClInclude Include="..\include\mgLiquidFun.h" />
+    <ClInclude Include="..\include\mgLogic.h" />
     <ClInclude Include="..\include\mgPlaneshader.h" />
     <ClInclude Include="..\include\mgRefCounter.h" />
     <ClInclude Include="..\include\mgSystem.h" />

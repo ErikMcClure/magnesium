@@ -19,12 +19,12 @@ inline b2PhysicsComponent* b2CompoundFixture::GetParent()
   return 0;
 }
 
-b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : _body(mov._body), _userdata(mov._body), _fixtures(std::move(mov._fixtures))
+b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _fixtures(std::move(mov._fixtures))
 { 
   mov._body = 0;
   mov._userdata = 0;
 }
-b2PhysicsComponent::b2PhysicsComponent() : _body(0), _userdata(0) {}
+b2PhysicsComponent::b2PhysicsComponent(mgEntity* e) : mgComponent(e), _body(0), _userdata(0) {}
 b2PhysicsComponent::~b2PhysicsComponent() { _destruct(); }
 void b2PhysicsComponent::_destruct()
 {
@@ -40,16 +40,26 @@ void b2PhysicsComponent::Init(const b2BodyDef& def)
   _userdata = def.userData;
   _body->SetUserData(this);
 }
-b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2FixtureDef& fd)
+b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2FixtureDef& fd, bool append)
 { 
   assert(_body);
-  _fixtures.push_back(std::unique_ptr<b2CompoundFixture>(new b2CompoundFixture(_body->CreateFixture(&fd))));
+  b2Fixture* f = _body->CreateFixture(&fd);
+  if(!append || !_fixtures.size())
+    _fixtures.push_back(std::unique_ptr<b2CompoundFixture>(new b2CompoundFixture(f)));
+  else
+    f->SetUserData(_fixtures.back().get());
+
   return *_fixtures.back();
 }
-b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2Shape& shape, float density)
+b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2Shape& shape, float density, bool append)
 { 
   assert(_body);
-  _fixtures.push_back(std::unique_ptr<b2CompoundFixture>(new b2CompoundFixture(_body->CreateFixture(&shape, density))));
+  b2Fixture* f = _body->CreateFixture(&shape, density);
+  if(!append || !_fixtures.size())
+    _fixtures.push_back(std::unique_ptr<b2CompoundFixture>(new b2CompoundFixture(f)));
+  else
+    f->SetUserData(_fixtures.back().get());
+
   return *_fixtures.back();
 }
 b2Vec2 BSS_FASTCALL b2PhysicsComponent::GetPosition() const
@@ -126,7 +136,19 @@ void Box2DSystem::Postprocess() {}
 
 void Box2DSystem::SayGoodbye(b2Joint* joint) {}
 void Box2DSystem::SayGoodbye(b2Fixture* fixture) {}
-void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold) {}
+void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
+{
+  b2CompoundFixture* a = (b2CompoundFixture*)contact->GetFixtureA()->GetUserData();
+  b2CompoundFixture* b = (b2CompoundFixture*)contact->GetFixtureB()->GetUserData();
+  auto& af = a->GetParent()->GetCPResponse();
+  auto& bf = b->GetParent()->GetCPResponse();
+  if(af || bf)
+  {
+    b2PointState s1[b2_maxManifoldPoints];
+    b2PointState s2[b2_maxManifoldPoints];
+    b2GetPointStates(s1, s2, oldManifold, contact->GetManifold());
+  }
+}
 void Box2DSystem::BeginContact(b2Contact* contact)
 {
   auto pair = _makepair(contact->GetFixtureA()->GetUserData(), contact->GetFixtureB()->GetUserData());
