@@ -6,10 +6,42 @@
 
 #include "psDriver.h"
 #include "psStateblock.h"
+#include "psColor.h"
 #include "bss-util/cRefCounter.h"
 #include "bss-util/cSmartPtr.h"
 
 namespace planeshader {
+  class PS_DLLEXPORT psPixelArray : public psDriverHold
+  {
+    struct psPixelColumn {
+      struct psPixel {
+        void* p;
+        FORMATS fmt;
+        operator psColor() const { psColor c; c.ReadFormat(fmt, p); return c; }
+        operator psColor32() const { psColor32 c; c.ReadFormat(fmt, p); return c; }
+        psPixel& operator=(const psColor& c) { c.WriteFormat(fmt, p); return *this; }
+        psPixel& operator=(const psColor32& c) { c.WriteFormat(fmt, p); return *this; }
+      };
+      uint8_t* column;
+      uint32_t pitch;
+      FORMATS fmt;
+
+      inline psPixel operator[](uint32_t index) { return psPixel { column + pitch*index, fmt }; }
+    };
+
+  public:
+    psPixelArray(void* res, FORMATS format, uint8_t lockflags = LOCK_READ, uint8_t miplevel = 0);
+    ~psPixelArray();
+    inline psPixelColumn operator[](uint32_t index) { return psPixelColumn {_mem + (psColor::BitsPerPixel(_fmt) >> 3)*index, _rowpitch, _fmt}; }
+
+  protected:
+    uint8_t* _mem;
+    void* _res;
+    uint32_t _rowpitch;
+    uint8_t _miplevel;
+    FORMATS _fmt;
+  };
+
   // Encapsulates an arbitrary texture not necessarily linked to an actual image
   class PS_DLLEXPORT psTex : public bss_util::cRefCounter, psDriverHold // The reference counter is optional
   {
@@ -30,7 +62,8 @@ namespace planeshader {
     inline FORMATS GetFormat() const { return _format; }
     inline void* Lock(uint32_t& rowpitch, psVeciu offset, uint8_t lockflags = LOCK_WRITE_DISCARD, uint8_t miplevel=0);
     inline void Unlock(uint8_t miplevel=0);
-    
+    inline psPixelArray LockPixels(uint8_t lockflags = LOCK_WRITE_DISCARD, uint8_t miplevel = 0) { return psPixelArray(_res, _format, lockflags, miplevel); }
+
     // Attempts to resize the texture using the given method. Returns false if the attempt failed - if the attempt failed, the texture will not have been modified.
     enum RESIZE { RESIZE_DISCARD, RESIZE_CLIP, RESIZE_STRETCH };
     inline bool Resize(psVeciu dim, RESIZE resize = RESIZE_DISCARD);

@@ -26,6 +26,7 @@ namespace planeshader {
     explicit inline psColor(psVec3D rgb, float alpha=1.0f) : BASE(rgb.x,rgb.y,rgb.z,alpha) { }
     explicit inline psColor(float rgb=0.0f, float alpha=1.0f) : BASE(rgb,rgb,rgb,alpha) { }
     uint16_t BSS_FASTCALL WriteFormat(FORMATS format, void* target) const;
+    uint16_t BSS_FASTCALL ReadFormat(FORMATS format, const void* target);
 
     inline const psColor ToHSVA() const
     {
@@ -150,6 +151,7 @@ namespace planeshader {
     inline psColor32& operator=(uint32_t c) { color=c; return *this; }
     inline operator uint32_t() const { return color; }
     uint16_t BSS_FASTCALL WriteFormat(FORMATS format, void* target) const;
+    uint16_t BSS_FASTCALL ReadFormat(FORMATS format, const void* target);
 
     union
     {

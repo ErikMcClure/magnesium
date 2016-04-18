@@ -115,9 +115,7 @@ namespace magnesium {
   {
   public:
     mgComponentStore() : mgComponentStoreBase(T::ID()) {}
-    ~mgComponentStore() {
-      while(RemoveInternal(_id, 0)); // Remove all components by simply removing the root component until there are none left. This only takes O(n) time because the replacement operation is O(1)
-    }
+    ~mgComponentStore() { Clear(); }
     size_t Add(mgEntity* p)
     { 
       size_t index = _store.AddConstruct(p); 
@@ -153,6 +151,7 @@ namespace magnesium {
       if(index >= _store.Length()) return 0;
       return _store[index].Message(msg, msgint);
     }
+    void Clear() { while(RemoveInternal(_id, 0)); } // Remove all components by simply removing the root component until there are none left. This only takes O(n) time because the replacement operation is O(1)
 
   protected:
     virtual bool RemoveInternal(ComponentID id, size_t index) override
