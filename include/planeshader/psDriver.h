@@ -309,7 +309,7 @@ namespace planeshader {
   class PS_DLLEXPORT psDriver
   {
   protected:
-    psDriver(const psVeciu& Screendim) : screendim(Screendim) {}
+    psDriver(const psVeciu& Screendim) : rawscreendim(Screendim) {}
 
   public:
     virtual ~psDriver() {}

@@ -33,7 +33,7 @@ namespace planeshader {
     inline void BSS_FASTCALL SetPass() { psRenderable::SetPass(); }
     virtual void BSS_FASTCALL SetPass(psPass* pass) override;
     // Clone function
-    virtual psInheritable* Clone() const override { return 0; }
+    virtual psInheritable* Clone() const { return 0; }
     virtual psTex* const* GetRenderTargets() const override;
     virtual uint8_t NumRT() const override;
     virtual void BSS_FASTCALL SetZOrder(int zorder) override;

@@ -34,6 +34,7 @@ mgEntity::~mgEntity()
     mgComponentStoreBase::RemoveComponent(pair.first, pair.second);
   LLRemove<mgEntity>(this, _entitylist);
 }
+
 void mgEntity::ComponentListInsert(ComponentID id, size_t index)
 {
   _componentlist.Insert(id, index);

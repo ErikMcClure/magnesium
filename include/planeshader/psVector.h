@@ -30,7 +30,6 @@ namespace planeshader {
     static const int CURVEBUFSIZE = 512 * 3;
     static inline psVec FromQuad(QuadVertex& v) { return psVec(v.x, v.y); }
     static void SetVert(float(&v)[4], psVec& x, float thickness);
-    virtual psQuadraticHull* Clone() const override { return 0; }
 
   protected:
     virtual void BSS_FASTCALL _render() override;
@@ -48,7 +47,6 @@ namespace planeshader {
     inline void SetThickness(float thickness) { _thickness = thickness; }
     inline float GetThickness() const { return _thickness; }
     inline const psVec(&Get() const)[3] { return _p; }
-    virtual psQuadraticCurve* Clone() const override { return 0; }
 
   protected:
     psVec _p[3];

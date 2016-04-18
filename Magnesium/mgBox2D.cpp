@@ -96,6 +96,7 @@ Box2DSystem::Box2DSystem(const B2INIT& init, int priority) : mgSystem(priority),
 }
 Box2DSystem::~Box2DSystem()
 {
+  b2PhysicsComponent::Store().Clear(); // Clear all components out BEFORE we delete the world, otherwise things get mad.
   _instance = 0;
   Unload();
 }

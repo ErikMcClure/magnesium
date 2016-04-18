@@ -18,7 +18,7 @@ namespace magnesium {
   struct MG_DLLEXPORT psSolidComponent : mgComponent<psSolidComponent> { explicit psSolidComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psSolid TYPE; };
 
   template<class T, class D>
-  struct psGenericComponent : D, mgComponent<T, bss_util::CARRAY_MOVE>
+  struct psGenericComponent : mgComponent<T, bss_util::CARRAY_MOVE>, D
   {
     psGenericComponent(mgEntity* e) : mgComponent<T, bss_util::CARRAY_MOVE>(e)
     {
@@ -27,15 +27,15 @@ namespace magnesium {
       PlaneshaderSystem::InitComponent<psSolidComponent>(e, ID());
     }
     psGenericComponent(psGenericComponent&& mov) : mgComponent<T, bss_util::CARRAY_MOVE>(std::move(mov)), D(std::move(mov)) {}
-    psGenericComponent& operator=(psGenericComponent&& mov) { D::operator=(std::move(mov)); return *this; }
+    psGenericComponent& operator=(psGenericComponent&& mov) { mgComponent::operator=(std::move(mov)); D::operator=(std::move(mov)); return *this; }
     size_t Message(void* msg, ptrdiff_t msgint)
     {
       if(msgint == psRenderableComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<psRenderable*>(this));
+        return reinterpret_cast<size_t>(static_cast<planeshader::psRenderable*>(this));
       if(msgint == psLocatableComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<psLocatable*>(this));
+        return reinterpret_cast<size_t>(static_cast<planeshader::psLocatable*>(this));
       if(msgint == psSolidComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<psSolid*>(this));
+        return reinterpret_cast<size_t>(static_cast<planeshader::psSolid*>(this));
       return 0; 
     }
   };
@@ -73,6 +73,21 @@ namespace magnesium {
         return reinterpret_cast<typename C::TYPE*>(mgComponentStoreBase::MessageComponent(c->id, entity->ComponentListGet(c->id), 0, C::ID()));
       return 0;
     }
+  };
+
+  struct MG_DLLEXPORT RawRenderableComponent : mgComponent<RawRenderableComponent, bss_util::CARRAY_MOVE>, planeshader::psRenderable
+  {
+    explicit RawRenderableComponent(mgEntity* e = 0) : mgComponent(e) { PlaneshaderSystem::InitComponent<psRenderableComponent>(e, ID()); }
+    RawRenderableComponent(RawRenderableComponent&& mov) : mgComponent(std::move(mov)), planeshader::psRenderable(std::move(mov)) {}
+    RawRenderableComponent& operator=(RawRenderableComponent&& mov) { mgComponent::operator=(std::move(mov)); planeshader::psRenderable::operator=(std::move(mov)); return *this; }
+    size_t Message(void* msg, ptrdiff_t msgint)
+    {
+      if(msgint == psRenderableComponent::ID())
+        return reinterpret_cast<size_t>(static_cast<planeshader::psRenderable*>(this));
+      return 0;
+    }
+    virtual void _render() { if(render) render(entity); }
+    void(*render)(mgEntity* e);
   };
 }
 

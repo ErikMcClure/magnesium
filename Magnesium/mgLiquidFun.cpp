@@ -28,6 +28,7 @@ LiquidFunSystem::LiquidFunSystem(const B2INIT& init, int priority) : Box2DSystem
 }
 LiquidFunSystem::~LiquidFunSystem()
 {
+  b2PhysicsComponent::Store().Clear(); // Clear all components out BEFORE we delete the world, otherwise things get mad.
   Unload();
 }
 void LiquidFunSystem::Preprocess()

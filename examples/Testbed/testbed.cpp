@@ -185,8 +185,6 @@ int main(int argc, char** argv)
     processGUI();
     engine.Process();
   }
-
-  delete player;
 }
 
 struct HINSTANCE__;
