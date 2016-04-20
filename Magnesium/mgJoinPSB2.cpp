@@ -80,14 +80,14 @@ void psDebugDraw::_render()
 
 void magnesium::Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos)
 {
-  b2PhysicsComponent* b = entity->Get<b2PhysicsComponent>();
+  auto b = entity->Get<b2PhysicsComponent>();
   psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
   if(r) r->SetPosition(pos);
   if(b) b->SetPosition(b2Vec2(pos.x, pos.y));
 }
 void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 {
-  b2PhysicsComponent* b = entity->Get<b2PhysicsComponent>();
+  auto b = entity->Get<b2PhysicsComponent>();
   psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
   if(r) r->SetRotation(rotation);
   if(b) b->SetRotation(rotation);
@@ -98,7 +98,7 @@ LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const LiquidFunSystem::LF
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
 void LiquidFunPlaneshaderSystem::Process(mgEntity* entity)
 {
-  b2PhysicsComponent* b = entity->Get<b2PhysicsComponent>();
+  auto b = entity->Get<b2PhysicsComponent>();
   psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
   if(r)
   {

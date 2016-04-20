@@ -48,6 +48,12 @@
     <ClCompile Include="mgLogic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mgControlMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\mgComponent.h">
@@ -84,6 +90,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\mgLogic.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mgControlMap.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mgEntity.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
