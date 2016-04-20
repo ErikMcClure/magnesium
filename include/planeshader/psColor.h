@@ -148,6 +148,8 @@ namespace planeshader {
     psColor32(uint8_t A, uint8_t R, uint8_t G, uint8_t B) : a(A), r(R), g(G), b(B) {}
     explicit psColor32(uint8_t(&c)[4]) : a(c[0]), r(c[1]), g(c[2]), b(c[3]) {}
     psColor32(uint32_t c) : color(c) {}
+    inline bool operator==(const psColor32& c) { return color == c.color; }
+    inline bool operator!=(const psColor32& c) { return color != c.color; }
     inline psColor32& operator=(uint32_t c) { color=c; return *this; }
     inline operator uint32_t() const { return color; }
     uint16_t BSS_FASTCALL WriteFormat(FORMATS format, void* target) const;

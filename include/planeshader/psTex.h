@@ -13,26 +13,27 @@
 namespace planeshader {
   class PS_DLLEXPORT psPixelArray : public psDriverHold
   {
-    struct psPixelColumn {
+    struct psPixelRow {
       struct psPixel {
         void* p;
         FORMATS fmt;
-        operator psColor() const { psColor c; c.ReadFormat(fmt, p); return c; }
-        operator psColor32() const { psColor32 c; c.ReadFormat(fmt, p); return c; }
-        psPixel& operator=(const psColor& c) { c.WriteFormat(fmt, p); return *this; }
-        psPixel& operator=(const psColor32& c) { c.WriteFormat(fmt, p); return *this; }
+        inline psColor Color() const { psColor c; c.ReadFormat(fmt, p); return c; }
+        inline psColor32 Color32() const { psColor32 c; c.ReadFormat(fmt, p); return c; }
+        inline operator psColor() const { return Color(); }
+        inline operator psColor32() const { return Color32(); }
+        inline psPixel& operator=(const psColor& c) { c.WriteFormat(fmt, p); return *this; }
+        inline psPixel& operator=(const psColor32& c) { c.WriteFormat(fmt, p); return *this; }
       };
-      uint8_t* column;
-      uint32_t pitch;
+      uint8_t* row;
       FORMATS fmt;
 
-      inline psPixel operator[](uint32_t index) { return psPixel { column + pitch*index, fmt }; }
+      inline psPixel operator[](uint32_t index) { return psPixel { row + (psColor::BitsPerPixel(fmt) >> 3)*index, fmt }; }
     };
 
   public:
     psPixelArray(void* res, FORMATS format, uint8_t lockflags = LOCK_READ, uint8_t miplevel = 0);
     ~psPixelArray();
-    inline psPixelColumn operator[](uint32_t index) { return psPixelColumn {_mem + (psColor::BitsPerPixel(_fmt) >> 3)*index, _rowpitch, _fmt}; }
+    inline psPixelRow operator[](uint32_t index) { return psPixelRow { _mem + _rowpitch*index, _fmt }; }
 
   protected:
     uint8_t* _mem;

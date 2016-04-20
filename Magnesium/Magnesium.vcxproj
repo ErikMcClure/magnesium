@@ -349,7 +349,9 @@
   <ItemGroup>
     <ClCompile Include="mgBox2D.cpp" />
     <ClCompile Include="mgComponent.cpp" />
+    <ClCompile Include="mgControlMap.cpp" />
     <ClCompile Include="mgEngine.cpp" />
+    <ClCompile Include="mgEntity.cpp" />
     <ClCompile Include="mgJoinPSB2.cpp" />
     <ClCompile Include="mgLiquidFun.cpp" />
     <ClCompile Include="mgLogic.cpp" />
@@ -362,7 +364,9 @@
     <ClInclude Include="..\include\Magnesium.h" />
     <ClInclude Include="..\include\mgBox2D.h" />
     <ClInclude Include="..\include\mgComponent.h" />
+    <ClInclude Include="..\include\mgControlMap.h" />
     <ClInclude Include="..\include\mgEngine.h" />
+    <ClInclude Include="..\include\mgEntity.h" />
     <ClInclude Include="..\include\mgJoinPSB2.h" />
     <ClInclude Include="..\include\mgLiquidFun.h" />
     <ClInclude Include="..\include\mgLogic.h" />
