@@ -21,19 +21,20 @@ namespace planeshader {
     psCamera(const psCamera& copy);
     explicit psCamera(const psVec3D& position = psVec3D(0, 0, -1.0f), FNUM rotation = 0.0f, const psVec& pivot = VEC_ZERO, const psVec& extent = default_extent);
     ~psCamera();
-    // Gets the absolute mouse coordinates with respect to this camera.
-    psVec GetMouseAbsolute() const;
+    // Gets the absolute mouse coordinates with respect to this camera. If RT is null, uses the primary monitor.
+    psVec GetMouseAbsolute(const psTex* rt = 0) const;
     // Gets a rect representing the visible area of this camera in absolute coordinates given the provided flags.
     const psRectRotate BSS_FASTCALL GetScreenRect(psFlag flags=0) const;
     // Gets or sets the viewport of the camera
     const psRect& GetViewPort() const { return _viewport; }
-    void BSS_FASTCALL SetViewPort(const psRect& vp); // The viewport must be in pixels, but fractional values are technically valid here if rendering at a strange DPI
-    void BSS_FASTCALL SetPivotAbs(const psVec& pivot);
+    inline void BSS_FASTCALL SetViewPort(const psRect& vp) { _viewport = vp; }
+    void BSS_FASTCALL SetViewPortAbs(const psRect& vp, const psTex* rt = 0); // The viewport must be in pixels, but fractional values are technically valid here if rendering at a strange DPI
+    void BSS_FASTCALL SetPivotAbs(const psVec& pivot, const psTex* rt = 0);
     inline const psVec& GetExtent() const { return _extent; }
     inline void BSS_FASTCALL SetExtent(float znear, float zfar) { _extent.x = znear; _extent.y = zfar; }
     inline void BSS_FASTCALL SetExtent(const psVec& extent) { _extent = extent; }
     inline psCamera& operator =(const psCamera& copy) { psLocatable::operator =(copy); return *this; }
-    inline const psRect& Apply() const;
+    inline const psRect& Apply(const psTex* rt) const;
     inline bool Cull(psSolid* solid) const;
     inline bool Cull(const psRectRotateZ& rect, psFlag flags) const;
 

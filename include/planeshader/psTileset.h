@@ -34,7 +34,7 @@ namespace planeshader {
     inline psVeci GetTileDim() const { return _tiledim; }
     void SetTileDim(psVeci tiledim);
     uint32_t AutoGenDefs(psVec dim);
-    uint32_t AddTileDef(psRect uv, psVec dim, psVec offset = VEC_ZERO);
+    uint32_t AddTileDef(psRect uv, psVec dim, psVec offset = VEC_ZERO, int level = 0);
     bool SetTile(psVeci pos, uint32_t index, uint32_t color = 0xFFFFFFFF, float rotate = 0, psVec pivot = VEC_ZERO);
     void SetTiles(psTile* tiles, uint32_t num, uint32_t pitch);
     inline psVeci GetDimIndex() const { return psVeci(_rowlength, _tiles.Length()/_rowlength); }
@@ -55,7 +55,9 @@ namespace planeshader {
 
   protected:
     virtual void BSS_FASTCALL _render() override;
-
+    template<class T>
+    BSS_FORCEINLINE bool _drawcheck(T* drawn, uint32_t k, int level) { return (k < _tiles.Length()) && !bss_util::bssGetBit<T>(drawn, k) && (level < _defs[_tiles[k].index].level); }
+    
     uint32_t _rowlength;
     psVeci _tiledim; // Size of the actual tile for figuring out where to put each tile.
     bss_util::cDynArray<psTileDef, uint32_t> _defs; // For each tile indice, stores what the actual UV coordinates of that tile are and what the offset is

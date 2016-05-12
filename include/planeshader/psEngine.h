@@ -22,22 +22,13 @@ namespace planeshader {
 
   struct PSINIT
   {
-    inline PSINIT() : width(0), height(0), driver(RealDriver::DRIVERTYPE_DX11), mode(MODE_WINDOWED), vsync(false), sRGB(false),
+    inline PSINIT() : width(0), height(0), driver(RealDriver::DRIVERTYPE_DX11), mode(psMonitor::MODE_WINDOWED), vsync(false), sRGB(false),
       antialias(0), errout(0), mediapath("") {}
 
     int width;
     int height;
     RealDriver::DRIVERTYPE driver;
-    enum MODE : char {
-      MODE_WINDOWED = 0,
-      MODE_FULLSCREEN,
-      MODE_BORDERLESS_TOPMOST,
-      MODE_BORDERLESS,
-      MODE_COMPOSITE,
-      MODE_COMPOSITE_CLICKTHROUGH,
-      MODE_COMPOSITE_NOMOVE,
-      MODE_COMPOSITE_OPAQUE_CLICK,
-    } mode;
+    psMonitor::MODE mode;
     bool vsync;
     bool sRGB;
     uint8_t antialias;
@@ -62,8 +53,6 @@ namespace planeshader {
   // Core engine object
   class PS_DLLEXPORT psEngine : public psGUIManager, public bss_util::cLog, public psDriverHold
   {
-    static const uint8_t PSENGINE_QUIT = (1<<0);
-
   public:
     // Constructor
     psEngine(const PSINIT& init);
@@ -89,12 +78,8 @@ namespace planeshader {
     // Gets a pass. The 0th pass always exists.
     inline psPass* GetPass(uint16_t index=0) const { return index<_passes.Capacity()?_passes[index]:0; }
     inline uint16_t NumPass() const { return _passes.Capacity(); }
-    // Get/Sets the quit value
-    inline void Quit() { _flags+=PSENGINE_QUIT; }
-    inline bool GetQuit() const { return _flags[PSENGINE_QUIT]; }
     inline const char* GetMediaPath() const { return _mediapath.c_str(); }
-    inline PSINIT::MODE GetMode() const { return _mode; }
-    void Resize(psVeciu dim, PSINIT::MODE mode);
+    inline psMonitor::MODE GetMode() const { return _mode; }
 
     psPass& operator [](uint16_t index) { assert(index<_passes.Capacity()); return *_passes[index]; }
     const psPass& operator [](uint16_t index) const { assert(index<_passes.Capacity()); return *_passes[index]; }
@@ -102,14 +87,11 @@ namespace planeshader {
     static psEngine* Instance(); // Cannot be inline'd for DLL reasons.
 
   protected:
-    virtual void _onresize(uint32_t width, uint32_t height) override;
-
     bss_util::cArray<psPass*, uint16_t> _passes;
-    bss_util::cBitField<uint8_t> _flags;
     uint16_t _curpass;
     psPass* _mainpass;
     cStr _mediapath;
-    PSINIT::MODE _mode;
+    psMonitor::MODE _mode;
     uint64_t _frameprofiler;
 
     static psEngine* _instance;

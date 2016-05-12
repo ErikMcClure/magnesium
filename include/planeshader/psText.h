@@ -16,7 +16,7 @@ namespace planeshader {
   public:
     psText(const psText& copy);
     psText(psText&& mov);
-    explicit psText(psTexFont* font=0, const char* text = 0, const psVec3D& position = VEC3D_ZERO, FNUM rotation = 0.0f, const psVec& pivot = VEC_ZERO, psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    explicit psText(psTexFont* font=0, const char* text = 0, float lineheight = 0.0f, const psVec3D& position = VEC3D_ZERO, FNUM rotation = 0.0f, const psVec& pivot = VEC_ZERO, psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
     ~psText();
     // Get/Set the text to be rendered
     inline const int* GetText() const { return _text; }
@@ -50,6 +50,7 @@ namespace planeshader {
     float _letterspacing;
     uint16_t _drawflags;
     psTexFont::DELEGATE _func;
+    float _lineheight;
   };
 }
 #endif

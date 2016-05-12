@@ -103,7 +103,7 @@ typedef struct {
   CRect area;
   FABS rotation;
   CVec center;
-} fgElement;
+} fgTransform;
 
 typedef union
 {
@@ -120,8 +120,9 @@ typedef union
 FG_EXTERN const fgColor fgColor_NONE; // Fully transparent
 FG_EXTERN const fgColor fgColor_BLACK;
 FG_EXTERN const fgColor fgColor_WHITE;
-FG_EXTERN const fgElement fgElement_DEFAULT;
-FG_EXTERN const fgElement fgElement_CENTER;
+FG_EXTERN const fgTransform fgTransform_DEFAULT;
+FG_EXTERN const fgTransform fgTransform_EMPTY;
+FG_EXTERN const fgTransform fgTransform_CENTER;
 
 enum FG_MSGTYPE
 {
@@ -129,7 +130,7 @@ enum FG_MSGTYPE
   FG_MOVE, // Passed when any change is made to an element. 1: propagating up, 2: x-axis resize, 4: y-axis resize, 8: x-axis move, 16: y-axis move, 32: x center move, 64: y center move, 128: rotation change, 256: padding change
   FG_SETALPHA, // Used so an entire widget can be made to fade in or out. (Support is not guaranteed)
   FG_SETAREA,
-  FG_SETELEMENT,
+  FG_SETTRANSFORM,
   FG_SETFLAG, // Send in the flag in the first int arg, then set it to on or off (1 or 0) in the second argument
   FG_SETFLAGS, // Sets all the flags to the first int arg.
   FG_SETMARGIN,
@@ -139,12 +140,12 @@ enum FG_MSGTYPE
   FG_REMOVECHILD, // Verifies child's parent is this, then sets the child's parent to NULL.
   FG_LAYOUTCHANGE, 
   FG_LAYOUTFUNCTION,
-  FG_LAYOUTLOAD, // Loads a layout passed in the first pointer with an optional custom class name resolution function passed into the second pointer of type fgChild* (*)(const char*, fgElement*, fgFlag)
+  FG_LAYOUTLOAD, // Loads a layout passed in the first pointer with an optional custom class name resolution function passed into the second pointer of type fgElement* (*)(const char*, fgTransform*, fgFlag)
   FG_DRAG, // Sent to initiate a drag&drop
   FG_DRAGGING, // Sent to any element a dragged element is hovering over so it can set the cursor icon.
   FG_DROP, // Sent when an element is "dropped" on another element. Whether or not this does anything is up to the control.
   FG_DRAW,
-  FG_CLONE, // Clones the fgChild
+  FG_CLONE, // Clones the fgElement
   FG_SETSKIN, // Sets the skin. If NULL, uses GETSKIN to resolve the skin.
   FG_GETSKIN,
   FG_SETSTYLE, // Sets the style. -1 causes it to call GETSTYLE to try and resolve the style index.
@@ -152,7 +153,7 @@ enum FG_MSGTYPE
   FG_GETCLASSNAME, // Returns a unique string identifier for the class
   FG_GETDPI,
   FG_SETDPI,
-  // fgWindow
+  // fgControl
   FG_MOUSEDOWN,
   FG_MOUSEDBLCLICK,
   FG_MOUSEUP, 
@@ -193,12 +194,16 @@ enum FG_MSGTYPE
   FG_SETCOLOR,
   FG_SETOUTLINE,
   FG_SETFONT,
+  FG_SETLINEHEIGHT,
+  FG_SETLETTERSPACING,
   FG_SETTEXT,
   FG_GETRESOURCE,
   FG_GETUV,
   FG_GETCOLOR,
   FG_GETOUTLINE,
   FG_GETFONT,
+  FG_GETLINEHEIGHT,
+  FG_GETLETTERSPACING,
   FG_GETTEXT,
   FG_CUSTOMEVENT
 };
@@ -349,6 +354,65 @@ enum FG_KEYS
   FG_KEY_OEM_8 = 0xDF
 };
 
+//The joystick button enumerator
+enum FG_JOYBUTTONS
+{
+  FG_JOYBUTTON1 = 0,
+  FG_JOYBUTTON2 = 1,
+  FG_JOYBUTTON3 = 2,
+  FG_JOYBUTTON4 = 3,
+  FG_JOYBUTTON5 = 4,
+  FG_JOYBUTTON6 = 5,
+  FG_JOYBUTTON7 = 6,
+  FG_JOYBUTTON8 = 7,
+  FG_JOYBUTTON9 = 8,
+  FG_JOYBUTTON10 = 9,
+  FG_JOYBUTTON11 = 10,
+  FG_JOYBUTTON12 = 11,
+  FG_JOYBUTTON13 = 12,
+  FG_JOYBUTTON14 = 13,
+  FG_JOYBUTTON15 = 14,
+  FG_JOYBUTTON16 = 15,
+  FG_JOYBUTTON17 = 16,
+  FG_JOYBUTTON18 = 17,
+  FG_JOYBUTTON19 = 18,
+  FG_JOYBUTTON20 = 19,
+  FG_JOYBUTTON21 = 20,
+  FG_JOYBUTTON22 = 21,
+  FG_JOYBUTTON23 = 22,
+  FG_JOYBUTTON24 = 23,
+  FG_JOYBUTTON25 = 24,
+  FG_JOYBUTTON26 = 25,
+  FG_JOYBUTTON27 = 26,
+  FG_JOYBUTTON28 = 27,
+  FG_JOYBUTTON29 = 28,
+  FG_JOYBUTTON30 = 29,
+  FG_JOYBUTTON31 = 30,
+  FG_JOYBUTTON32 = 31,
+  FG_JOYSTICK_ID1 = 0x0000,
+  FG_JOYSTICK_ID2 = 0x0100,
+  FG_JOYSTICK_ID3 = 0x0200,
+  FG_JOYSTICK_ID4 = 0x0300,
+  FG_JOYSTICK_ID5 = 0x0400,
+  FG_JOYSTICK_ID6 = 0x0500,
+  FG_JOYSTICK_ID7 = 0x0600,
+  FG_JOYSTICK_ID8 = 0x0700,
+  FG_JOYSTICK_ID9 = 0x0800,
+  FG_JOYSTICK_ID10 = 0x0900,
+  FG_JOYSTICK_ID12 = 0x0A00,
+  FG_JOYSTICK_ID13 = 0x0B00,
+  FG_JOYSTICK_ID14 = 0x0C00,
+  FG_JOYSTICK_ID15 = 0x0D00,
+  FG_JOYSTICK_ID16 = 0x0E00,
+  FG_JOYSTICK_INVALID = 0xFFFF,
+  FG_JOYAXIS_X = 0,
+  FG_JOYAXIS_Y = 1,
+  FG_JOYAXIS_Z = 2,
+  FG_JOYAXIS_R = 3,
+  FG_JOYAXIS_U = 4,
+  FG_JOYAXIS_V = 5
+};
+
 enum FG_MOUSEBUTTON // Used in FG_Msg.button and FG_Msg.allbtn
 {
   FG_MOUSELBUTTON=1,
@@ -423,14 +487,21 @@ typedef struct _FG_MSG {
   };
   unsigned short type;
   unsigned char subtype;
+
+#ifdef __cplusplus
+  inline bool IsPressed() const { return (button&allbtn) != 0; }
+  inline bool IsShiftDown() const { return (1 & sigkeys) != 0; }
+  inline bool IsCtrlDown() const { return (2 & sigkeys) != 0; }
+  inline bool IsAltDown() const { return (4 & sigkeys) != 0; }
+  inline bool IsHeld() const { return (8 & sigkeys) != 0; }
+#endif
 } FG_Msg;
 
 FG_EXTERN AbsVec FG_FASTCALL ResolveVec(const CVec* v, const AbsRect* last);
 FG_EXTERN char FG_FASTCALL CompareMargins(const AbsRect* l, const AbsRect* r); // Returns 0 if both are the same or a difference bitset otherwise.
 FG_EXTERN char FG_FASTCALL CompareCRects(const CRect* l, const CRect* r); // Returns 0 if both are the same or a difference bitset otherwise.
-FG_EXTERN char FG_FASTCALL CompareElements(const fgElement* l, const fgElement* r);
-FG_EXTERN void FG_FASTCALL MoveCRect(AbsVec v, CRect* r);
-FG_EXTERN void FG_FASTCALL MoveCRectInv(AbsVec v, CRect* r);
+FG_EXTERN char FG_FASTCALL CompareTransforms(const fgTransform* l, const fgTransform* r);
+FG_EXTERN void FG_FASTCALL MoveCRect(FABS x, FABS y, CRect* r);
 FG_EXTERN char FG_FASTCALL HitAbsRect(const AbsRect* r, FABS x, FABS y);
 //FG_EXTERN void FG_FASTCALL ToIntAbsRect(const AbsRect* r, int target[static 4]);
 FG_EXTERN void FG_FASTCALL ToIntAbsRect(const AbsRect* r, int target[4]);
@@ -438,6 +509,7 @@ FG_EXTERN void FG_FASTCALL ToLongAbsRect(const AbsRect* r, long target[4]);
 FG_EXTERN char FG_FASTCALL MsgHitAbsRect(const FG_Msg* msg, const AbsRect* r);
 FG_EXTERN char* FG_FASTCALL fgCopyText(const char* text);
 FG_EXTERN void FG_FASTCALL fgUpdateMouseState(fgMouseState* state, const FG_Msg* msg);
+FG_EXTERN char FG_FASTCALL fgRectIntersect(const AbsRect* l, const AbsRect* r); // Returns 1 if the rectangles intersect, or 0 otherwise
 
 #ifdef  __cplusplus
 }
