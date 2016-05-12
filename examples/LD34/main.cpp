@@ -77,7 +77,7 @@ void LoadMap(psTex* map, psTileset* tileset, mgEntity* object, psTex* key)
     }
 
   tileset->SetTiles(tiles, dim.x*dim.y, dim.x);
-  psVec sdim = psEngine::Instance()->GetDriver()->screendim*0.25f;
+  psVec sdim = psEngine::Instance()->GetDriver()->GetBackBuffer()->GetDim()*0.25f;
   maxcam.right = maxcam.left + std::max<float>(0, tileset->GetDim().x - sdim.x);
   maxcam.bottom = maxcam.top + std::max<float>(0, tileset->GetDim().y - sdim.y);
 
@@ -266,13 +266,13 @@ int main(int argc, char** argv)
   ps[0].Insert(&psdd);
   psbox2d.SetDebugDraw(&psdd);
 
-  maxcam.left = -ps.GetDriver()->screendim.x*0.375; // 3/8
-  maxcam.top = -ps.GetDriver()->screendim.y*0.375;
+  maxcam.left = -ps.GetDriver()->GetBackBuffer()->GetDim().x*0.375; // 3/8
+  maxcam.top = -ps.GetDriver()->GetBackBuffer()->GetDim().y*0.375;
   //globalcam.SetPosition(maxcam.left, maxcam.top, -0.25f);
   globalcam.SetExtent(psVec(0.2, 50000));
   ps[0].SetCamera(&globalcam);
   ps[0].SetClearColor(0xFF111122);
-  ps[0].GetDriver()->SetDPI(psVeciu(psDriver::BASE_DPI * 4));
+  ps[0].SetDPI(psGUIManager::BASE_DPI * 4);
 
   mgEntityT<psTilesetComponent, b2PhysicsComponent> map;
   auto tsmap = map.Get<psTilesetComponent>();
@@ -284,28 +284,28 @@ int main(int argc, char** argv)
   
   Player* player = new Player(LoadPointImg("../media/LD34/player.png"), 100);
 
-  std::function<bool(const psGUIEvent&)> guicallback = [&](const psGUIEvent& evt) -> bool
+  std::function<size_t(const FG_Msg&)> guipreprocess = [&](const FG_Msg& evt) -> size_t
   {
-    if(evt.type == GUI_KEYDOWN || evt.type == GUI_KEYUP)
+    if(evt.type == FG_KEYDOWN || evt.type == FG_KEYUP)
     {
-      bool isdown = evt.type == GUI_KEYDOWN;
+      bool isdown = evt.type == FG_KEYDOWN;
       dirkeys[8] = evt.IsShiftDown();
       switch(evt.keycode)
       {
-      case KEY_LEFT: dirkeys[0] = isdown; break;
-      case KEY_RIGHT: dirkeys[1] = isdown; break;
-      case KEY_UP: dirkeys[2] = isdown; break;
-      case KEY_DOWN: dirkeys[3] = isdown; break;
-      case KEY_X:
-      case KEY_OEM_PLUS: dirkeys[4] = isdown; break;
-      case KEY_Z:
-      case KEY_OEM_MINUS: dirkeys[5] = isdown; break;
-      case KEY_Q: dirkeys[6] = isdown; break;
-      case KEY_E: dirkeys[7] = isdown; break;
-      case KEY_A: dirkeys[10] = isdown; break;
-      case KEY_D: dirkeys[11] = isdown; break;
-      case KEY_RETURN: player->Health()->Modify(-10); break;
-      case KEY_W:
+      case FG_KEY_LEFT: dirkeys[0] = isdown; break;
+      case FG_KEY_RIGHT: dirkeys[1] = isdown; break;
+      case FG_KEY_UP: dirkeys[2] = isdown; break;
+      case FG_KEY_DOWN: dirkeys[3] = isdown; break;
+      case FG_KEY_X:
+      case FG_KEY_OEM_PLUS: dirkeys[4] = isdown; break;
+      case FG_KEY_Z:
+      case FG_KEY_OEM_MINUS: dirkeys[5] = isdown; break;
+      case FG_KEY_Q: dirkeys[6] = isdown; break;
+      case FG_KEY_E: dirkeys[7] = isdown; break;
+      case FG_KEY_A: dirkeys[10] = isdown; break;
+      case FG_KEY_D: dirkeys[11] = isdown; break;
+      case FG_KEY_RETURN: player->Health()->Modify(-10); break;
+      case FG_KEY_W:
         if(IsOnFloor(player))
         {
           const float jump = 0.5f;
@@ -314,14 +314,14 @@ int main(int argc, char** argv)
           b->ApplyLinearImpulse(b2Vec2(0, -jump*psbox2d.GetGravity().y), b->GetLocalCenter(), true);
         }
       break;
-      case KEY_ESCAPE:
+      case FG_KEY_ESCAPE:
         if(isdown) ps.Quit();
         break;
       }
     }
-    return false;
+    return 0;
   };
-  ps.SetInputReceiver(guicallback);
+  ps.SetPreprocess(guipreprocess);
 
   player->Get<mgLogicComponent>()->onlogic = [](mgEntity* e) {
     const float maxspeed = 8.0f;
@@ -338,7 +338,7 @@ int main(int argc, char** argv)
     float secdelta = mgEngine::Instance()->GetDeltaNS() / 1000000000.0f;
     float scale = dirkeys[8] ? 0.01f : 1.0f;
     psLocatable* loc = ps.ResolveComponent<psLocatableComponent>(player);
-    psVec sdim = psEngine::Instance()->GetDriver()->screendim;
+    psVec sdim = psEngine::Instance()->GetDriver()->GetBackBuffer()->GetRawDim();
     globalcam.SetPositionX(mgclamp(loc->GetPosition().x - sdim.x*0.5, maxcam.left, maxcam.right));
     globalcam.SetPositionY(mgclamp(loc->GetPosition().y - sdim.y*0.5, maxcam.top, maxcam.bottom));
     /*if(dirkeys[0])
