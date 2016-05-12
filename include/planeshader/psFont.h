@@ -18,6 +18,9 @@ namespace planeshader {
     // Iterates through the string and preloads all the glyphs that are used. This is useful for common characters that you know will be loaded eventually. Returns the number of characters successfully loaded 
     uint16_t PreloadGlyphs(const char* glyphs);
     uint16_t PreloadGlyphs(const int* glyphs);
+    int GetDPI() const { return _dpi; }
+    int GetPointSize() const { return _pointsize; }
+    const char* GetPath() const { return _path; }
 
     static FT_Library PTRLIB;
     enum FONT_ANTIALIAS : uint8_t {
@@ -29,13 +32,15 @@ namespace planeshader {
       FAA_SDF //Antialiasing using a Signed Distance Field. Requires using a shader that takes an SDF as input!
     };
 
-    static psFont* Create(const char* file, int psize, float lineheight=0, FONT_ANTIALIAS antialias = FAA_ANTIALIAS);
+    FONT_ANTIALIAS GetAntialias() const;
+    static psFont* Create(const char* file, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, int dpi = 0);
 
   protected:
     psFont(const psFont&) = delete;
-    psFont(const char* file, int psize, float lineheight=0, FONT_ANTIALIAS antialias = FAA_ANTIALIAS);
+    psFont(const char* file, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, int dpi = 0);
     ~psFont();
     virtual psGlyph* _loadglyph(uint32_t codepoint) override;
+    virtual float _loadkerning(uint32_t prev, uint32_t cur) override;
     psGlyph* _renderglyph(uint32_t codepoint);
     void _loadfont();
     void _cleanupfont();
@@ -47,6 +52,7 @@ namespace planeshader {
 
     uint32_t _antialiased;
     int _pointsize;
+    int _dpi;
     uint8_t* _buf;
     FT_Face _ft2face;
     psVeciu _curpos;
@@ -55,6 +61,7 @@ namespace planeshader {
     cStr _path;
     cStr _hash;
     bss_util::cArray<psTex*, uint8_t> _staging;
+    bool _haskerning;
 
     static bss_util::cHash<const char*, psFont*, true> _Fonts; //Hashlist of all fonts, done by file.
   };
