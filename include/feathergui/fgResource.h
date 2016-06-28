@@ -12,9 +12,11 @@ extern "C" {
 
 enum FGRESOURCE_FLAGS
 {
-  FGRESOURCE_ROUNDRECT = (1 << 8), // Indicates this is a rounded rectangle
-  FGRESOURCE_CIRCLE = (1 << 9), // Indicates this is a circle
-  FGRESOURCE_LINE = (1 << 10), // Indicates this is a line
+  FGRESOURCE_UVTILE = (1 << 8),
+  FGRESOURCE_ROUNDRECT = (1 << 9), // Indicates this is a rounded rectangle
+  FGRESOURCE_CIRCLE = (2 << 9), // Indicates this is a circle
+  FGRESOURCE_LINE = (3 << 9), // Indicates this is a line
+  FGRESOURCE_SHAPEMASK = (3 << 9),
 };
 
 // fgResource stores a renderable image/vector/shader, that optionally has UV coordinates.
@@ -32,7 +34,7 @@ typedef struct {
 } fgResource;
 
 FG_EXTERN fgElement* FG_FASTCALL fgResource_Create(void* res, const CRect* uv, unsigned int color, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgResource_Init(fgResource* self, void* res, const CRect* uv, unsigned int color, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
+FG_EXTERN void FG_FASTCALL fgResource_Init(fgResource* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
 FG_EXTERN void FG_FASTCALL fgResource_Destroy(fgResource* self);
 FG_EXTERN size_t FG_FASTCALL fgResource_Message(fgResource* self, const FG_Msg* msg);
 void FG_FASTCALL fgResource_Recalc(fgResource* self);

@@ -30,6 +30,7 @@ typedef struct _FG_ROOT {
   fgDeferAction* updateroot;
   struct __kh_fgRadioGroup_t* radiohash;
   size_t dpi;
+  float lineheight;
   double time; // In seconds
   fgMouseState mouse;
 #ifdef  __cplusplus
@@ -57,6 +58,7 @@ FG_EXTERN void FG_FASTCALL fgRoot_RemoveAction(fgRoot* self, fgDeferAction* acti
 FG_EXTERN void FG_FASTCALL fgRoot_ModifyAction(fgRoot* self, fgDeferAction* action); // Moves action if it needs to be moved, or inserts it if it isn't already in the list.
 FG_EXTERN struct _FG_MONITOR* FG_FASTCALL fgRoot_GetMonitor(const fgRoot* self, const AbsRect* rect);
 FG_EXTERN void FG_FASTCALL fgStandardDraw(fgElement* self, AbsRect* area, size_t dpi, char culled);
+FG_EXTERN void FG_FASTCALL fgOrderedDraw(fgElement* self, AbsRect* area, size_t dpi, char culled, fgElement** ordered, size_t numordered);
 FG_EXTERN void fgPushClipRect(AbsRect* clip);
 FG_EXTERN AbsRect fgPeekClipRect();
 FG_EXTERN void fgPopClipRect();
@@ -66,6 +68,7 @@ FG_EXTERN void fgClipboardCopy(unsigned int type, const void* data, size_t lengt
 FG_EXTERN char fgClipboardExists(unsigned int type);
 FG_EXTERN const void* fgClipboardPaste(unsigned int type, size_t* length); // The pointer returned to this MUST BE FREED by calling fgClipboardFree() once you are done with it.
 FG_EXTERN void fgClipboardFree(const void* mem);
+FG_EXTERN fgElement* FG_FASTCALL fgCreateDefault(const char* type, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
 
 #ifdef  __cplusplus
 }

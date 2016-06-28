@@ -23,13 +23,14 @@ enum FGBOX_FLAGS
 // A List is an arbitrary list of items with a number of different layout options that are selectable and/or draggable.
 typedef struct _FG_BOX_ {
   fgScrollbar window;
+  size_t nummiddle; // counts the number of background elements in the middle of the ordered elements
+  fgVectorElement ordered; // Used to implement fgOrderedDraw if TILEX or TILEY layouts are used.
 #ifdef  __cplusplus
   inline operator fgElement*() { return &window.control.element; }
   inline fgElement* operator->() { return operator fgElement*(); }
 #endif
 } fgBox;
 
-FG_EXTERN fgElement* FG_FASTCALL fgBox_Create(fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
 FG_EXTERN void FG_FASTCALL fgBox_Init(fgBox* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
 FG_EXTERN void FG_FASTCALL fgBox_Destroy(fgBox* self);
 FG_EXTERN size_t FG_FASTCALL fgBox_Message(fgBox* self, const FG_Msg* msg);
