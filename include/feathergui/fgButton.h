@@ -13,7 +13,7 @@ extern "C" {
 
 enum FGBUTTON_FLAGS
 {
-  FGBUTTON_NOFOCUS = (1 << 5),
+  FGBUTTON_NOFOCUS = (1 << 8),
 };
 
 // A button is usually implemented as a simple background design that takes a static and displays it in the center of the button.
@@ -27,7 +27,6 @@ typedef struct _FG_BUTTON {
 #endif
 } fgButton;
 
-FG_EXTERN fgElement* FG_FASTCALL fgButton_Create(const char* text, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
 FG_EXTERN void FG_FASTCALL fgButton_Init(fgButton* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
 FG_EXTERN void FG_FASTCALL fgButton_Destroy(fgButton* self);
 FG_EXTERN size_t FG_FASTCALL fgButton_Message(fgButton* self, const FG_Msg* msg);
