@@ -12,6 +12,7 @@ namespace planeshader {
   class psDirectX9;
   class psDirectX11;
   class psOpenGL1;
+  class psVulkan;
   class psNullDriver;
   struct STATEINFO;
   class psShader;
@@ -25,6 +26,7 @@ namespace planeshader {
       psDirectX9* dx9;
       psDirectX11* dx11;
       psOpenGL1* ogl1;
+      psVulkan* vk;
       psNullDriver* nul;
     };
     enum DRIVERTYPE : uint8_t
@@ -337,6 +339,8 @@ namespace planeshader {
     // Draws lines
     virtual psBatchObj* BSS_FASTCALL DrawLinesStart(psShader* shader, const psStateblock* stateblock, psFlag flags, const float(&xform)[4][4] = identity)=0;
     virtual void BSS_FASTCALL DrawLines(psBatchObj*& obj, const psLine& line, float Z1, float Z2, unsigned long vertexcolor)=0;
+    virtual psBatchObj* BSS_FASTCALL DrawCurveStart(psShader* shader, const psStateblock* stateblock, psFlag flags, const float(&xform)[4][4] = identity) = 0;
+    virtual psBatchObj* BSS_FASTCALL DrawCurve(psBatchObj*& o, const psVertex* curve, uint32_t num) = 0;
     // Applies a camera (if you need the current camera, look at the pass you belong to, not the driver)
     virtual void BSS_FASTCALL PushCamera(const psVec3D& pos, const psVec& pivot, FNUM rotation, const psRectiu& viewport, const psVec& extent)=0;
     virtual void BSS_FASTCALL PushCamera3D(const float(&m)[4][4], const psRectiu& viewport)=0;
@@ -415,6 +419,8 @@ namespace planeshader {
     virtual bool BSS_FASTCALL ShaderSupported(SHADER_VER profile)=0;
     // Returns an index to an internal state snapshot
     virtual uint32_t BSS_FASTCALL GetSnapshot() = 0;
+    // Pushes a matrix on to the matrix stack. This stack gets cleared once Flush is called.
+    inline float (*PushMatrix())[4][4] { size_t l = _matrixstack.Length(); _matrixstack.SetLength(l + 1); return _matrixstack.begin() + l; }
 
     BSS_FORCEINLINE static FORMATS ToSRGBFormat(FORMATS format)
     {
@@ -472,6 +478,7 @@ namespace planeshader {
 
   protected:
     bss_util::cDynArray<psBatchObj> _jobstack;
+    bss_util::cDynArray<float[4][4]> _matrixstack;
   };
 
   struct PS_DLLEXPORT psDriverHold

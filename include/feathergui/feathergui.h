@@ -138,12 +138,39 @@ enum FGMOVE
   FGMOVE_CENTERY = (1 << 6),
   FGMOVE_CENTER = (FGMOVE_CENTERX | FGMOVE_CENTERY),
   FGMOVE_ROTATION = (1 << 7),
-  FGMOVE_PADDING = (1 << 8)
+  FGMOVE_PADDING = (1 << 8),
+  FGMOVE_MARGIN = (1 << 9)
+};
+
+enum FGSETTEXT {
+  FGSETTEXT_UTF8 = 0,
+  FGSETTEXT_UTF32,
+  FGSETTEXT_PLACEHOLDER_UTF8,
+  FGSETTEXT_PLACEHOLDER_UTF32,
+  FGSETTEXT_MASK
+};
+
+enum FGSETSTYLE {
+  FGSETSTYLE_NAME = 0,
+  FGSETSTYLE_INDEX,
+  FGSETSTYLE_POINTER,
+  FGSETSTYLE_SETFLAG,
+  FGSETSTYLE_REMOVEFLAG,
+  FGSETSTYLE_SETFLAGINDEX,
+  FGSETSTYLE_REMOVEFLAGINDEX,
+};
+
+enum FGDIM
+{
+  FGDIM_MIN = 0,
+  FGDIM_MAX,
+  FGDIM_FIXED,
 };
 
 enum FG_MSGTYPE
 {
   FG_CONSTRUCT = 1,
+  FG_DESTROY, // Notification when the element is being destroyed. Sending this message will not destroy the element or call the destructor.
   FG_MOVE, // Passed when any change is made to an element. 1: propagating up, 2: x-axis resize, 4: y-axis resize, 8: x-axis move, 16: y-axis move, 32: x center move, 64: y center move, 128: rotation change, 256: padding change
   FG_SETALPHA, // Used so an entire widget can be made to fade in or out. (Support is not guaranteed)
   FG_SETAREA,
@@ -162,6 +189,7 @@ enum FG_MSGTYPE
   FG_DRAGGING, // Sent to any element a dragged element is hovering over so it can set the cursor icon.
   FG_DROP, // Sent when an element is "dropped" on another element. Whether or not this does anything is up to the control.
   FG_DRAW,
+  FG_INJECT,
   FG_CLONE, // Clones the fgElement
   FG_SETSKIN, // Sets the skin. If NULL, uses GETSKIN to resolve the skin.
   FG_GETSKIN,
@@ -172,6 +200,8 @@ enum FG_MSGTYPE
   FG_SETDPI,
   FG_SETUSERDATA, // Stores the pointer-sized first argument in a hash using the second argument as a string key. If the key is null, stores it in userdata.
   FG_GETUSERDATA, 
+  FG_SETDIM,
+  FG_GETDIM,
   // fgControl
   FG_MOUSEDOWN,
   FG_MOUSEDBLCLICK,
@@ -199,13 +229,11 @@ enum FG_MSGTYPE
   FG_HOVER, // Sent when a hover-enabled control switches to its hover state
   FG_ACTIVE, // Sent when a hover-enabled control switches to its active state
   FG_ACTION, // Sent when a hover-enabled control recieves a valid click event (a MOUSEUP inside the control while it has focus)
-  // fgScrollbar
-  FG_SETMAXDIM,
-  FG_GETMAXDIM,
   // fgList, fgMenu, etc.
   FG_GETITEM,
   FG_ADDITEM, // Used for anything involving items (menus, lists, etc)
   FG_REMOVEITEM,
+  FG_SETITEM,
   FG_GETSELECTEDITEM, // Used to get the selected item (or items, or text) in a control.
   // fgCheckbox, fgRadioButton, fgProgressbar, etc.
   FG_GETSTATE, // Gets the on/off state of a checkbox or the current progress on a progress bar
@@ -258,8 +286,8 @@ enum FG_KEYS
   FG_KEY_ACCEPT = 0x1E,
   FG_KEY_MODECHANGE = 0x1F,
   FG_KEY_SPACE = 0x20,
-  FG_KEY_PRIOR = 0x21,
-  FG_KEY_NEXT = 0x22,
+  FG_KEY_PAGEUP = 0x21, // named PRIOR in windows virtual keys
+  FG_KEY_PAGEDOWN = 0x22, // named NEXT in windows virtual keys
   FG_KEY_END = 0x23,
   FG_KEY_HOME = 0x24,
   FG_KEY_LEFT = 0x25,

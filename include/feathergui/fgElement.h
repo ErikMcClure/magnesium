@@ -30,8 +30,8 @@ enum FGELEMENT_FLAGS
   FGELEMENT_LAYOUTRESET = 6, // Called when something invalidates the entire layout (like adding an EXPAND flag)
 };
 
-typedef void (FG_FASTCALL *FN_DESTROY)(void*);
-typedef size_t(FG_FASTCALL *FN_MESSAGE)(void*, const FG_Msg*);
+typedef void (FG_FASTCALL *fgDestroy)(void*);
+typedef size_t(FG_FASTCALL *fgMessage)(void*, const FG_Msg*);
 struct _FG_ELEMENT;
 struct _FG_STYLE;
 struct _FG_SKIN;
@@ -39,27 +39,31 @@ struct _FG_LAYOUT;
 struct __kh_fgUserdata_t;
 typedef fgDeclareVector(struct _FG_ELEMENT*, Element) fgVectorElement;
 
-typedef void(FG_FASTCALL *FN_LISTENER)(struct _FG_ELEMENT*, const FG_Msg*);
+typedef void(FG_FASTCALL *fgListener)(struct _FG_ELEMENT*, const FG_Msg*);
 
 typedef struct _FG_ELEMENT {
   fgTransform transform;
-  FN_DESTROY destroy;
+  fgDestroy destroy;
   void (*free)(void* self); // pointer to deallocation function
-  FN_MESSAGE message;
+  fgMessage message;
   struct _FG_ELEMENT* parent;
   struct _FG_ELEMENT* root; // children list root
   struct _FG_ELEMENT* last; // children list last
   struct _FG_ELEMENT* next;
   struct _FG_ELEMENT* prev;
-  struct _FG_ELEMENT* rootclip; // children with clipping list root
-  struct _FG_ELEMENT* lastclip; // children with clipping list last
-  struct _FG_ELEMENT* rootnoclip; // children with clipping list root
-  struct _FG_ELEMENT* lastnoclip; // children with clipping list last
-  struct _FG_ELEMENT* nextclip;
-  struct _FG_ELEMENT* prevclip;
+  struct _FG_ELEMENT* rootinject; // children without FGELEMENT_IGNORE
+  struct _FG_ELEMENT* lastinject;
+  struct _FG_ELEMENT* nextinject;
+  struct _FG_ELEMENT* previnject;
+  struct _FG_ELEMENT* rootnoclip; // children with FGELEMENT_NOCLIP
+  struct _FG_ELEMENT* lastnoclip;
+  struct _FG_ELEMENT* nextnoclip;
+  struct _FG_ELEMENT* prevnoclip;
   struct _FG_ELEMENT* lastfocus; // Stores the last child that had focus, if any. This never points to the child that CURRENTLY has focus, only to the child that HAD focus.
   AbsRect margin; // defines the amount of external margin.
   AbsRect padding; // Defines the amount of internal padding. Only affects children that DON'T have FGELEMENT_BACKGROUND set.
+  AbsVec maxdim;
+  AbsVec mindim;
   fgFlag flags;
   const struct _FG_SKIN* skin; // skin reference
   fgVectorElement skinrefs; // Type: fgElement* - References to skin children or subcontrols.
@@ -74,28 +78,31 @@ typedef struct _FG_ELEMENT {
   FG_DLLEXPORT void FG_FASTCALL Move(unsigned char subtype, struct _FG_ELEMENT* child, size_t diff);
   FG_DLLEXPORT size_t FG_FASTCALL SetAlpha(float alpha);
   FG_DLLEXPORT size_t FG_FASTCALL SetArea(const CRect& area);
-  FG_DLLEXPORT size_t FG_FASTCALL SetElement(const fgTransform& element);
+  FG_DLLEXPORT size_t FG_FASTCALL SetTransform(const fgTransform& transform);
   FG_DLLEXPORT void FG_FASTCALL SetFlag(fgFlag flag, bool value);
   FG_DLLEXPORT void FG_FASTCALL SetFlags(fgFlag flags);
   FG_DLLEXPORT size_t FG_FASTCALL SetMargin(const AbsRect& margin);
   FG_DLLEXPORT size_t FG_FASTCALL SetPadding(const AbsRect& padding);
-  FG_DLLEXPORT void FG_FASTCALL SetParent(struct _FG_ELEMENT* parent, struct _FG_ELEMENT* prev);
-  FG_DLLEXPORT  size_t FG_FASTCALL AddChild(struct _FG_ELEMENT* child);
+  FG_DLLEXPORT void FG_FASTCALL SetParent(struct _FG_ELEMENT* parent, struct _FG_ELEMENT* next = 0);
+  FG_DLLEXPORT  size_t FG_FASTCALL AddChild(struct _FG_ELEMENT* child, struct _FG_ELEMENT* next = 0);
   FG_DLLEXPORT size_t FG_FASTCALL RemoveChild(struct _FG_ELEMENT* child);
-  FG_DLLEXPORT size_t FG_FASTCALL LayoutFunction(const FG_Msg& msg, const CRect& area);
   FG_DLLEXPORT void FG_FASTCALL LayoutChange(unsigned char subtype, struct _FG_ELEMENT* target, struct _FG_ELEMENT* old);
+  FG_DLLEXPORT size_t FG_FASTCALL LayoutFunction(const FG_Msg& msg, const CRect& area, bool scrollbar = false);
   FG_DLLEXPORT size_t FG_FASTCALL LayoutLoad(struct _FG_LAYOUT* layout);
   FG_DLLEXPORT size_t Drag(struct _FG_ELEMENT* target, const FG_Msg& msg);
   FG_DLLEXPORT size_t Dragging(int x, int y);
   FG_DLLEXPORT size_t Drop(struct _FG_ELEMENT* target);
   FG_DLLEXPORT void Draw(AbsRect* area, int dpi);
+  FG_DLLEXPORT size_t FG_FASTCALL Inject(const FG_Msg* msg, const AbsRect* area);
   FG_DLLEXPORT struct _FG_ELEMENT* FG_FASTCALL Clone(struct _FG_ELEMENT* from);
   FG_DLLEXPORT size_t FG_FASTCALL SetSkin(struct _FG_SKIN* skin);
-  FG_DLLEXPORT struct _FG_SKIN* FG_FASTCALL GetSkin(struct _FG_ELEMENT* child);
+  FG_DLLEXPORT struct _FG_SKIN* FG_FASTCALL GetSkin(struct _FG_ELEMENT* child = 0);
   FG_DLLEXPORT size_t FG_FASTCALL SetStyle(const char* name, FG_UINT mask);
   FG_DLLEXPORT size_t FG_FASTCALL SetStyle(struct _FG_STYLE* style);
   FG_DLLEXPORT size_t FG_FASTCALL SetStyle(FG_UINT index, FG_UINT mask);
   FG_DLLEXPORT struct _FG_STYLE* GetStyle();
+  FG_DLLEXPORT size_t FG_FASTCALL GetDPI();
+  FG_DLLEXPORT void FG_FASTCALL SetDPI(int dpi);
   FG_DLLEXPORT const char* GetClassName();
   FG_DLLEXPORT void* FG_FASTCALL GetUserdata(const char* name = 0);
   FG_DLLEXPORT void FG_FASTCALL SetUserdata(void* data, const char* name = 0);
@@ -121,8 +128,8 @@ typedef struct _FG_ELEMENT {
   FG_DLLEXPORT void Hover();
   FG_DLLEXPORT void Active();
   FG_DLLEXPORT void Action();
-  FG_DLLEXPORT void FG_FASTCALL SetMaxDim(float x, float y);
-  FG_DLLEXPORT const AbsVec& GetMaxDim();
+  FG_DLLEXPORT void FG_FASTCALL SetDim(float x, float y, FGDIM type = FGDIM_MAX);
+  FG_DLLEXPORT const AbsVec* GetDim(FGDIM type = FGDIM_MAX);
   FG_DLLEXPORT struct _FG_ELEMENT* GetSelectedItem();
   FG_DLLEXPORT size_t GetState(ptrdiff_t aux);
   FG_DLLEXPORT float GetStatef(ptrdiff_t aux);
@@ -135,7 +142,7 @@ typedef struct _FG_ELEMENT {
   FG_DLLEXPORT size_t FG_FASTCALL SetFont(void* font);
   FG_DLLEXPORT size_t FG_FASTCALL SetLineHeight(float lineheight);
   FG_DLLEXPORT size_t FG_FASTCALL SetLetterSpacing(float letterspacing);
-  FG_DLLEXPORT size_t FG_FASTCALL SetText(const char* text);
+  FG_DLLEXPORT size_t FG_FASTCALL SetText(const char* text, FGSETTEXT mode = FGSETTEXT_UTF8);
   FG_DLLEXPORT void* GetResource();
   FG_DLLEXPORT const CRect* GetUV();
   FG_DLLEXPORT unsigned int FG_FASTCALL GetColor(int index);
@@ -143,8 +150,8 @@ typedef struct _FG_ELEMENT {
   FG_DLLEXPORT void* GetFont();
   FG_DLLEXPORT float GetLineHeight();
   FG_DLLEXPORT float GetLetterSpacing();
-  FG_DLLEXPORT const int* GetText();
-  FG_DLLEXPORT void AddListener(unsigned short type, FN_LISTENER listener);
+  FG_DLLEXPORT const int* GetText(FGSETTEXT mode = FGSETTEXT_UTF8);
+  FG_DLLEXPORT void AddListener(unsigned short type, fgListener listener);
 #endif
 } fgElement;
 
@@ -156,6 +163,7 @@ FG_EXTERN fgElement* FG_FASTCALL fgElement_GetChildUnderMouse(fgElement* self, i
 FG_EXTERN void FG_FASTCALL fgElement_ClearListeners(fgElement* self);
 FG_EXTERN size_t FG_FASTCALL fgElement_CheckLastFocus(fgElement* self);
 FG_EXTERN fgElement* FG_FASTCALL fgCreate(const char* type, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
+FG_EXTERN short FG_FASTCALL fgMessageMap(const char* name);
 
 FG_EXTERN size_t FG_FASTCALL fgIntMessage(fgElement* self, unsigned char type, ptrdiff_t data, size_t aux);
 FG_EXTERN size_t FG_FASTCALL fgVoidMessage(fgElement* self, unsigned char type, void* data, ptrdiff_t aux);
@@ -170,7 +178,7 @@ FG_EXTERN void FG_FASTCALL LList_InsertAll(fgElement* BSS_RESTRICT self, fgEleme
 FG_EXTERN void FG_FASTCALL VirtualFreeChild(fgElement* self);
 FG_EXTERN void FG_FASTCALL fgElement_Clear(fgElement* self);
 FG_EXTERN void FG_FASTCALL fgElement_MouseMoveCheck(fgElement* self);
-FG_EXTERN void FG_FASTCALL fgElement_AddListener(fgElement* self, unsigned short type, FN_LISTENER listener);
+FG_EXTERN void FG_FASTCALL fgElement_AddListener(fgElement* self, unsigned short type, fgListener listener);
 
 #ifdef  __cplusplus
 }

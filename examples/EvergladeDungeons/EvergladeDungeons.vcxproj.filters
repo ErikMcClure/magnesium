@@ -18,12 +18,6 @@
     <ClInclude Include="Overworld.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Floor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -36,7 +30,10 @@
     <ClInclude Include="Everglade.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerClass.h">
+    <ClInclude Include="data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

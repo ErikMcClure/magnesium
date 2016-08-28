@@ -87,6 +87,8 @@ namespace planeshader {
     static psEngine* Instance(); // Cannot be inline'd for DLL reasons.
 
   protected:
+    virtual void _onresize(psVeciu dim, bool fullscreen) override;
+
     bss_util::cArray<psPass*, uint16_t> _passes;
     uint16_t _curpass;
     psPass* _mainpass;

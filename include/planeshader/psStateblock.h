@@ -93,14 +93,14 @@ namespace planeshader {
     typedef bss_util::cArray<STATEINFO, uint16_t> STATEINFOS;
 
     inline static bool SILESS(const planeshader::STATEINFO& l, const planeshader::STATEINFO& r) { return l.type<=r.type && (l.type<r.type || l.index<r.index); }
-    inline static khint_t SIHASHFUNC(STATEINFOS* sb) {
+    inline static khint_t SIHASHFUNC(STATEINFOS* const& sb) {
       uint16_t sz=sb->Capacity();
       khint32_t r=0;
       for(uint16_t i = 0; i < sz; ++i)
         r=bss_util::KH_INT64_HASHFUNC((((int64_t)bss_util::KH_INT64_HASHFUNC((*sb)[i].__vali64))<<32)|r);
       return r;
     }
-    inline static bool SIEQUALITY(STATEINFOS* left, STATEINFOS* right)
+    inline static bool SIEQUALITY(STATEINFOS* const& left, STATEINFOS* const& right)
     {
       uint16_t sl=left->Capacity();
       uint16_t sr=right->Capacity();
@@ -111,7 +111,7 @@ namespace planeshader {
       return true;
     }
     static STATEINFOS* Exists(STATEINFOS* compare);
-    typedef bss_util::cKhash<STATEINFOS*, char, false, &SIHASHFUNC, &SIEQUALITY> BLOCKHASH;
+    typedef bss_util::cHashBase<STATEINFOS*, char, false, &SIHASHFUNC, &SIEQUALITY> BLOCKHASH;
     static BLOCKHASH _blocks;
   };
 

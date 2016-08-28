@@ -12,6 +12,7 @@ struct HWND__;
 struct HINSTANCE__;
 struct HICON__;
 struct tagPOINTS;
+struct tagRECT;
 
 #if defined(_WIN64)
 typedef int64_t longptr_t;
@@ -62,17 +63,15 @@ namespace planeshader {
     HWND__* GetWindow() const { return _window; }
     // Locks the cursor
     void LockCursor(bool lock);
-    // Set window title
-    void SetWindowTitle(const char* caption);
     inline MODE GetMode() const { return _mode; }
     void Resize(psVeciu dim, MODE mode);
     inline void SetBackBuffer(psTex* backbuffer) { _backbuffer = backbuffer; }
     inline psTex* const* GetBackBuffer() { return !_backbuffer ? 0 : &_backbuffer; }
 
   protected:
-    psVeciu _resizewindow(psVeciu dim, char mode);
-    HWND__* WndCreate(HINSTANCE__* instance, psVeciu dim, char mode, const wchar_t* icon, HICON__* iconrc);
+    HWND__* WndCreate(HINSTANCE__* instance, tagRECT& dim, MODE mode, fgFlag flags, HWND__* hWnd);
 
+    static void WndRegister(HINSTANCE__* instance, const wchar_t* icon, HICON__* iconrc);
     static size_t FG_FASTCALL Message(fgMonitor* self, const FG_Msg* m);
     static longptr_t __stdcall WndProc(HWND__* hWnd, uint32_t message, size_t wParam, longptr_t lParam);
     static tagPOINTS* __stdcall _STCpoints(HWND__* hWnd, tagPOINTS* target);
