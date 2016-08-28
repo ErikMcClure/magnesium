@@ -19,14 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="data.h" />
     <ClInclude Include="Everglade.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Floor.h" />
+    <ClInclude Include="World.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="Overworld.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="PlayerClass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />

@@ -19,12 +19,13 @@
 
 #include "bss_util_c.h"
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 #include <memory>
 #include <cstring> // for memcmp
 #include <emmintrin.h> // for SSE intrinsics
 #include <float.h>
 #include <string>
+#include <stdio.h>
 #ifdef BSS_PLATFORM_POSIX
 #include <stdlib.h> // For abs(int) on POSIX systems
 #include <fpu_control.h> // for FPU control on POSIX systems
@@ -64,7 +65,7 @@ namespace bss_util {
       typename std::conditional<sizeof(short) == BYTES, short,
       typename std::conditional<sizeof(int) == BYTES, int,
       typename std::conditional<sizeof(int64_t) == BYTES, int64_t,
-#if defined(BSS_COMPILER_GCC) && defined(BSS_64BIT)
+#ifdef BSS_HASINT128
       typename std::conditional<sizeof(__int128) == BYTES, __int128, void>::type>::type>::type>::type>::type SIGNED;
 #else
       void>::type>::type>::type>::type SIGNED;
@@ -74,7 +75,8 @@ namespace bss_util {
     static const UNSIGNED UNSIGNED_MIN = 0;
     static const UNSIGNED UNSIGNED_MAX = (((UNSIGNED)2) << (BITS - 1)) - ((UNSIGNED)1); //these are all done carefully to ensure no overflow is ever utilized unless appropriate and it respects an arbitrary bit limit. We use 2<<(BITS-1) here to avoid shifting more bits than there are bits in the type.
     static const SIGNED SIGNED_MIN_RAW = (SIGNED)(((UNSIGNED)1) << (BITS - 1)); // When we have normal bit lengths (8,16, etc) this will correctly result in a negative value in two's complement.
-    static const SIGNED SIGNED_MIN = (((SIGNED)~0) << (BITS - 1)); // However if we have unusual bit lengths (3,19, etc) the raw bit representation will be technically correct in the context of that sized integer, but since we have to round to a real integer size to represent the number, the literal interpretation will be wrong. This yields the proper minimum value.
+    static const UNSIGNED SIGNED_MIN_HELPER = (((UNSIGNED)~0) << (BITS - 1)); // However if we have unusual bit lengths (3,19, etc) the raw bit representation will be technically correct in the context of that sized integer, but since we have to round to a real integer size to represent the number, the literal interpretation will be wrong. This yields the proper minimum value.
+    static const SIGNED SIGNED_MIN = (SIGNED)SIGNED_MIN_HELPER;
     static const SIGNED SIGNED_MAX = ((~SIGNED_MIN_RAW)&UNSIGNED_MAX);
   };
   template<typename T>
@@ -306,11 +308,12 @@ namespace bss_util {
     //return x + 1 + (x>>1) + (x>>3) - (x>>7) + (x>>10) - (x>>13) - (x>>17) - (x>>21) + (x>>24); // 0.61803394 (but kind of pointless)
   }
 
-  // Gets the sign of any number (0 is assumed to be positive)
+  // Gets the sign of any integer (0 is assumed to be positive)
   template<typename T>
-  BSS_FORCEINLINE static char BSS_FASTCALL tsign(T n) noexcept
+  BSS_FORCEINLINE static T BSS_FASTCALL tsign(T n) noexcept
   {
-    return (n >= 0) - (n < 0);
+    static_assert(std::is_integral<T>::value, "T must be an integer.");
+    return 1 | (n >> ((sizeof(T) << 3) - 1));
   }
 
   // Gets the sign of any number, where a value of 0 returns 0
@@ -649,7 +652,21 @@ namespace bss_util {
   //{
   //  return FastSin(x+(float)PI_HALF);
   //}
-
+  template<typename T, bool nullterminate = false>
+  BSS_FORCEINLINE static std::pair<std::unique_ptr<T[]>, size_t> BSS_FASTCALL bssloadfile(const char* file)
+  {
+    FILE* f = 0;
+    WFOPEN(f, file, "rb");
+    fseek(f, 0, SEEK_END);
+    size_t ln = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    std::unique_ptr<T[]> a(new T[ln + !!nullterminate]);
+    fread(a.get(), sizeof(T), ln, f);
+    fclose(f);
+    if(nullterminate)
+      a[ln] = 0;
+    return std::pair<std::unique_ptr<T[]>, size_t>(std::move(a), ln + !!nullterminate);
+  }
   // Round a number up to the next power of 2 (32 -> 32, 33 -> 64, etc.)
   inline static uint64_t BSS_FASTCALL nextpow2(uint64_t v) noexcept
   {
@@ -711,7 +728,7 @@ namespace bss_util {
     const uint32_t b[] = {0x2, 0xC, 0xF0};
     const uint32_t S[] = {1, 2, 4};
 
-    register uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bsslog2(v) will go here
     if (v & b[2]) { v >>= S[2]; r |= S[2]; } 
     if (v & b[1]) { v >>= S[1]; r |= S[1]; } 
     if (v & b[0]) { v >>= S[0]; r |= S[0]; } 
@@ -723,7 +740,7 @@ namespace bss_util {
     const uint32_t b[] = {0x2, 0xC, 0xF0, 0xFF00};
     const uint32_t S[] = {1, 2, 4, 8};
 
-    register uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bsslog2(v) will go here
     if (v & b[3]) { v >>= S[3]; r |= S[3]; } 
     if (v & b[2]) { v >>= S[2]; r |= S[2]; } 
     if (v & b[1]) { v >>= S[1]; r |= S[1]; } 
@@ -737,7 +754,7 @@ namespace bss_util {
     const uint32_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
     const uint32_t S[] = {1, 2, 4, 8, 16};
 
-    register uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bsslog2(v) will go here
     if (v & b[4]) { v >>= S[4]; r |= S[4]; } 
     if (v & b[3]) { v >>= S[3]; r |= S[3]; } 
     if (v & b[2]) { v >>= S[2]; r |= S[2]; } 
@@ -759,7 +776,7 @@ namespace bss_util {
     const uint64_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000};
     const uint32_t S[] = {1, 2, 4, 8, 16, 32};
 
-    register uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bsslog2(v) will go here
     if (v & b[5]) { v >>= S[5]; r |= S[5]; } 
     if (v & b[4]) { v >>= S[4]; r |= S[4]; } 
     if (v & b[3]) { v >>= S[3]; r |= S[3]; } 
@@ -780,7 +797,7 @@ namespace bss_util {
     uint32_t r = (sizeof(uint32_t)<<3)-1-__builtin_clz(v);
 #else
     const uint32_t b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000};
-    register uint32_t r = (v & b[0]) != 0;
+    uint32_t r = (v & b[0]) != 0;
     r |= ((v & b[4]) != 0) << 4;
     r |= ((v & b[3]) != 0) << 3;
     r |= ((v & b[2]) != 0) << 2;
@@ -789,6 +806,82 @@ namespace bss_util {
     return r;
   }
 
+  template<class T>
+  inline static typename std::make_unsigned<T>::type bssabs(T x)
+  {
+    static_assert(std::is_signed<T>::value, "T must be signed for this to work properly.");
+    T const mask = x >> ((sizeof(T) << 3) - 1); // Uses a bit twiddling hack to take absolute value without branching: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
+    return (x + mask) ^ mask;
+  }
+
+  template<class T>
+  inline static typename std::make_signed<T>::type bssnegate(T x, char negate)
+  {
+    static_assert(std::is_unsigned<T>::value, "T must be unsigned for this to work properly.");
+    return (x ^ -negate) + negate;
+  }
+
+  template<bool ENABLE, typename T>
+  struct __bssabsnegate_h
+  {
+    BSS_FORCEINLINE static typename std::make_unsigned<T>::type _bssabs(T x) { return bssabs<T>(x); }
+    BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate) {
+      if(negate)
+      {
+        y = ~y + !x; // only add one if the x addition would overflow, which can only happen if x is the maximum value
+        x = ~x + 1;
+      }
+    }
+  };
+  template<typename T>
+  struct __bssabsnegate_h<false, T>
+  {
+    BSS_FORCEINLINE static T _bssabs(T x) { return x; }
+    BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate) { }
+  };
+
+  // Double width multiplication followed by a right shift and truncation.
+  template<class T>
+  inline static T BSS_FASTCALL __bssmultiplyextract__h(T xs, T ys, T shift)
+  {
+    typedef typename std::make_unsigned<T>::type U;
+    U x = __bssabsnegate_h<std::is_signed<T>::value, T>::_bssabs(xs);
+    U y = __bssabsnegate_h<std::is_signed<T>::value, T>::_bssabs(ys);
+    static const U halfbits = (sizeof(U) << 2);
+    static const U halfmask = ((U)~0) >> halfbits;
+    U a = x >> halfbits, b = x & halfmask;
+    U c = y >> halfbits, d = y & halfmask;
+
+    U ac = a * c;
+    U bc = b * c;
+    U ad = a * d;
+    U bd = b * d;
+
+    U mid34 = (bd >> halfbits) + (bc & halfmask) + (ad & halfmask);
+
+    U high = ac + (bc >> halfbits) + (ad >> halfbits) + (mid34 >> halfbits); // high
+    U low = (mid34 << halfbits) | (bd & halfmask); // low
+    __bssabsnegate_h<std::is_signed<T>::value, U>::_bssnegate(low, high, (xs < 0) ^ (ys < 0));
+
+    if(shift >= (sizeof(U) << 3))
+      return ((T)high) >> (shift - (sizeof(U) << 3));
+    low = (low >> shift);
+    high = (high << ((sizeof(T) << 3) - shift)) & (-(shift>0)); // shifting left by 64 bits is undefined, so we use a bit trick to set high to zero if shift is 0 without branching.
+    return (T)(low | high);
+  }
+  template<class T>
+  BSS_FORCEINLINE static T BSS_FASTCALL bssmultiplyextract(T x, T y, T shift)
+  {
+    typedef typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED, typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type U;
+    return (T)(((U)x * (U)y) >> shift);
+  }
+#ifndef BSS_HASINT128
+  template<>
+  BSS_FORCEINLINE static int64_t BSS_FASTCALL bssmultiplyextract<int64_t>(int64_t x, int64_t y, int64_t shift) { return __bssmultiplyextract__h<int64_t>(x, y, shift); }
+  template<>
+  BSS_FORCEINLINE static uint64_t BSS_FASTCALL bssmultiplyextract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) { return __bssmultiplyextract__h<uint64_t>(x, y, shift); }
+#endif
+
   // Basic lerp function with no bounds checking
   template<class T>
   BSS_FORCEINLINE static T BSS_FASTCALL lerp(T a, T b, double t) noexcept
@@ -796,7 +889,7 @@ namespace bss_util {
     return T((1.0 - t)*a) + T(t*b);
 	  //return a+((T)((b-a)*t)); // This is susceptible to floating point errors when t = 1
   }
-  
+
 #ifdef BSS_VARIADIC_TEMPLATES
 
   // Generates a packed sequence of numbers

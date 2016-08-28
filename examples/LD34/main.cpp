@@ -245,6 +245,7 @@ int main(int argc, char** argv)
   //init.width = 1024;
   //init.height = 768;
   init.mediapath = "../media/shaders";
+  init.vsync = false;
   Box2DSystem::B2INIT b2init;
   b2init.ppm = 16;
   b2init.gravity[1] = 27.0f;

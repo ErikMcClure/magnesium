@@ -11,9 +11,15 @@
 extern "C" {
 #endif
 
+enum FGTEXTBOX_FLAGS
+{
+  FGTEXTBOX_ACTION = (FGTEXT_SUBPIXEL << 1),
+  FGTEXTBOX_SINGLELINE = (FGTEXTBOX_ACTION << 1),
+};
+
 enum FGTEXTBOX_ACTIONS
 {
-  FGTEXTBOX_SELECTALL = 0,
+  FGTEXTBOX_SELECTALL = FGSCROLLBAR_NUM,
   FGTEXTBOX_CUT,
   FGTEXTBOX_COPY,
   FGTEXTBOX_PASTE,
@@ -32,19 +38,23 @@ typedef struct {
   int mask; // If not zero, stores a unicode character for password masking. 
   fgVectorUTF32 text;
   fgVectorString buf;
-  const int* placeholder; // placeholder text displayed when textbox is empty. Use SETTEXT or GETTEXT with the second argument set to 1.
-  fgColor selector; // Color of the selector rectangle
+  fgVectorUTF32 placeholder; // placeholder text displayed when textbox is empty.
   fgColor placecolor; // placeholder text color. Use SETCOLOR with the second argument set to 1.
-  size_t start; // start of text selection
+  fgColor cursorcolor; // cursor color. Use SETCOLOR with the second argument set to 2.
+  fgColor selector; // Color of the selector rectangle. Use SETCOLOR with the second argument set to 3.
+  size_t start; // current cursor
   AbsVec startpos;
-  size_t end; // end of text selection (or just where the cursor is)
+  size_t end; // end of selection
   AbsVec endpos;
+  float lastx; // stores the x coordinate while we are hitting up or down keys.
+  AbsRect areacache; // Stores a cache of the last area we knew about. If this changes, startpos and endpos must be recalculated.
   char inserting;
   void* font;
   void* cache;
   fgColor color;
   float lineheight;
   float letterspacing;
+  double lastclick; // determines the starting point of the cursor blink animation
 #ifdef  __cplusplus
   inline operator fgElement*() { return &window.control.element; }
   inline fgElement* operator->() { return operator fgElement*(); }
@@ -52,6 +62,7 @@ typedef struct {
 } fgTextbox;
 
 FG_EXTERN void FG_FASTCALL fgTextbox_Init(fgTextbox* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
+FG_EXTERN void FG_FASTCALL fgTextbox_Destroy(fgTextbox* self);
 FG_EXTERN size_t FG_FASTCALL fgTextbox_Message(fgTextbox* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
