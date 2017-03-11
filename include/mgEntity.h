@@ -10,16 +10,6 @@
 
 namespace magnesium {
   typedef unsigned short ComponentID;
-  struct MG_DLLEXPORT ComponentBitfield
-  {
-    uint64_t bits;
-    inline ComponentBitfield& operator +=(ComponentID id) { bits |= (1ULL << id); return *this; }
-    inline ComponentBitfield& operator -=(ComponentID id) { bits &= (~(11ULL << id)); return *this; }
-    inline bool operator[](ComponentID id) { return (bits & (11ULL << id)) != 0; }
-    inline bool operator==(ComponentBitfield& r) { return (bits&r.bits) == r.bits; }
-  };
-
-  static const ComponentBitfield COMPONENTBITFIELD_EMPTY = { 0 };
 
 #ifdef BSS_DEBUG
   template<class T> // This is a debug tracking class that ensures you never add or remove a component
@@ -47,8 +37,8 @@ namespace magnesium {
     explicit mgEntity(mgEntity* parent = 0, int order = 0);
     mgEntity(mgEntity&& mov);
     virtual ~mgEntity();
-    void ComponentListInsert(ComponentID id, size_t);
-    void ComponentListRemove(ComponentID id);
+    void ComponentListInsert(ComponentID id, ComponentID graphid, size_t);
+    void ComponentListRemove(ComponentID id, ComponentID graphid);
     size_t& ComponentListGet(ComponentID id);
     template<class T> // Gets a component of type T if it belongs to this entity, otherwise returns NULL
     inline COMPONENT_REF(T) Get() { ComponentID index = _componentlist.Get(T::ID()); return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); }
@@ -60,11 +50,12 @@ namespace magnesium {
     inline size_t NumChildren() const { return _children.Length(); }
     inline mgEntity* const* Children() const { return _children.begin(); }
     void SetParent(mgEntity* parent);
-    inline const ComponentBitfield& GetComponents() const { return _components; }
     inline int Order() const { return _order; }
     void SetOrder(int order);
+
     size_t id;
-    ComponentBitfield childhint; // bitfield of what components our children could have. This will never have false negatives, but it may have false positives.
+    size_t childhint; // Bitfield of scenegraph components our children might have
+    size_t graphcomponents;
 
     static mgEntity& SceneGraph() { return _root; }
     static inline char Comp(mgEntity* const& l, mgEntity* const& r) { char c = SGNCOMPARE(l->_order, r->_order); return !c ? SGNCOMPARE(l, r) : c; }
@@ -77,7 +68,6 @@ namespace magnesium {
     bss_util::cMap<ComponentID, size_t, bss_util::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
     mgEntity* _parent;
     bss_util::cCompactArray<mgEntity*> _children; // each child takes a reference on its parent, preventing a parent from being destroyed until all it's children are gone.
-    ComponentBitfield _components; // bitfield of what components this entity has.
     int _order;
 
     static mgEntity _root;

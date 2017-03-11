@@ -7,6 +7,7 @@ using namespace magnesium;
 using namespace bss_util;
 
 ComponentID mgComponentCounter::curID = 0;
+ComponentID mgComponentCounter::curGraphID = 1;
 cDynArray<mgComponentStoreBase*> mgComponentStoreBase::_stores;
 
 mgComponentStoreBase::mgComponentStoreBase(ComponentID id) : _id(id), curIteration(0)

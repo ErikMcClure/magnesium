@@ -12,12 +12,12 @@ namespace magnesium {
     void (*onlogic)(mgEntity*);
   };
 
-  class MG_DLLEXPORT LogicSystem : public mgSystem<mgLogicComponent, mgLogicComponent>
+  class MG_DLLEXPORT LogicSystem : public mgSystem<mgLogicComponent>
   {
   public:
     LogicSystem();
     ~LogicSystem();
-    virtual void Iterate(mgEntity* entity) override;
+    virtual void Iterate(mgEntity& entity) override;
   };
 }
 

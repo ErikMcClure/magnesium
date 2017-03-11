@@ -8,7 +8,7 @@ using namespace bss_util;
 
 mgEntity mgEntity::_root(0);
 
-mgEntity::mgEntity(mgEntity* parent, int order) : id(0), _components(COMPONENTBITFIELD_EMPTY), childhint(COMPONENTBITFIELD_EMPTY), _order(order)
+mgEntity::mgEntity(mgEntity* parent, int order) : id(0), graphcomponents(0), childhint(0), _order(order)
 {
   if(this == &_root)
   {
@@ -21,7 +21,7 @@ mgEntity::mgEntity(mgEntity* parent, int order) : id(0), _components(COMPONENTBI
     _parent->_addchild(this);
   }
 }
-mgEntity::mgEntity(mgEntity&& mov) : id(mov.id), _components(mov._components), _componentlist(std::move(mov._componentlist)), childhint(mov.childhint),
+mgEntity::mgEntity(mgEntity&& mov) : id(mov.id), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)), childhint(mov.childhint),
   _children(std::move(mov._children)), _parent(mov._parent), _order(mov._order)
 {
   if(_parent)
@@ -29,7 +29,8 @@ mgEntity::mgEntity(mgEntity&& mov) : id(mov.id), _components(mov._components), _
     _parent->_removechild(&mov);
     _parent->_addchild(this);
   }
-  mov._components.bits = 0;
+  mov.graphcomponents = 0;
+  mov.childhint = 0;
   mov.id = 0;
   for(auto& iter : _componentlist)
     *mgComponentStoreBase::GetStore(iter.first)->GetEntity(iter.second) = this;
@@ -73,15 +74,18 @@ void mgEntity::SetOrder(int order)
     _parent->_addchild(this);
   }
 }
-void mgEntity::ComponentListInsert(ComponentID id, size_t index)
+void mgEntity::ComponentListInsert(ComponentID id, ComponentID graphid, size_t index)
 {
   _componentlist.Insert(id, index);
-  _components += id;
-  _propagateIDs();
+  if(graphid)
+  {
+    graphcomponents |= graphid;
+    _propagateIDs();
+  }
 }
-void mgEntity::ComponentListRemove(ComponentID id)
+void mgEntity::ComponentListRemove(ComponentID id, ComponentID graphid)
 {
-  _components -= id;
+  graphcomponents &= (~graphid);
   _componentlist.Remove(id);
 }
 size_t& mgEntity::ComponentListGet(ComponentID id)
@@ -94,7 +98,7 @@ void mgEntity::_propagateIDs()
   mgEntity* p = _parent;
   while(p)
   {
-    p->childhint.bits |= _components.bits;
+    p->childhint |= graphcomponents;
     p = p->_parent;
   }
 }

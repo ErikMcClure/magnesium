@@ -7,10 +7,11 @@
 #include "mgComponent.h"
 
 namespace magnesium {
+  // A basic system implementation, doesn't iterate over anything
   class MG_DLLEXPORT mgSystemBase
   {
   public:
-    mgSystemBase(ComponentBitfield required, int priority = 0);
+    mgSystemBase(int priority = 0);
     virtual ~mgSystemBase();
     virtual void Process() = 0;
 
@@ -23,34 +24,49 @@ namespace magnesium {
     friend class mgSystemManager;
 
     const int _priority;
-    const ComponentBitfield _required;
     mgSystemManager* _manager;
   };
 
+  // Iterates over the given component store
   class MG_DLLEXPORT mgSystemSimple : public mgSystemBase
   {
   public:
-    mgSystemSimple(ComponentBitfield required, ComponentID iterator, int priority = 0);
+    mgSystemSimple(ComponentID iterator, int priority = 0);
     virtual ~mgSystemSimple();
     virtual void Process();
-    virtual void Iterate(mgEntity* entity) = 0;
+    virtual void Iterate(mgEntity& entity) = 0;
 
   protected:
     const ComponentID _iterator;
   };
 
-  template<typename ComponentIterator, typename... Components>
+  // Iterates over the scene graph, ignoring any branches that do not have the required components.
+  class MG_DLLEXPORT mgSystemComplex : public mgSystemBase
+  {
+  public:
+    mgSystemComplex(size_t required, int priority = 0);
+    virtual ~mgSystemComplex();
+    virtual void Process();
+    virtual void Iterate(mgEntity& entity) = 0;
+
+  protected:
+    void _process(mgEntity& root);
+
+    const size_t _required;
+  };
+
+  template<typename ComponentIterator>
   class BSS_COMPILER_DLLEXPORT mgSystem : public mgSystemSimple
   {
   public:
-    mgSystem(int priority = 0) : mgSystemSimple(COMPONENTBITFIELD_EMPTY, ComponentIterator::ID(), priority) {}
+    mgSystem(int priority = 0) : mgSystemSimple(ComponentIterator::ID(), priority) {}
   };
 
-  template<typename... Components>
-  class BSS_COMPILER_DLLEXPORT mgSystem<void, Components...> : public mgSystemBase
+  template<>
+  class BSS_COMPILER_DLLEXPORT mgSystem<void> : public mgSystemBase
   {
   public:
-    mgSystem(int priority = 0) : mgSystemBase(COMPONENTBITFIELD_EMPTY, priority) {}
+    mgSystem(int priority = 0) : mgSystemBase(priority) {}
   };
 
   class MG_DLLEXPORT mgSystemManager
