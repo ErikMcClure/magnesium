@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __PASS_H__PS__
@@ -22,7 +22,7 @@ namespace planeshader {
     ~psPass();
     void Begin();
     void End();
-    inline void BSS_FASTCALL SetCamera(const psCamera* camera) { _cam=!camera?&psCamera::default_camera:camera; }
+    inline void SetCamera(const psCamera* camera) { _cam=!camera?&psCamera::default_camera:camera; }
     inline const psCamera* GetCamera() const { return _cam; }
     psTex* const* GetRenderTarget();
     inline void SetRenderTarget(psTex* rt=0) { _defaultrt = rt; }
@@ -30,8 +30,8 @@ namespace planeshader {
     void Remove(psRenderable* r);
     inline void SetClearColor(uint32_t color, bool enable = true) { _clearcolor = color; _clear = enable; }
     inline uint32_t GetClearColor() const { return _clearcolor; }
-    uint32_t GetDPI();
-    inline void SetDPI(uint32_t dpi = 0) { _dpi = dpi; }
+    psVeciu GetDPI();
+    inline void SetDPI(psVeciu dpi = psVeciu(0,0)) { _dpi = dpi; }
     inline psMonitor* GetMonitor() const { return _monitor; }
     inline void SetMonitor(psMonitor* monitor = 0) { _monitor = monitor; }
 
@@ -60,7 +60,7 @@ namespace planeshader {
     ALLOC _renderalloc;
     uint32_t _clearcolor;
     bool _clear;
-    uint32_t _dpi;
+    psVeciu _dpi;
     psMonitor* _monitor;
     bss_util::cTRBtree<psRenderable*, StandardCompare, ALLOC> _renderlist;
   };

@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_HEAP_H__BSS__
@@ -11,7 +11,7 @@
 
 namespace bss_util {
   template<class T, typename CT_>
-  struct MFUNC_DEFAULT { BSS_FORCEINLINE static void BSS_FASTCALL MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
+  struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
   template<class T, typename CT_=uint32_t, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
@@ -65,7 +65,7 @@ namespace bss_util {
 
       while(k > 0) {
         parent = CBH_PARENT(k);
-        if(CFunc(_array[parent], std::forward<U>(val)) > 0) break;
+        if(CFunc(_array[parent], val) > 0) break;
         _array[k] = std::move(_array[parent]);
         MFUNC::MFunc(_array[k], k, p);
         k = parent;
@@ -85,14 +85,14 @@ namespace bss_util {
       {
         if(CFunc(_array[i-1], _array[i]) > 0) // CFunc (left,right) and return true if left > right
           --i; //left is greater than right so pick that one
-        if(CFunc(std::forward<U>(val), _array[i]) > 0)
+        if(CFunc(val, _array[i]) > 0)
           break;
         _array[k]=std::move(_array[i]);
         MFUNC::MFunc(_array[k], k, p);
         k=i;
         assert(k<(std::numeric_limits<CT_>::max()>>1));
       }
-      if(i >= length && --i < length && CFunc(std::forward<U>(val), _array[i])<=0) //Check if left child is also invalid (can only happen at the very end of the array)
+      if(i >= length && --i < length && CFunc(val, _array[i])<=0) //Check if left child is also invalid (can only happen at the very end of the array)
       {
         _array[k]=std::move(_array[i]);
         MFUNC::MFunc(_array[k], k, p);
@@ -150,7 +150,7 @@ namespace bss_util {
     inline bool _set(CT_ index, U && val)
     {
       if(index>=_length) return false;
-      if(CFunc(_array[index], std::forward<U>(val)) <= 0) //in this case we percolate up
+      if(CFunc(_array[index], val) <= 0) //in this case we percolate up
         PercolateUp(_array, _length, index, std::forward<U>(val), this);
       else
         PercolateDown(_array, _length, index, std::forward<U>(val), this);

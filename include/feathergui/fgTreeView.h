@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_TREEVIEW_H__
-#define _FG_TREEVIEW_H__
+#ifndef __FG_TREEVIEW_H__
+#define __FG_TREEVIEW_H__
 
 #include "fgScrollbar.h"
 
@@ -23,15 +23,15 @@ typedef struct _FG_TREEVIEW {
   inline operator fgElement*() { return &scrollbar.control.element; }
   inline fgElement* operator->() { return operator fgElement*(); }
 #endif
-} fgTreeView;
+} fgTreeview;
 
-FG_EXTERN void FG_FASTCALL fgTreeView_Init(fgTreeView* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgTreeView_Destroy(fgTreeView* self);
-FG_EXTERN size_t FG_FASTCALL fgTreeView_Message(fgTreeView* self, const FG_Msg* msg);
+FG_EXTERN void fgTreeview_Init(fgTreeview* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgTreeview_Destroy(fgTreeview* self);
+FG_EXTERN size_t fgTreeview_Message(fgTreeview* self, const FG_Msg* msg);
 
-FG_EXTERN void FG_FASTCALL fgTreeItem_Init(fgTreeItem* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN size_t FG_FASTCALL fgTreeItem_Message(fgTreeItem* self, const FG_Msg* msg);
-FG_EXTERN void FG_FASTCALL fgTreeItem_Destroy(fgTreeItem* self);
+FG_EXTERN void fgTreeItem_Init(fgTreeItem* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN size_t fgTreeItem_Message(fgTreeItem* self, const FG_Msg* msg);
+FG_EXTERN void fgTreeItem_Destroy(fgTreeItem* self);
 
 #ifdef  __cplusplus
 }

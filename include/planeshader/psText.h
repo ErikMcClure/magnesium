@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __TEXT_H__PS__
@@ -41,11 +41,11 @@ namespace planeshader {
     psText& operator=(psText&& mov);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
     void _recalcdim();
 
     cStrT<int> _text;
-    bss_util::cAutoRef<psTexFont> _font;
+    bss_util::ref_ptr<psTexFont> _font;
     psVec _textdim;
     float _letterspacing;
     uint16_t _drawflags;

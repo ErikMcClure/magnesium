@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_BUTTON_H__
-#define _FG_BUTTON_H__
+#ifndef __FG_BUTTON_H__
+#define __FG_BUTTON_H__
 
 #include "fgControl.h"
 #include "fgText.h"
@@ -19,7 +19,6 @@ enum FGBUTTON_FLAGS
 // A button is usually implemented as a simple background design that takes a static and displays it in the center of the button.
 typedef struct _FG_BUTTON {
   fgControl control;
-  fgElement item; // item displayed in button
   fgText text; // text displayed in button
 #ifdef  __cplusplus
   inline operator fgElement*() { return &control.element; }
@@ -27,9 +26,9 @@ typedef struct _FG_BUTTON {
 #endif
 } fgButton;
 
-FG_EXTERN void FG_FASTCALL fgButton_Init(fgButton* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgButton_Destroy(fgButton* self);
-FG_EXTERN size_t FG_FASTCALL fgButton_Message(fgButton* self, const FG_Msg* msg);
+FG_EXTERN void fgButton_Init(fgButton* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgButton_Destroy(fgButton* self);
+FG_EXTERN size_t fgButton_Message(fgButton* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

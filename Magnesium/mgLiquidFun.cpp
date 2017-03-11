@@ -31,10 +31,10 @@ LiquidFunSystem::~LiquidFunSystem()
   b2PhysicsComponent::Store().Clear(); // Clear all components out BEFORE we delete the world, otherwise things get mad.
   Unload();
 }
-void LiquidFunSystem::Preprocess()
+void LiquidFunSystem::Process()
 {
   if(!_particle_iters) // if this is zero we revert to box2D behavior
-    return Box2DSystem::Preprocess();
+    return Box2DSystem::Process();
 
   if(_frozen || !_world)
     return;

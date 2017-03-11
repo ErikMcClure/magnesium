@@ -58,13 +58,15 @@ void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& col
 }
 void psDebugDraw::_render()
 {
-  Matrix<float, 4, 4>::Identity(_m);
-  Matrix<float, 4, 4>::AffineScaling(Box2DSystem::Instance()->F_PPM, Box2DSystem::Instance()->F_PPM, 1.0f, _m);
+  Matrix<float, 4, 4> m;
+  Matrix<float, 4, 4>::Identity(m);
+  Matrix<float, 4, 4>::AffineScaling(Box2DSystem::Instance()->F_PPM, Box2DSystem::Instance()->F_PPM, 1.0f, m);
+  _driver->PushTransform(m.v);
 
   for(DrawBuf& buf : _drawbuf)
   {
     if(buf.vcount > 0) // polygon
-      _driver->DrawPolygon(_driver->library.POLYGON, 0, _drawverts.begin() + buf.vindex, buf.vcount, VEC3D_ZERO, buf.color, PSFLAG_DONOTBATCH, _m.v);
+      _driver->DrawPolygon(_driver->library.POLYGON, 0, _drawverts.begin() + buf.vindex, buf.vcount, VEC3D_ZERO, buf.color, PSFLAG_DONOTBATCH);
     if(!buf.vcount) // circle
     {
       psVec p = _drawverts[buf.vindex];
@@ -72,10 +74,12 @@ void psDebugDraw::_render()
     }
     if(buf.vcount == -2) // line
     {
-      psBatchObj* batch = _driver->DrawLinesStart(_driver->library.LINE, 0, 0, _m.v);
+      psBatchObj* batch = _driver->DrawLinesStart(_driver->library.LINE, 0, 0);
       _driver->DrawLines(batch, psLine(_drawverts[buf.vindex], _drawverts[buf.vindex + 1]), 0, 0, buf.color);
     }
   }
+
+  _driver->PopTransform();
 }
 
 void magnesium::Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos)
@@ -96,7 +100,7 @@ void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init, int priority) : LiquidFunSystem(init, priority) {}
 LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init, int priority) : LiquidFunSystem(init, priority) {}
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
-void LiquidFunPlaneshaderSystem::Process(mgEntity* entity)
+void LiquidFunPlaneshaderSystem::Iterate(mgEntity* entity)
 {
   auto b = entity->Get<b2PhysicsComponent>();
   psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);

@@ -24,13 +24,13 @@ PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngin
   FlushMessages();
 }
 PlaneshaderSystem::~PlaneshaderSystem() {}
-void PlaneshaderSystem::Process(mgEntity* entity)
-{
-  ResolveComponent<psRenderableComponent>(entity)->Render();
-}
-void PlaneshaderSystem::Postprocess()
+void PlaneshaderSystem::Process()
 {
   if(!Begin()) return;
+
+  // Iterate over entire scene graph, rendering everything
+  //ResolveComponent<psRenderableComponent>(entity)->Render();
+
   End();
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();

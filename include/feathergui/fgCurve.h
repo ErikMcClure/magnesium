@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_CURVE_H__
-#define _FG_CURVE_H__
+#ifndef __FG_CURVE_H__
+#define __FG_CURVE_H__
 
 #include "fgElement.h"
 
@@ -13,10 +13,10 @@ extern "C" {
   enum FGCURVE_FLAGS
   {
     FGCURVE_LINE = 0,
-    FGCURVE_QUADRATIC = (1 << 8),
-    FGCURVE_CUBIC = (2 << 8),
-    FGCURVE_BSPLINE = (3 << 8),
-    FGCURVE_CURVEMASK = (3 << 8),
+    FGCURVE_QUADRATIC = (1 << 9),
+    FGCURVE_CUBIC = (2 << 9),
+    FGCURVE_BSPLINE = (3 << 9),
+    FGCURVE_CURVEMASK = (3 << 9),
   };
 
   typedef fgDeclareVector(AbsVec, Point) fgVectorPoint;
@@ -30,11 +30,10 @@ extern "C" {
     float factor; // subdivision factor, set using SETSTATE
   } fgCurve;
 
-  FG_EXTERN fgElement* FG_FASTCALL fgCurve_Create(const AbsVec* points, size_t npoints, unsigned int color, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-  FG_EXTERN void FG_FASTCALL fgCurve_Init(fgCurve* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-  FG_EXTERN void FG_FASTCALL fgCurve_Destroy(fgCurve* self);
-  FG_EXTERN size_t FG_FASTCALL fgCurve_Message(fgCurve* self, const FG_Msg* msg);
-  FG_EXTERN void FG_FASTCALL fgDrawLines(const AbsVec* p, size_t n, unsigned int color, const AbsVec* translate, const AbsVec* scale, FABS rotation, const AbsVec* center);
+  FG_EXTERN fgElement* fgCurve_Create(const AbsVec* points, size_t npoints, unsigned int color, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+  FG_EXTERN void fgCurve_Init(fgCurve* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+  FG_EXTERN void fgCurve_Destroy(fgCurve* self);
+  FG_EXTERN size_t fgCurve_Message(fgCurve* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_TEXTBOX_H__
-#define _FG_TEXTBOX_H__
+#ifndef __FG_TEXTBOX_H__
+#define __FG_TEXTBOX_H__
 
 #include "fgScrollbar.h"
 #include "fgText.h"
@@ -33,15 +33,19 @@ enum FGTEXTBOX_ACTIONS
 // A Textbox is really just a text static inside an optional Scrollbar. It can be single or multi-line with an optional validation regex.
 // The textbox only understands single UTF codepoints, so an external library should be used to perform unicode normalization before setting it.
 typedef struct {
-  fgScrollbar window;
-  char* validation; // validation regex
+  fgScrollbar scroll;
+  const char* validation; // validation regex
+  const char* formatting; // printf formatting string matched to capture groups in the validation regex
   int mask; // If not zero, stores a unicode character for password masking. 
-  fgVectorUTF32 text;
-  fgVectorString buf;
-  fgVectorUTF32 placeholder; // placeholder text displayed when textbox is empty.
-  fgColor placecolor; // placeholder text color. Use SETCOLOR with the second argument set to 1.
-  fgColor cursorcolor; // cursor color. Use SETCOLOR with the second argument set to 2.
-  fgColor selector; // Color of the selector rectangle. Use SETCOLOR with the second argument set to 3.
+  fgVectorUTF8 text8;
+  fgVectorUTF16 text16;
+  fgVectorUTF32 text32;
+  fgVectorUTF8 placeholder8;
+  fgVectorUTF16 placeholder16;
+  fgVectorUTF32 placeholder32; // placeholder text displayed when textbox is empty.
+  fgColor placecolor; // placeholder text color. Use SETCOLOR with the subtype set to 1.
+  fgColor cursorcolor; // cursor color. Use SETCOLOR with the subtype set to 2.
+  fgColor selector; // Color of the selector rectangle. Use SETCOLOR with the subtype set to 3.
   size_t start; // current cursor
   AbsVec startpos;
   size_t end; // end of selection
@@ -50,20 +54,20 @@ typedef struct {
   AbsRect areacache; // Stores a cache of the last area we knew about. If this changes, startpos and endpos must be recalculated.
   char inserting;
   void* font;
-  void* cache;
+  void* layout;
   fgColor color;
   float lineheight;
   float letterspacing;
   double lastclick; // determines the starting point of the cursor blink animation
 #ifdef  __cplusplus
-  inline operator fgElement*() { return &window.control.element; }
+  inline operator fgElement*() { return &scroll.control.element; }
   inline fgElement* operator->() { return operator fgElement*(); }
 #endif
 } fgTextbox;
 
-FG_EXTERN void FG_FASTCALL fgTextbox_Init(fgTextbox* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgTextbox_Destroy(fgTextbox* self);
-FG_EXTERN size_t FG_FASTCALL fgTextbox_Message(fgTextbox* self, const FG_Msg* msg);
+FG_EXTERN void fgTextbox_Init(fgTextbox* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgTextbox_Destroy(fgTextbox* self);
+FG_EXTERN size_t fgTextbox_Message(fgTextbox* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

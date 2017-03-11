@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __LINE_H__PS__
@@ -19,14 +19,14 @@ namespace planeshader {
     inline psLineT(const VEC& P1, T X2, T Y2) : p1(P1), x2(X2), y2(Y2) {}
     inline psLineT(const VEC& P1, const VEC& P2) : p1(P1), p2(P2) {}
     inline T Length() const { return bss_util::dist<T>(x1, y1, x2, y2); }
-    inline bool BSS_FASTCALL IntersectCircle(const psCircleT<T>& other) const { return DistanceToPointSquared(other.pos)<=other.r*other.r; }
-    inline bool BSS_FASTCALL IntersectCircle(const VEC& pos, T R) const { return DistanceToPointSquared(pos) <= R*R; }
-    inline bool BSS_FASTCALL IntersectCircle(T X, T Y, T R) const { return DistanceToPointSquared(X, Y) <= R*R; }
-    inline bool BSS_FASTCALL IntersectRect(const psRectT<T>& rect) const { return RectLineIntersect(x1, y1, x2, y2, rect._ltrbarray); }
-    inline bool BSS_FASTCALL IntersectRect(const T(&rect)[4]) const { return RectLineIntersect(x1, y1, x2, y2, rect); }
-    inline bool BSS_FASTCALL IntersectLine(const psLineT<T>& other) const { return LineLineIntersect(x1, y1, x2, y2, other.x1, other.y1, other.x2, other.y2); }
-    inline bool BSS_FASTCALL IntersectLine(T X1, T Y1, T X2, T Y2) const { return LineLineIntersect(x1, y1, x2, y2, X1, Y1, X2, Y2); }
-    inline bool BSS_FASTCALL IntersectVertLine(T X, T Y1, T Y2) const
+    inline bool IntersectCircle(const psCircleT<T>& other) const { return DistanceToPointSquared(other.pos)<=other.r*other.r; }
+    inline bool IntersectCircle(const VEC& pos, T R) const { return DistanceToPointSquared(pos) <= R*R; }
+    inline bool IntersectCircle(T X, T Y, T R) const { return DistanceToPointSquared(X, Y) <= R*R; }
+    inline bool IntersectRect(const psRectT<T>& rect) const { return RectLineIntersect(x1, y1, x2, y2, rect._ltrbarray); }
+    inline bool IntersectRect(const T(&rect)[4]) const { return RectLineIntersect(x1, y1, x2, y2, rect); }
+    inline bool IntersectLine(const psLineT<T>& other) const { return LineLineIntersect(x1, y1, x2, y2, other.x1, other.y1, other.x2, other.y2); }
+    inline bool IntersectLine(T X1, T Y1, T X2, T Y2) const { return LineLineIntersect(x1, y1, x2, y2, X1, Y1, X2, Y2); }
+    inline bool IntersectVertLine(T X, T Y1, T Y2) const
     {
       T db = Y2-Y1;
       T dx = x2-x1; T dy = y2-y1;
@@ -34,7 +34,7 @@ namespace planeshader {
       X = (db*(X-x1))/(db*dx);
       return (dy >= 0 && dy <= 1 && X >= 0 && X <= 1);
     }
-    inline bool BSS_FASTCALL IntersectHorzLine(T X1, T X2, T Y) const {
+    inline bool IntersectHorzLine(T X1, T X2, T Y) const {
       T da = X2-X1;
       T dx = x2-x1; T dy = y2-y1;
       dx = (dx*(Y-y1)+dy*(x1-X1))/(da*dy);
@@ -42,7 +42,7 @@ namespace planeshader {
       return (dx >= 0 && dx <= 1 && Y >= 0 && Y <= 1);
     }
 
-    inline bool BSS_FASTCALL PointOfIntersection(const psLineT<T>& other, VEC* retpoint)
+    inline bool PointOfIntersection(const psLineT<T>& other, VEC* retpoint)
     {
       VEC p(x1, y1);
       VEC r(x2-x1, y2-y1);
@@ -60,13 +60,13 @@ namespace planeshader {
       }
       return false;
     }
-    inline T BSS_FASTCALL DistanceToPointSquared(const VEC& point) const { return PointLineDistSqr(point.x, point.y, x1, y1, x2, y2); }
-    inline T BSS_FASTCALL DistanceToPointSquared(T X, T Y) const { return PointLineDistSqr(X, Y, x1, y1, x2, y2); }
-    inline T BSS_FASTCALL DistanceToPoint(const VEC& point) const { return PointLineDist(point.x, point.y, x1, y1, x2, y2); }
-    inline T BSS_FASTCALL DistanceToPoint(T X, T Y) const { return PointLineDist(X, Y, x1, y1, x2, y2); }
-    inline VEC BSS_FASTCALL ParametricPoint(float s) const { return pos1 + (pos2-pos1)*s; }
-    inline psLineT<T>& BSS_FASTCALL Rotate(float r, VEC center) { return Rotate(r, center.x, center.y); }
-    inline psLineT<T>& BSS_FASTCALL Rotate(float r, float x, float y) { pos1.Rotate(r, x, y); pos2.Rotate(r, x, y); return *this; }
+    inline T DistanceToPointSquared(const VEC& point) const { return PointLineDistSqr(point.x, point.y, x1, y1, x2, y2); }
+    inline T DistanceToPointSquared(T X, T Y) const { return PointLineDistSqr(X, Y, x1, y1, x2, y2); }
+    inline T DistanceToPoint(const VEC& point) const { return PointLineDist(point.x, point.y, x1, y1, x2, y2); }
+    inline T DistanceToPoint(T X, T Y) const { return PointLineDist(X, Y, x1, y1, x2, y2); }
+    inline VEC ParametricPoint(float s) const { return pos1 + (pos2-pos1)*s; }
+    inline psLineT<T>& Rotate(float r, VEC center) { return Rotate(r, center.x, center.y); }
+    inline psLineT<T>& Rotate(float r, float x, float y) { pos1.Rotate(r, x, y); pos2.Rotate(r, x, y); return *this; }
 
     static inline bool LineLineIntersect(T x1, T y1, T x2, T y2, T X1, T Y1, T X2, T Y2)
     {
@@ -161,7 +161,7 @@ namespace planeshader {
     inline psLine3DT(const VEC& P1, T X2, T Y2, T Z2) : p1(P1), x2(X2), y2(Y2), z2(Z2) {}
     inline psLine3DT(const VEC& P1, const VEC& P2) : p1(P1), p2(P2) {}
 
-    inline VEC BSS_FASTCALL ParametricPoint(float s) const { return pos1 + (pos2-pos1)*s; }
+    inline VEC ParametricPoint(float s) const { return pos1 + (pos2-pos1)*s; }
 
     template<class U>
     inline psLine3DT& operator=(const psLine3DT<U>& other) { p1=other.p1; p2=other.p2; }

@@ -10,11 +10,9 @@ namespace magnesium {
   class MG_DLLEXPORT mgSystemBase
   {
   public:
-    mgSystemBase(ComponentBitfield required, ComponentID iterator = (ComponentID)~0, int priority = 0);
+    mgSystemBase(ComponentBitfield required, int priority = 0);
     virtual ~mgSystemBase();
-    virtual void Preprocess();
-    virtual void Process(mgEntity* entity) = 0;
-    virtual void Postprocess();
+    virtual void Process() = 0;
 
     //typedef unsigned short SystemID; // This doesn't work very well because most systems have singletons anyway
     //static SystemID sysid;
@@ -27,21 +25,32 @@ namespace magnesium {
     const int _priority;
     const ComponentBitfield _required;
     mgSystemManager* _manager;
+  };
+
+  class MG_DLLEXPORT mgSystemSimple : public mgSystemBase
+  {
+  public:
+    mgSystemSimple(ComponentBitfield required, ComponentID iterator, int priority = 0);
+    virtual ~mgSystemSimple();
+    virtual void Process();
+    virtual void Iterate(mgEntity* entity) = 0;
+
+  protected:
     const ComponentID _iterator;
   };
 
   template<typename ComponentIterator, typename... Components>
-  class BSS_COMPILER_DLLEXPORT mgSystem : public mgSystemBase
+  class BSS_COMPILER_DLLEXPORT mgSystem : public mgSystemSimple
   {
   public:
-    mgSystem(int priority = 0) : mgSystemBase(COMPONENTBITFIELD_EMPTY, ComponentIterator::ID(), priority) {}
+    mgSystem(int priority = 0) : mgSystemSimple(COMPONENTBITFIELD_EMPTY, ComponentIterator::ID(), priority) {}
   };
 
-  template<>
-  class BSS_COMPILER_DLLEXPORT mgSystem<void> : public mgSystemBase
+  template<typename... Components>
+  class BSS_COMPILER_DLLEXPORT mgSystem<void, Components...> : public mgSystemBase
   {
   public:
-    mgSystem(int priority = 0) : mgSystemBase(COMPONENTBITFIELD_EMPTY, (ComponentID)~0, priority) {}
+    mgSystem(int priority = 0) : mgSystemBase(COMPONENTBITFIELD_EMPTY, priority) {}
   };
 
   class MG_DLLEXPORT mgSystemManager

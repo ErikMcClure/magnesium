@@ -8,10 +8,8 @@ using namespace magnesium;
 LogicSystem::LogicSystem() {}
 LogicSystem::~LogicSystem() {}
 
-void LogicSystem::Preprocess() { if(preprocess) preprocess(); }
-void LogicSystem::Process(mgEntity* entity)
+void LogicSystem::Iterate(mgEntity* entity)
 {
   auto& f = entity->Get<mgLogicComponent>()->onlogic;
   if(f) f(entity);
 }
-void LogicSystem::Postprocess() { if(postprocess) postprocess(); }

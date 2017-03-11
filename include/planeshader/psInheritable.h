@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __INHERITABLE_H__PS__
@@ -30,14 +30,14 @@ namespace planeshader {
     // Gets all the flags inherited from the parent
     virtual psFlag GetAllFlags() const override { return !_parent?_flags:(_flags|(_parent->GetAllFlags()&PSFLAG_INHERITABLE)); }
     // Overloads SetPass so it propogates to our children
-    inline void BSS_FASTCALL SetPass() { psRenderable::SetPass(); }
-    virtual void BSS_FASTCALL SetPass(psPass* pass) override;
+    inline void SetPass() { psRenderable::SetPass(); }
+    virtual void SetPass(psPass* pass) override;
     // Clone function
     virtual psInheritable* Clone() const { return 0; }
     virtual psTex* const* GetRenderTargets() const override;
     virtual uint8_t NumRT() const override;
-    virtual void BSS_FASTCALL SetZOrder(int zorder) override;
-    psInheritable* BSS_FASTCALL AddClone(const psInheritable* inheritable);
+    virtual void SetZOrder(int zorder) override;
+    psInheritable* AddClone(const psInheritable* inheritable);
 
     psInheritable& operator=(const psInheritable& copy);
     psInheritable& operator=(psInheritable&& mov);
@@ -51,15 +51,15 @@ namespace planeshader {
     }
 
     inline static bool INHERITABLECOMP(psInheritable* l, psInheritable* r) { return l->_zorder < r->_zorder; }
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
 
   protected:
     friend class psSolid;
 
     void _gettotalpos(psVec3D& pos) const;
     void _sortchildren();
-    virtual char BSS_FASTCALL _sort(psRenderable* r) const override;
-    virtual psRenderable* BSS_FASTCALL _getparent() const override;
+    virtual char _sort(psRenderable* r) const override;
+    virtual psRenderable* _getparent() const override;
     psInheritable* _prerender();
 
     bss_util::LLBase<psInheritable> _lchild;

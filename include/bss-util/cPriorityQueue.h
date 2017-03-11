@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_PRIORITY_QUEUE_H__BSS__
@@ -36,7 +36,7 @@ namespace bss_util {
 
   template<class T, typename CT_>
   struct MFUNC_PRIORITY {
-    BSS_FORCEINLINE static void BSS_FASTCALL MFunc(const T& item, CT_ i, MFUNC_PRIORITY* p) { p->_subarray[item.first] = i; }
+    BSS_FORCEINLINE static void MFunc(const T& item, CT_ i, MFUNC_PRIORITY* p) { p->_subarray[item.first] = i; }
     cArray<CT_, CT_> _subarray;
   };
 

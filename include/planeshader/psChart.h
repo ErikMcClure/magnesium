@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __CHART_H__PS__
@@ -120,7 +120,7 @@ namespace planeshader {
     };
 
   protected:
-    virtual void BSS_FASTCALL _render();
+    virtual void _render();
 
     psTexFont* _font;
     cStr _title;

@@ -1,14 +1,21 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_DEBUG_H__
-#define _FG_DEBUG_H__
+#ifndef __FG_DEBUG_H__
+#define __FG_DEBUG_H__
 
-#include "fgTreeView.h"
+#include "fgTreeview.h"
+#include "fgMenu.h"
+#include "fgGrid.h"
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 enum FGDEBUG_FLAGS
 {
   FGDEBUG_CLEARONHIDE = (FGELEMENT_SNAPY << 1), // If set, clears the message log when the debug view is hidden
+  FGDEBUG_OVERLAY = (FGDEBUG_CLEARONHIDE << 1),
 };
 
 union _FG_DEBUG_MESSAGE_STORAGE {
@@ -33,7 +40,7 @@ typedef struct _FG_DEBUG_MESSAGE {
       union _FG_DEBUG_MESSAGE_STORAGE arg2;
     };
     struct {
-      int x; int y; // Mouse and touch events
+      float x; float y; // Mouse and touch events
       union {
         struct { unsigned char button; unsigned char allbtn; };
         struct { short scrolldelta; short scrollhdelta; }; // MOUSESCROLL
@@ -49,7 +56,7 @@ typedef struct _FG_DEBUG_MESSAGE {
     struct { char joydown; short joybutton; }; // JOYBUTTON
   };
   unsigned short type;
-  unsigned char subtype;
+  unsigned short subtype;
   unsigned long long time;
   union { size_t value; float valuef; void* valuep; };
   size_t depth;
@@ -58,17 +65,24 @@ typedef struct _FG_DEBUG_MESSAGE {
 // The debug view is designed as an overlay to help you inspect the current state of the GUI
 typedef struct _FG_DEBUG {
   fgElement element;
-  fgTreeView elements; // TreeView of the elements, minus the debug view itself.
-  fgTreeView messages; // Log of all messages passing through the GUI
-  fgText properties; // element properties
+  fgTreeview elements; // TreeView of the elements, minus the debug view itself.
+  fgGrid properties; // element properties
   fgText contents; // message contents
-  size_t(FG_FASTCALL *behaviorhook)(struct _FG_ELEMENT* self, const FG_Msg* msg);
+  fgMenu context;
+  size_t(*behaviorhook)(struct _FG_ELEMENT* self, const FG_Msg* msg);
   fgDeclareVector(fgDebugMessage, DebugMessage) messagelog;
   fgDeclareVector(char*, strings) messagestrings;
   size_t depth;
-  fgElement* depthelement;
   fgElement* hover;
   int ignore;
+  void* font;
+  fgColor color;
+  float lineheight;
+  float letterspacing;
+  AbsRect oldpadding;
+  fgVectorUTF32 text32;
+  fgVectorUTF16 text16;
+  fgVectorUTF8 text8;
 
 #ifdef  __cplusplus
   inline operator fgElement*() { return &element; }
@@ -76,17 +90,22 @@ typedef struct _FG_DEBUG {
 #endif
 } fgDebug;
 
-FG_EXTERN void FG_FASTCALL fgDebug_Init(fgDebug* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgDebug_Destroy(fgDebug* self);
-FG_EXTERN size_t FG_FASTCALL fgDebug_Message(fgDebug* self, const FG_Msg* msg);
-FG_EXTERN void FG_FASTCALL fgDebug_ClearLog(fgDebug* self);
-FG_EXTERN void FG_FASTCALL fgDebug_Show(float left, float right);
-FG_EXTERN void FG_FASTCALL fgDebug_Hide();
-FG_EXTERN fgDebug* FG_FASTCALL fgDebug_Get();
-FG_EXTERN size_t FG_FASTCALL fgDebug_LogMessage(fgDebug* self, const FG_Msg* msg, unsigned long long time, size_t depth);
-FG_EXTERN ptrdiff_t FG_FASTCALL fgDebug_WriteMessage(char* buf, size_t bufsize, fgDebugMessage* msg);
-FG_EXTERN void FG_FASTCALL fgDebug_BuildTree(fgElement* treeview);
+FG_EXTERN void fgDebug_Init(fgDebug* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgDebug_Destroy(fgDebug* self);
+FG_EXTERN size_t fgDebug_Message(fgDebug* self, const FG_Msg* msg);
+FG_EXTERN void fgDebug_ClearLog(fgDebug* self);
+FG_EXTERN void fgDebug_Show(float left, float right, char overlay);
+FG_EXTERN void fgDebug_Hide();
+FG_EXTERN fgDebug* fgDebug_Get();
+FG_EXTERN size_t fgDebug_LogMessage(fgDebug* self, const FG_Msg* msg, unsigned long long time, size_t depth);
+FG_EXTERN ptrdiff_t fgDebug_WriteMessage(fgDebugMessage* msg, char* buf, size_t bufsize);
+FG_EXTERN void fgDebug_DumpMessages(const char* file);
+FG_EXTERN void fgDebug_BuildTree(fgElement* treeview);
 
-FG_EXTERN size_t FG_FASTCALL fgRoot_BehaviorDebug(fgElement* self, const FG_Msg* msg);
+FG_EXTERN size_t fgRoot_BehaviorDebug(fgElement* self, const FG_Msg* msg);
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif

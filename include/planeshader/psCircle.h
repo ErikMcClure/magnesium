@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __CIRCLE_H__PS__
@@ -18,36 +18,36 @@ namespace planeshader {
     inline psCircleT(T X, T Y, T R) : x(X), y(Y), r(R) {}
     inline psCircleT(const VEC& Pos, T R) : x(Pos.x), y(Pos.y), r(R) {}
     inline T Area() const { return (T)(PI*r*r); }
-    inline bool BSS_FASTCALL IntersectPoint(T X, T Y) const { return bss_util::distsqr<T>(x, y, X, Y)<=(r*r); }
-    inline bool BSS_FASTCALL IntersectPoint(const VEC& point) const { return IntersectPoint(point.x, point.y); }
-    inline bool BSS_FASTCALL IntersectCircle(const psCircleT& other) const { return IntersectCircle(other.x, other.y, other.r); }
-    inline bool BSS_FASTCALL IntersectCircle(const VEC& pos, T R) const { return IntersectCircle(pos.x, pos.y, R); }
-    inline bool BSS_FASTCALL IntersectCircle(T X, T Y, T R) const { T tr=r+R; return bss_util::distsqr<T>(x, y, X, Y)<=(tr*tr); }
-    inline void BSS_FASTCALL IntersectCircle(const psCircleT& other, const VEC(&output)[2]) const { return _IntersectCircle(other.x, other.y, other.r, output[0]._xyarray); }
-    inline void BSS_FASTCALL IntersectCircle(const VEC& pos, T R, const VEC(&output)[2]) const { return _IntersectCircle(pos.x, pos.y, R, output[0]._xyarray); }
-    inline void BSS_FASTCALL IntersectCircle(T X, T Y, T R, const VEC(&output)[2]) const { return _IntersectCircle(X, Y, R, output[0]._xyarray); }
-    inline void BSS_FASTCALL IntersectCircle(const psCircleT& other, T(&output)[4]) const { return _IntersectCircle(other.x, other.y, other.r, output); }
-    inline void BSS_FASTCALL IntersectCircle(const VEC& pos, T R, T(&output)[4]) const { return _IntersectCircle(pos.x, pos.y, R, output); }
-    inline void BSS_FASTCALL IntersectCircle(T X, T Y, T R, T(&output)[4]) const { _IntersectCircle(X, Y, R, output); }
-    inline bool BSS_FASTCALL WithinCircle(const psCircleT& other) const { return WithinCircle(other.x, other.y, other.r); }
-    inline bool BSS_FASTCALL WithinCircle(const VEC& pos, T R) const { return WithinCircle(pos.x, pos.y, R); }
-    inline bool BSS_FASTCALL WithinCircle(T X, T Y, T R) const { T tr=R-r; return (r>=R || bss_util::distsqr(X, Y, x, y)>=(tr*tr)); }
-    inline bool BSS_FASTCALL IntersectLineInf(T X1, T Y1, T X2, T Y2) const { return pos.LineInfDistanceSqr(X1, Y1, X2, Y2)<=(r*r); }
-    inline bool BSS_FASTCALL IntersectLine(T X1, T Y1, T X2, T Y2) const { return pos.LineDistanceSqr(X1, Y1, X2, Y2)<=(r*r); }
-    inline bool BSS_FASTCALL IntersectRect(const T(&rect)[4]) const { return CircleRectIntersect(x, y, r, rect); }
-    inline bool BSS_FASTCALL IntersectRect(T left, T top, T right, T bottom) const { return _CircleRectIntersect(x, y, r, left, top, right, bottom); }
-    inline bool BSS_FASTCALL IntersectEllipse(T X, T Y, T A, T B) const { return CircleEllipseIntersect(X, Y, A, B, x, y, r); }
-    inline void BSS_FASTCALL NearestPoint(T X, T Y, T& outX, T& outY) const { CircleNearestPoint(X, Y, x, y, r, outX, outY); }
-    inline void BSS_FASTCALL NearestPoint(const VEC& pos, T& outX, T& outY) const { CircleNearestPoint(pos.x, pos.y, x, y, r, outX, outY); }
+    inline bool IntersectPoint(T X, T Y) const { return bss_util::distsqr<T>(x, y, X, Y)<=(r*r); }
+    inline bool IntersectPoint(const VEC& point) const { return IntersectPoint(point.x, point.y); }
+    inline bool IntersectCircle(const psCircleT& other) const { return IntersectCircle(other.x, other.y, other.r); }
+    inline bool IntersectCircle(const VEC& pos, T R) const { return IntersectCircle(pos.x, pos.y, R); }
+    inline bool IntersectCircle(T X, T Y, T R) const { T tr=r+R; return bss_util::distsqr<T>(x, y, X, Y)<=(tr*tr); }
+    inline void IntersectCircle(const psCircleT& other, const VEC(&output)[2]) const { return _IntersectCircle(other.x, other.y, other.r, output[0]._xyarray); }
+    inline void IntersectCircle(const VEC& pos, T R, const VEC(&output)[2]) const { return _IntersectCircle(pos.x, pos.y, R, output[0]._xyarray); }
+    inline void IntersectCircle(T X, T Y, T R, const VEC(&output)[2]) const { return _IntersectCircle(X, Y, R, output[0]._xyarray); }
+    inline void IntersectCircle(const psCircleT& other, T(&output)[4]) const { return _IntersectCircle(other.x, other.y, other.r, output); }
+    inline void IntersectCircle(const VEC& pos, T R, T(&output)[4]) const { return _IntersectCircle(pos.x, pos.y, R, output); }
+    inline void IntersectCircle(T X, T Y, T R, T(&output)[4]) const { _IntersectCircle(X, Y, R, output); }
+    inline bool WithinCircle(const psCircleT& other) const { return WithinCircle(other.x, other.y, other.r); }
+    inline bool WithinCircle(const VEC& pos, T R) const { return WithinCircle(pos.x, pos.y, R); }
+    inline bool WithinCircle(T X, T Y, T R) const { T tr=R-r; return (r>=R || bss_util::distsqr(X, Y, x, y)>=(tr*tr)); }
+    inline bool IntersectLineInf(T X1, T Y1, T X2, T Y2) const { return pos.LineInfDistanceSqr(X1, Y1, X2, Y2)<=(r*r); }
+    inline bool IntersectLine(T X1, T Y1, T X2, T Y2) const { return pos.LineDistanceSqr(X1, Y1, X2, Y2)<=(r*r); }
+    inline bool IntersectRect(const T(&rect)[4]) const { return CircleRectIntersect(x, y, r, rect); }
+    inline bool IntersectRect(T left, T top, T right, T bottom) const { return _CircleRectIntersect(x, y, r, left, top, right, bottom); }
+    inline bool IntersectEllipse(T X, T Y, T A, T B) const { return CircleEllipseIntersect(X, Y, A, B, x, y, r); }
+    inline void NearestPoint(T X, T Y, T& outX, T& outY) const { CircleNearestPoint(X, Y, x, y, r, outX, outY); }
+    inline void NearestPoint(const VEC& pos, T& outX, T& outY) const { CircleNearestPoint(pos.x, pos.y, x, y, r, outX, outY); }
 
     inline psCircleT& operator=(const psCircleT<T>& other) { r=other.r; x=other.x; y=other.y; }
     template<class U>
     inline psCircleT& operator=(const psCircleT<U>& other) { r=(T)other.r; x=(T)other.x; y=(T)other.y; }
 
-    static inline void BSS_FASTCALL CircleNearestPoint(T X, T Y, T x, T y, T r, T& outX, T& outY) { T tx=X-x; T ty=Y-y; T s=r/bss_util::FastSqrt((tx*tx)+(ty*ty)); outX=tx*s + x; outY=ty*s + y; }
-    static inline bool BSS_FASTCALL CircleRectIntersect(T X, T Y, T R, const T(&rect)[4]) { return _CircleRectIntersect(X, Y, R, rect[0], rect[1], rect[2], rect[3]); }
-    static inline bool BSS_FASTCALL CircleRectIntersect(T X, T Y, T R, T left, T top, T right, T bottom) { return _CircleRectIntersect(X, Y, R, left, top, right, bottom); }
-    static inline bool BSS_FASTCALL CircleEllipseIntersect(T X, T Y, T A, T B, T x, T y, T r)
+    static inline void CircleNearestPoint(T X, T Y, T x, T y, T r, T& outX, T& outY) { T tx=X-x; T ty=Y-y; T s=r/bss_util::FastSqrt((tx*tx)+(ty*ty)); outX=tx*s + x; outY=ty*s + y; }
+    static inline bool CircleRectIntersect(T X, T Y, T R, const T(&rect)[4]) { return _CircleRectIntersect(X, Y, R, rect[0], rect[1], rect[2], rect[3]); }
+    static inline bool CircleRectIntersect(T X, T Y, T R, T left, T top, T right, T bottom) { return _CircleRectIntersect(X, Y, R, left, top, right, bottom); }
+    static inline bool CircleEllipseIntersect(T X, T Y, T A, T B, T x, T y, T r)
     {
       T dx=x-X; //Centers the ellipse/circle pair such that the ellipse is at the origin
       T dy=y-Y;
@@ -55,7 +55,7 @@ namespace planeshader {
       return bss_util::distsqr(X, Y, dx, dy)<(r*r);
     }
 
-    static inline bool BSS_FASTCALL FastCircleEllipseIntersect(T X, T Y, T A, T B, T x, T y, T r) //Fast circle-ellipse collision (5-10% error)
+    static inline bool FastCircleEllipseIntersect(T X, T Y, T A, T B, T x, T y, T r) //Fast circle-ellipse collision (5-10% error)
     {
       T tx=(x-X); T ty=(y-Y);
       T tx2=tx*tx; T ty2=ty*ty;
@@ -76,7 +76,7 @@ namespace planeshader {
       CircleNearestPoint(Vx, Vy, tx, ty, r, U1, U2); //Failing that we get the nearest point on the circle to the line and check to see if its in the ellipse
       return IntersectEllipse(0, 0, A, B, U1, U2);
     }
-    //static inline bool BSS_FASTCALL CircleEllipseIntersect(T c, T e, T d, T f, T a, T b, T r)
+    //static inline bool CircleEllipseIntersect(T c, T e, T d, T f, T a, T b, T r)
     //{
     //  a -= c;
     //  b -= e;
@@ -102,7 +102,7 @@ namespace planeshader {
     };
 
   private:
-    static inline bool BSS_FASTCALL _CircleRectIntersect(T X, T Y, T R, T left, T top, T right, T bottom)
+    static inline bool _CircleRectIntersect(T X, T Y, T R, T left, T top, T right, T bottom)
     { //based on a solution from this thread: http://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection
       T rwh=(right-left)/2;
       T rhh=(bottom-top)/2;
@@ -117,7 +117,7 @@ namespace planeshader {
       rwh=(cx*cx) + (cy*cy);
       return rwh <= (R*R);
     }
-    inline void BSS_FASTCALL _IntersectCircle(T X, T Y, T R, T* output) const //This does not work with an integral type.
+    inline void _IntersectCircle(T X, T Y, T R, T* output) const //This does not work with an integral type.
     {
       T dx = X - x;
       T dy = Y - y;

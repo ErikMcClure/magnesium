@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __SHADER_H__PS__
@@ -33,16 +33,16 @@ namespace planeshader {
   public:
     void Activate() const;
     template<typename T, SHADER_VER I>
-    inline bool BSS_FASTCALL SetConstants(const T& src)
+    inline bool SetConstants(const T& src)
     {
       uint8_t index = (I >= PIXEL_SHADER_1_1) + (I >= GEOMETRY_SHADER_4_0) + (I >= COMPUTE_SHADER_4_0) + (I >= DOMAIN_SHADER_5_0) + (I >= HULL_SHADER_5_0);
       return SetConstants(&src, sizeof(T), index);
     }
-    bool BSS_FASTCALL SetConstants(const void* data, uint32_t sz, uint8_t I);
+    bool SetConstants(const void* data, uint32_t sz, uint8_t I);
 
     // Creates a new shader object out of a given layout and a list of SHADER_INFOs, which represent all included shader programs and their associated constant buffers.
     template<uint8_t I>
-    inline static psShader* BSS_FASTCALL CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, ...)
+    inline static psShader* CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, ...)
     {
       DYNARRAY(SHADER_INFO, infos, num);
       va_list vl;
@@ -51,14 +51,14 @@ namespace planeshader {
       va_end(vl);
       return CreateShader(I, layout, num, infos);
     }
-    static psShader* BSS_FASTCALL CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, ...); // All arguments here must be passed in as const SHADER_INFO*
+    static psShader* CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, ...); // All arguments here must be passed in as const SHADER_INFO*
     template<uint8_t I>
-    inline static psShader* BSS_FASTCALL CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, const SHADER_INFO* infos) { return CreateShader(I, layout, num, infos); }
-    static psShader* BSS_FASTCALL CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, const SHADER_INFO* infos);
+    inline static psShader* CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, const SHADER_INFO* infos) { return CreateShader(I, layout, num, infos); }
+    static psShader* CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, const SHADER_INFO* infos);
     // Copies a single shader
-    static psShader* BSS_FASTCALL CreateShader(const psShader* copy);
+    static psShader* CreateShader(const psShader* copy);
     // merges num shaders into a new shader in left to right order (so the first will be overwritten by the rest). num cannot be 0.
-    static psShader* BSS_FASTCALL MergeShaders(uint32_t num, const psShader* first, ...); 
+    static psShader* MergeShaders(uint32_t num, const psShader* first, ...); 
     void** GetInternalPrograms() { return _ss; }
 
     psShader& operator+=(const psShader& right);
@@ -88,14 +88,14 @@ namespace planeshader {
   public:
     inline psShaderT(void* layout) : psShader<VS, PS, GS, CS, DS, HS>(layout)
     template<typename T> // Automatically picks the correct shader to apply the constants to by match T to that shader's constant declaration.
-    inline bool BSS_FASTCALL SetConstants(const T& src)
+    inline bool SetConstants(const T& src)
     {
       static_assert((std::is_same<T, VS>::value+std::is_same<T, PS>::value+std::is_same<T, GS>::value+std::is_same<T, CS>::value+std::is_same<T, DS>::value+std::is_same<T, HS>::value) == 1);
       return SetConstants(&src, sizeof(T), (std::is_same<T, PS>::value*1)|(std::is_same<T, GS>::value*2)|(std::is_same<T, CS>::value*3)|(std::is_same<T, DS>::value*4)|(std::is_same<T, HS>::value*5));
     }
 
     template<uint8_t I>
-    inline static psShaderT* BSS_FASTCALL CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, ...) // All arguments here must be passed in as const SHADER_INFO*
+    inline static psShaderT* CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, ...) // All arguments here must be passed in as const SHADER_INFO*
     {
       DYNARRAY(SHADER_INFO, infos, num);
       va_list vl;
@@ -104,7 +104,7 @@ namespace planeshader {
       va_end(vl);
       return static_cast<psShaderT*>(psShader::CreateShader(I, layout, num, infos));
     }
-    inline static psShaderT* BSS_FASTCALL CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, ...) // All arguments here must be passed in as const SHADER_INFO*
+    inline static psShaderT* CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, ...) // All arguments here must be passed in as const SHADER_INFO*
     {
       DYNARRAY(SHADER_INFO, infos, num);
       va_list vl;
@@ -114,9 +114,9 @@ namespace planeshader {
       return static_cast<psShaderT*>(psShader::CreateShader(nlayout, layout, num, infos));
     } 
     template<uint8_t I>
-    inline static psShaderT* BSS_FASTCALL CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, const SHADER_INFO* infos) { return static_cast<psShaderT*>(psShader::CreateShader(I, layout, num, infos)); }
-    inline static psShaderT* BSS_FASTCALL CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, const SHADER_INFO* infos) { return static_cast<psShaderT*>(psShader::CreateShader(layout, num, infos)); }
-    inline static psShaderT* BSS_FASTCALL CreateShader(const psShaderT* copy) { return static_cast<psShaderT*>(psShader::CreateShader(copy)); }
+    inline static psShaderT* CreateShader(const ELEMENT_DESC(&layout)[I], uint8_t num, const SHADER_INFO* infos) { return static_cast<psShaderT*>(psShader::CreateShader(I, layout, num, infos)); }
+    inline static psShaderT* CreateShader(uint8_t nlayout, const ELEMENT_DESC* layout, uint8_t num, const SHADER_INFO* infos) { return static_cast<psShaderT*>(psShader::CreateShader(layout, num, infos)); }
+    inline static psShaderT* CreateShader(const psShaderT* copy) { return static_cast<psShaderT*>(psShader::CreateShader(copy)); }
   };
 }
 

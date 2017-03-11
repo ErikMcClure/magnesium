@@ -17,12 +17,7 @@ namespace magnesium {
   public:
     LogicSystem();
     ~LogicSystem();
-    virtual void Preprocess() override;
-    virtual void Process(mgEntity* entity) override;
-    virtual void Postprocess() override;
-
-    std::function<void()> preprocess;
-    std::function<void()> postprocess;
+    virtual void Iterate(mgEntity* entity) override;
   };
 }
 

@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_SCROLLBAR_H__
-#define _FG_SCROLLBAR_H__
+#ifndef __FG_SCROLLBAR_H__
+#define __FG_SCROLLBAR_H__
 
 #include "fgControl.h"
 #include "fgButton.h"
@@ -27,7 +27,8 @@ enum FGSCROLLBAR_ACTIONS
   FGSCROLLBAR_PAGE, // PageUp, PageDown, and click on the spaces between the scrollbars. 0 1 2 3 - left top right bottom
   FGSCROLLBAR_BUTTON, // Clicking the actual buttons. 0 1 2 3 - left top right bottom
   FGSCROLLBAR_BARCACHE, // resets the barcache
-  FGSCROLLBAR_SCROLLTO, // Scrolls to include the given rect in the visible area. If this isn't possible, minimizes the amount of scrolling done while maximizing the visible area.
+  FGSCROLLBAR_SCROLLTO, // Scrolls to include the given rect in the visible area relative to the parent. If this isn't possible, minimizes the amount of scrolling done while maximizing the visible area.
+  FGSCROLLBAR_SCROLLTOABS, // Scrolls to include the given absolute rect in the visible area.
   FGSCROLLBAR_NUM,
 };
 
@@ -52,9 +53,9 @@ typedef struct _FG_SCROLLBAR {
 #endif
 } fgScrollbar;
 
-FG_EXTERN void FG_FASTCALL fgScrollbar_Init(fgScrollbar* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgScrollbar_Destroy(fgScrollbar* self);
-FG_EXTERN size_t FG_FASTCALL fgScrollbar_Message(fgScrollbar* self, const FG_Msg* msg);
+FG_EXTERN void fgScrollbar_Init(fgScrollbar* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgScrollbar_Destroy(fgScrollbar* self);
+FG_EXTERN size_t fgScrollbar_Message(fgScrollbar* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

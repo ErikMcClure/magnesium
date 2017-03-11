@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __RECT_H__PS__
@@ -23,66 +23,66 @@ namespace planeshader {
     inline explicit psRectT(const sseVecT<T>& v) { v>>_ltrbarray; }
     inline explicit psRectT(const T(&rectarray)[4]) : left(rectarray[0]), top(rectarray[1]), right(rectarray[2]), bottom(rectarray[3]) {}
     inline T Area() const { return (right-left)*(bottom-top); }
-    inline bool BSS_FASTCALL IntersectPoint(T x, T y) const { return (x >= left && y >= top && x < right && y < bottom); }
-    inline bool BSS_FASTCALL IntersectPoint(const VEC& point) const { return (point.x >= left && point.y >= top && point.x < right && point.y < bottom); }
-    inline bool BSS_FASTCALL IntersectCircle(const psCircleT<T>& other) const { return psCircleT<T>::CircleRectIntersect(other.x, other.y, other.r, _ltrbarray); }
-    inline bool BSS_FASTCALL IntersectCircle(const VEC& pos, T R) const { return psCircleT<T>::CircleRectIntersect(pos.x, pos.y, R, _ltrbarray); }
-    inline bool BSS_FASTCALL IntersectCircle(T X, T Y, T R) const { return psCircleT<T>::CircleRectIntersect(X, Y, R, _ltrbarray); }
-    inline bool BSS_FASTCALL IntersectRect(const psRectT<T>& other) const { return IntersectRect(other.left, other.top, other.right, other.bottom); }
-    inline bool BSS_FASTCALL IntersectRect(const T(&rectarray)[4]) const { return IntersectRect(rectarray[0], rectarray[1], rectarray[2], rectarray[3]); }
-    inline bool BSS_FASTCALL IntersectRect(T Left, T Top, T Right, T Bottom) const { return left <= Right && top <= Bottom && right >= Left && bottom >= Top; }
-    inline bool BSS_FASTCALL WithinRect(const psRectT<T>& other) const { return (left >= other.left && top >= other.top && right <= other.right && bottom <= other.bottom); }
-    inline bool BSS_FASTCALL IntersectEllipse(T X, T Y, T A, T B) const { T s=A/B; return psCircleT<T>::CircleRectIntersect(X, Y*s, A, left, top*s, right, bottom*s); }
+    inline bool IntersectPoint(T x, T y) const { return (x >= left && y >= top && x < right && y < bottom); }
+    inline bool IntersectPoint(const VEC& point) const { return (point.x >= left && point.y >= top && point.x < right && point.y < bottom); }
+    inline bool IntersectCircle(const psCircleT<T>& other) const { return psCircleT<T>::CircleRectIntersect(other.x, other.y, other.r, _ltrbarray); }
+    inline bool IntersectCircle(const VEC& pos, T R) const { return psCircleT<T>::CircleRectIntersect(pos.x, pos.y, R, _ltrbarray); }
+    inline bool IntersectCircle(T X, T Y, T R) const { return psCircleT<T>::CircleRectIntersect(X, Y, R, _ltrbarray); }
+    inline bool IntersectRect(const psRectT<T>& other) const { return IntersectRect(other.left, other.top, other.right, other.bottom); }
+    inline bool IntersectRect(const T(&rectarray)[4]) const { return IntersectRect(rectarray[0], rectarray[1], rectarray[2], rectarray[3]); }
+    inline bool IntersectRect(T Left, T Top, T Right, T Bottom) const { return left <= Right && top <= Bottom && right >= Left && bottom >= Top; }
+    inline bool WithinRect(const psRectT<T>& other) const { return (left >= other.left && top >= other.top && right <= other.right && bottom <= other.bottom); }
+    inline bool IntersectEllipse(T X, T Y, T A, T B) const { T s=A/B; return psCircleT<T>::CircleRectIntersect(X, Y*s, A, left, top*s, right, bottom*s); }
     inline psRectT<T> Abs() const { return psRectT<T>(abs(left), abs(top), abs(right), abs(bottom)); }
     inline psCircleT<T> ToCircle() const { VEC center=topleft+bottomright; center/=(T)2; return psCircleT<T>(center, (T)PTR_DISTANCE(center.x, center.y, topleft.x, topleft.y)); }
     inline psCircleT<T> ToCircleSameArea() const { VEC center=topleft+bottomright; center/=(T)2; return psCircleT<T>(center, (T)bss_util::FastSqrt(Area()/PI_DOUBLE)); }
     inline VEC GetCenter() const { VEC center=topleft; center+=bottomright; center/=(T)2; return center; }
 
-    inline psRectT<T> BSS_FASTCALL operator +(const psRectT<T>& other) const { return psRectT<T>(left + other.left, top + other.top, right + other.right, bottom + other.bottom); }
-    inline psRectT<T> BSS_FASTCALL operator -(const psRectT<T>& other) const { return psRectT<T>(left - other.left, top - other.top, right - other.right, bottom - other.bottom); }
-    inline psRectT<T> BSS_FASTCALL operator *(const psRectT<T>& other) const { return psRectT<T>(left * other.left, top * other.top, right * other.right, bottom * other.bottom); }
-    inline psRectT<T> BSS_FASTCALL operator /(const psRectT<T>& other) const { return psRectT<T>(left / other.left, top / other.top, right / other.right, bottom / other.bottom); }
-    inline psRectT<T> BSS_FASTCALL operator +(const VEC& other) const { return psRectT<T>(left + other.x, top + other.y, right + other.x, bottom + other.y); }
-    inline psRectT<T> BSS_FASTCALL operator -(const VEC& other) const { return psRectT<T>(left - other.x, top - other.y, right - other.x, bottom - other.y); }
-    inline psRectT<T> BSS_FASTCALL operator *(const VEC& other) const { return psRectT<T>(left * other.x, top * other.y, right * other.x, bottom * other.y); }
-    inline psRectT<T> BSS_FASTCALL operator /(const VEC& other) const { return psRectT<T>(left / other.x, top / other.y, right / other.x, bottom / other.y); }
-    inline psRectT<T> BSS_FASTCALL operator +(const T other) const { return psRectT<T>(left + other, top + other, right + other, bottom + other); }
-    inline psRectT<T> BSS_FASTCALL operator -(const T other) const { return psRectT<T>(left - other, top - other, right - other, bottom - other); }
-    inline psRectT<T> BSS_FASTCALL operator *(const T other) const { return psRectT<T>(left * other, top * other, right * other, bottom * other); }
-    inline psRectT<T> BSS_FASTCALL operator /(const T other) const { return psRectT<T>(left / other, top / other, right / other, bottom / other); }
+    inline psRectT<T> operator +(const psRectT<T>& other) const { return psRectT<T>(left + other.left, top + other.top, right + other.right, bottom + other.bottom); }
+    inline psRectT<T> operator -(const psRectT<T>& other) const { return psRectT<T>(left - other.left, top - other.top, right - other.right, bottom - other.bottom); }
+    inline psRectT<T> operator *(const psRectT<T>& other) const { return psRectT<T>(left * other.left, top * other.top, right * other.right, bottom * other.bottom); }
+    inline psRectT<T> operator /(const psRectT<T>& other) const { return psRectT<T>(left / other.left, top / other.top, right / other.right, bottom / other.bottom); }
+    inline psRectT<T> operator +(const VEC& other) const { return psRectT<T>(left + other.x, top + other.y, right + other.x, bottom + other.y); }
+    inline psRectT<T> operator -(const VEC& other) const { return psRectT<T>(left - other.x, top - other.y, right - other.x, bottom - other.y); }
+    inline psRectT<T> operator *(const VEC& other) const { return psRectT<T>(left * other.x, top * other.y, right * other.x, bottom * other.y); }
+    inline psRectT<T> operator /(const VEC& other) const { return psRectT<T>(left / other.x, top / other.y, right / other.x, bottom / other.y); }
+    inline psRectT<T> operator +(const T other) const { return psRectT<T>(left + other, top + other, right + other, bottom + other); }
+    inline psRectT<T> operator -(const T other) const { return psRectT<T>(left - other, top - other, right - other, bottom - other); }
+    inline psRectT<T> operator *(const T other) const { return psRectT<T>(left * other, top * other, right * other, bottom * other); }
+    inline psRectT<T> operator /(const T other) const { return psRectT<T>(left / other, top / other, right / other, bottom / other); }
 
-    inline psRectT<T>& BSS_FASTCALL operator +=(const psRectT<T>& other) { left+=other.left; top+=other.top; right+=other.right; bottom+=other.bottom; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator -=(const psRectT<T>& other) { left-=other.left; top-=other.top; right-=other.right; bottom-=other.bottom; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator *=(const psRectT<T>& other) { left*=other.left; top*=other.top; right*=other.right; bottom*=other.bottom; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator /=(const psRectT<T>& other) { left/=other.left; top/=other.top; right/=other.right; bottom/=other.bottom; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator +=(const VEC& other) { left+=other.x; top+=other.y; right+=other.x; bottom+=other.y; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator -=(const VEC& other) { left-=other.x; top-=other.y; right-=other.x; bottom-=other.y; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator *=(const VEC& other) { left*=other.x; top*=other.y; right*=other.x; bottom*=other.y; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator /=(const VEC& other) { left/=other.x; top/=other.y; right/=other.x; bottom/=other.y; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator +=(const T other) { left+=other; top+=other; right+=other; bottom+=other; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator -=(const T other) { left-=other; top-=other; right-=other; bottom-=other; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator *=(const T other) { left*=other; top*=other; right*=other; bottom*=other; return *this; }
-    inline psRectT<T>& BSS_FASTCALL operator /=(const T other) { left/=other; top/=other; right/=other; bottom/=other; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator +=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)+sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator -=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)-sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator *=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)*sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator /=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)/sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator +=(const T other) { (sseVecT<T>(_ltrbarray)+sseVecT<T>(other))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator -=(const T other) { (sseVecT<T>(_ltrbarray)-sseVecT<T>(other))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator *=(const T other) { (sseVecT<T>(_ltrbarray)*sseVecT<T>(other))>>_ltrbarray; return *this; }
-    //inline psRectT<T>& BSS_FASTCALL operator /=(const T other) { (sseVecT<T>(_ltrbarray)/sseVecT<T>(other))>>_ltrbarray; return *this; }
+    inline psRectT<T>& operator +=(const psRectT<T>& other) { left+=other.left; top+=other.top; right+=other.right; bottom+=other.bottom; return *this; }
+    inline psRectT<T>& operator -=(const psRectT<T>& other) { left-=other.left; top-=other.top; right-=other.right; bottom-=other.bottom; return *this; }
+    inline psRectT<T>& operator *=(const psRectT<T>& other) { left*=other.left; top*=other.top; right*=other.right; bottom*=other.bottom; return *this; }
+    inline psRectT<T>& operator /=(const psRectT<T>& other) { left/=other.left; top/=other.top; right/=other.right; bottom/=other.bottom; return *this; }
+    inline psRectT<T>& operator +=(const VEC& other) { left+=other.x; top+=other.y; right+=other.x; bottom+=other.y; return *this; }
+    inline psRectT<T>& operator -=(const VEC& other) { left-=other.x; top-=other.y; right-=other.x; bottom-=other.y; return *this; }
+    inline psRectT<T>& operator *=(const VEC& other) { left*=other.x; top*=other.y; right*=other.x; bottom*=other.y; return *this; }
+    inline psRectT<T>& operator /=(const VEC& other) { left/=other.x; top/=other.y; right/=other.x; bottom/=other.y; return *this; }
+    inline psRectT<T>& operator +=(const T other) { left+=other; top+=other; right+=other; bottom+=other; return *this; }
+    inline psRectT<T>& operator -=(const T other) { left-=other; top-=other; right-=other; bottom-=other; return *this; }
+    inline psRectT<T>& operator *=(const T other) { left*=other; top*=other; right*=other; bottom*=other; return *this; }
+    inline psRectT<T>& operator /=(const T other) { left/=other; top/=other; right/=other; bottom/=other; return *this; }
+    //inline psRectT<T>& operator +=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)+sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator -=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)-sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator *=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)*sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator /=(const psRectT<T>& other) { (sseVecT<T>(_ltrbarray)/sseVecT<T>(other._ltrbarray))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator +=(const T other) { (sseVecT<T>(_ltrbarray)+sseVecT<T>(other))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator -=(const T other) { (sseVecT<T>(_ltrbarray)-sseVecT<T>(other))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator *=(const T other) { (sseVecT<T>(_ltrbarray)*sseVecT<T>(other))>>_ltrbarray; return *this; }
+    //inline psRectT<T>& operator /=(const T other) { (sseVecT<T>(_ltrbarray)/sseVecT<T>(other))>>_ltrbarray; return *this; }
 
     inline psRectT<T> operator -() const { return psRectT<T>(-left, -top, -right, -bottom); }
 
-    inline bool BSS_FASTCALL operator !=(const psRectT<T> &other) const { return (left != other.left) || (top != other.top) || (right != other.right) || (bottom != other.bottom); }
-    inline bool BSS_FASTCALL operator ==(const psRectT<T> &other) const { return (left == other.left) && (top == other.top) && (right == other.right) && (bottom == other.bottom); }
-    inline bool BSS_FASTCALL operator !=(const T other) const { return (left != other) || (top != other) || (right != other) || (bottom != other); }
-    inline bool BSS_FASTCALL operator ==(const T other) const { return (left == other) && (top == other) && (right == other) && (bottom == other); }
+    inline bool operator !=(const psRectT<T> &other) const { return (left != other.left) || (top != other.top) || (right != other.right) || (bottom != other.bottom); }
+    inline bool operator ==(const psRectT<T> &other) const { return (left == other.left) && (top == other.top) && (right == other.right) && (bottom == other.bottom); }
+    inline bool operator !=(const T other) const { return (left != other) || (top != other) || (right != other) || (bottom != other); }
+    inline bool operator ==(const T other) const { return (left == other) && (top == other) && (right == other) && (bottom == other); }
 
-    inline bool BSS_FASTCALL operator >(const psRectT<T> &other) const { return (left > other.left) || ((left == other.left) && ((top > other.top) || ((top == other.top) && ((right > other.right) || ((right == other.right) && (bottom > other.bottom)))))); }
-    inline bool BSS_FASTCALL operator <(const psRectT<T> &other) const { return (left < other.left) || ((left == other.left) && ((top < other.top) || ((top == other.top) && ((right < other.right) || ((right == other.right) && (bottom < other.bottom)))))); }
-    inline bool BSS_FASTCALL operator >=(const psRectT<T> &other) const { return !operator<(other); }
-    inline bool BSS_FASTCALL operator <=(const psRectT<T> &other) const { return !operator>(other); }
+    inline bool operator >(const psRectT<T> &other) const { return (left > other.left) || ((left == other.left) && ((top > other.top) || ((top == other.top) && ((right > other.right) || ((right == other.right) && (bottom > other.bottom)))))); }
+    inline bool operator <(const psRectT<T> &other) const { return (left < other.left) || ((left == other.left) && ((top < other.top) || ((top == other.top) && ((right < other.right) || ((right == other.right) && (bottom < other.bottom)))))); }
+    inline bool operator >=(const psRectT<T> &other) const { return !operator<(other); }
+    inline bool operator <=(const psRectT<T> &other) const { return !operator>(other); }
 
     inline psRectT<T>& operator =(const sseVecT<T>& _right) { _right>>_ltrbarray; return *this; }
     inline psRectT<T>& operator =(const psRectT<T>& _right) { left = _right.left; top = _right.top; right = _right.right;  bottom = _right.bottom; return *this; }

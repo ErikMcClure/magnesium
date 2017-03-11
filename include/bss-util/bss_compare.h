@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_COMPARE_H__
@@ -49,7 +49,7 @@ namespace bss_util {
   template<typename T>
   BSS_FORCEINLINE bool CompStrLT(const T& left, const T& right) { return strcmp(left, right)<0; }
   template<typename T>
-  BSS_FORCEINLINE bool CompIStrLT(const T& left, const T& right) { return stricmp(left, right)<0; }
+  BSS_FORCEINLINE bool CompIStrLT(const T& left, const T& right) { return STRICMP(left, right)<0; }
   template<typename T>
   BSS_FORCEINLINE char CompStrW(const T& left, const T& right)
   {

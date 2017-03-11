@@ -11,7 +11,7 @@ namespace magnesium {
   class MG_DLLEXPORT TinyOALSystem : public tinyoal::cTinyOAL, public mgSystem<void>
   {
   public:
-    TinyOALSystem(unsigned char defnumbuf = 4, std::ostream* errout = 0, const char* forceOAL = 0, const char* forceOGG = 0, const char* forceFLAC = 0, const char* forceMP3 = 0);
+    TinyOALSystem(unsigned char defnumbuf = 4, const char* forceOAL = 0, const char* forceOGG = 0, const char* forceFLAC = 0, const char* forceMP3 = 0);
     ~TinyOALSystem();
     virtual void Preprocess();
     virtual void Process(mgEntity* entity);

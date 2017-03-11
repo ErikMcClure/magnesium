@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __TILESET_H__PS__
@@ -43,18 +43,18 @@ namespace planeshader {
     virtual psTex* const* GetTextures() const override { return psTextured::GetTextures(); }
     virtual uint8_t NumTextures() const override { return psTextured::NumTextures(); }
 
-    static inline uint32_t BSS_FASTCALL WangTile1D(uint32_t e1, uint32_t e2) {
+    static inline uint32_t WangTile1D(uint32_t e1, uint32_t e2) {
       if(e1 < e2) return 2 * e1 + e2*e2;
       if(e1 == e2) return (e1 > 0) ? ((e1 + 1) * (e1 + 1) - 2) : 0;
       return (e2 > 0) ? (e1 * e1 + 2 * e2 - 1) : ((e1 + 1) * (e1 + 1) - 1);
     }
-    static inline psVeciu BSS_FASTCALL WangTile2D(uint32_t e0, uint32_t e1, uint32_t e2, uint32_t e3) { return psVeciu(WangTile1D(e0, e2), WangTile1D(e1, e3)); }
+    static inline psVeciu WangTile2D(uint32_t e0, uint32_t e1, uint32_t e2, uint32_t e3) { return psVeciu(WangTile1D(e0, e2), WangTile1D(e1, e3)); }
 
     psTileset& operator=(const psTileset& copy);
     psTileset& operator=(psTileset&& mov);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
     template<class T>
     BSS_FORCEINLINE bool _drawcheck(T* drawn, uint32_t k, int level) { return (k < _tiles.Length()) && !bss_util::bssGetBit<T>(drawn, k) && (level < _defs[_tiles[k].index].level); }
     

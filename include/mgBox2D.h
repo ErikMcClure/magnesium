@@ -24,8 +24,8 @@ namespace magnesium {
     b2CompoundFixture(b2Fixture* fixture);
     b2CompoundFixture(b2CompoundFixture&& mov);
     ~b2CompoundFixture();
-    //b2Fixture* BSS_FASTCALL AddFixture(const b2FixtureDef& fd);
-    //b2Fixture* BSS_FASTCALL AddFixture(const b2Shape& shape, float density);
+    //b2Fixture* AddFixture(const b2FixtureDef& fd);
+    //b2Fixture* AddFixture(const b2Shape& shape, float density);
     inline b2PhysicsComponent* GetParent();
 
     void* userdata;
@@ -52,11 +52,11 @@ namespace magnesium {
     // Gets the b2Body* pointer 
     inline b2Body* GetBody() const { return _body; }
     // Sets the position or rotation, which wakes the body up and resets it's collisions
-    inline void BSS_FASTCALL SetPosition(const b2Vec2& pos) { SetTransform(pos, _body->GetAngle()); }
-    b2Vec2 BSS_FASTCALL GetPosition() const;
-    inline void BSS_FASTCALL SetRotation(float rotation) { SetTransform(_body->GetPosition(), rotation); }
-    inline float BSS_FASTCALL GetRotation() const { return _body->GetAngle(); }
-    void BSS_FASTCALL SetTransform(const b2Vec2& pos, float rotation);
+    inline void SetPosition(const b2Vec2& pos) { SetTransform(pos, _body->GetAngle()); }
+    b2Vec2 GetPosition() const;
+    inline void SetRotation(float rotation) { SetTransform(_body->GetPosition(), rotation); }
+    inline float GetRotation() const { return _body->GetAngle(); }
+    void SetTransform(const b2Vec2& pos, float rotation);
     // Gets the root fixture for this body. Tends to be equal to the last compound fixture in the list 
     const b2Fixture* GetRootFixture() const { return _body->GetFixtureList(); }
     b2Fixture* GetRootFixture() { return _body->GetFixtureList(); }
@@ -64,21 +64,21 @@ namespace magnesium {
     inline void SetUserData(void* userdata) { _userdata = userdata; }
     inline void* GetUserData() const { return _userdata; }
     // Gets number of compound fixtures 
-    inline size_t BSS_FASTCALL NumFixtures() const { return _fixtures.size(); }
+    inline size_t NumFixtures() const { return _fixtures.size(); }
     // Gets a compound fixture 
-    inline b2CompoundFixture& BSS_FASTCALL GetCompoundFixture(size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
-    inline const b2CompoundFixture& BSS_FASTCALL GetCompoundFixture(size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
+    inline b2CompoundFixture& GetCompoundFixture(size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
+    inline const b2CompoundFixture& GetCompoundFixture(size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
     // Creates a new compound fixture with a single fixture inside it
-    b2CompoundFixture& BSS_FASTCALL AddCompoundFixture(const b2FixtureDef& fd, bool append = true);
-    b2CompoundFixture& BSS_FASTCALL AddCompoundFixture(const b2Shape& shape, float density, bool append = true);
+    b2CompoundFixture& AddCompoundFixture(const b2FixtureDef& fd, bool append = true);
+    b2CompoundFixture& AddCompoundFixture(const b2Shape& shape, float density, bool append = true);
     // Gets/Sets the collision response 
     const std::function<void(b2PhysicsComponent*, ContactPoint&)>& GetCPResponse() const { return _rcp; }
     template<typename U> //void(b2PhysicsComponent*, ContactPoint&)
-    inline void BSS_FASTCALL SetCPResponse(U && rcp) { _rcp = std::forward<U>(rcp); }
+    inline void SetCPResponse(U && rcp) { _rcp = std::forward<U>(rcp); }
 
-    b2PhysicsComponent& BSS_FASTCALL operator =(b2PhysicsComponent&& right);
-    inline const b2CompoundFixture& BSS_FASTCALL operator [](size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
-    inline b2CompoundFixture& BSS_FASTCALL operator [](size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
+    b2PhysicsComponent& operator =(b2PhysicsComponent&& right);
+    inline const b2CompoundFixture& operator [](size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
+    inline b2CompoundFixture& operator [](size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
 
   protected:
     void _destruct();
@@ -96,7 +96,7 @@ namespace magnesium {
 
 #pragma warning(push)
 #pragma warning(disable:4275)
-  class MG_DLLEXPORT Box2DSystem : public b2DestructionListener, public b2ContactListener, public mgSystem<b2PhysicsComponent, b2PhysicsComponent>
+  class MG_DLLEXPORT Box2DSystem : public b2DestructionListener, public b2ContactListener, public mgSystem<void, b2PhysicsComponent>
   {
 #pragma warning(pop)
   public:
@@ -123,9 +123,7 @@ namespace magnesium {
 
     Box2DSystem(const B2INIT& init, int priority = 0);
     ~Box2DSystem();
-    virtual void Preprocess() override;
-    virtual void Process(mgEntity* entity) override;
-    virtual void Postprocess() override;
+    virtual void Process() override;
     virtual void SayGoodbye(b2Joint* joint) override;
     virtual void SayGoodbye(b2Fixture* fixture) override;
     virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
