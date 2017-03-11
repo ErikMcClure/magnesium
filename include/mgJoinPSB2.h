@@ -50,13 +50,13 @@ namespace magnesium {
   extern void Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos);
   extern void Entity_SetRotation(mgEntity* entity, float rotation);
 
-  class MG_DLLEXPORT LiquidFunPlaneshaderSystem : public mgSystem<b2PhysicsComponent, b2PhysicsComponent>
+  class MG_DLLEXPORT LiquidFunPlaneshaderSystem : public PlaneshaderSystem
   {
   public:
     LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init, int priority = 0);
     LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init, int priority = 0);
     ~LiquidFunPlaneshaderSystem();
-    virtual void Iterate(mgEntity* entity) override;
+    virtual void Iterate(mgEntity& entity) override;
     
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
   };

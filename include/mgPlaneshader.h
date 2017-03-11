@@ -13,7 +13,7 @@
 #include "planeshader\psEngine.h"
 
 namespace magnesium {
-  struct MG_DLLEXPORT psRenderableComponent : mgComponent<psRenderableComponent> { explicit psRenderableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psRenderable TYPE; };
+  struct MG_DLLEXPORT psRenderableComponent : mgComponent<psRenderableComponent, true> { explicit psRenderableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psRenderable TYPE; };
   struct MG_DLLEXPORT psLocatableComponent : mgComponent<psLocatableComponent> { explicit psLocatableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psLocatable TYPE; };
   struct MG_DLLEXPORT psSolidComponent : mgComponent<psSolidComponent> { explicit psSolidComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psSolid TYPE; };
 
@@ -46,13 +46,14 @@ namespace magnesium {
   struct MG_DLLEXPORT psRenderCircleComponent : psGenericComponent<psRenderCircleComponent, planeshader::psRenderCircle> { explicit psRenderCircleComponent(mgEntity* e=0) : psGenericComponent(e) {} };
   struct MG_DLLEXPORT psRoundRectComponent : psGenericComponent<psRoundRectComponent, planeshader::psRoundRect> { explicit psRoundRectComponent(mgEntity* e=0) : psGenericComponent(e) {} };
 
-  class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystem<void, psRenderableComponent>
+  class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystemComplex
   {
   public:
     PlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0);
     ~PlaneshaderSystem();
     virtual void Process() override;
-
+    virtual void Iterate(mgEntity& entity) override;
+    
     template<typename T>
     inline static void InitComponent(mgEntity* e, ComponentID p)
     {
@@ -65,13 +66,16 @@ namespace magnesium {
     }
 
     template<typename C>
-    static typename C::TYPE* ResolveComponent(mgEntity* entity)
+    static typename C::TYPE* ResolveComponent(mgEntity& entity)
     {
-      C* c = entity->Get<C>();
+      C* c = entity.Get<C>();
       if(c)
-        return reinterpret_cast<typename C::TYPE*>(mgComponentStoreBase::MessageComponent(c->id, entity->ComponentListGet(c->id), 0, C::ID()));
+        return reinterpret_cast<typename C::TYPE*>(mgComponentStoreBase::MessageComponent(c->id, entity.ComponentListGet(c->id), 0, C::ID()));
       return 0;
     }
+
+  protected:
+    void _process(mgEntity& root);
   };
 
   struct MG_DLLEXPORT RawRenderableComponent : mgComponent<RawRenderableComponent, bss_util::CARRAY_MOVE>, planeshader::psRenderable
@@ -87,6 +91,12 @@ namespace magnesium {
     }
     virtual void _render() { if(render) render(entity); }
     void(*render)(mgEntity* e);
+  };
+
+  struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent>
+  {
+    explicit psGUIComponent(mgEntity* e = 0) : mgComponent(e) {}
+    fgElement element;
   };
 }
 

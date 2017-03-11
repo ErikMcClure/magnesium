@@ -82,7 +82,7 @@ namespace magnesium {
       size_t index = _store.AddConstruct(p); 
       //_store.Back().entity = p; 
       assert(_store.Back().entity == p);
-      p->ComponentListInsert(_id, index);
+      p->ComponentListInsert(_id, T::GraphID(), index);
       return index;
     }
     T* Get(size_t index = 0) { return (index < _store.Length()) ? _store.begin() + index : nullptr; }
@@ -95,7 +95,7 @@ namespace magnesium {
     {
       if(index >= _store.Length()) return false;
       mgEntity* e = _store[index].entity;
-      e->ComponentListRemove(_id);
+      e->ComponentListRemove(_id, T::GraphID());
       return RemoveInternal(_id, index);
     }
     virtual void FlushBuffer() override
@@ -139,15 +139,16 @@ namespace magnesium {
     bss_util::cDynArray<size_t, size_t, bss_util::CARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumAllocPolicy<size_t>> _buf; // Buffered deletes
   };
 
-  struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; };
+  struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
 
-  template<typename T, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
+  template<typename T, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
   struct mgComponent : mgComponentCounter
   {
     explicit mgComponent(mgEntity* e) : entity(e) {}
     mgComponent(const mgComponent& copy) : entity(copy.entity) {}
     mgComponent(mgComponent&& copy) : entity(copy.entity) {}
     static ComponentID ID() { static ComponentID value = curID++; return value; }
+    static ComponentID GraphID() { static ComponentID value = SCENEGRAPH ? ((curGraphID <<= 1) >> 1) : 0; return value; }
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
     size_t Message(void* msg, ptrdiff_t msgint) { return 0; } // Not virtual so we don't accidentally add a virtual function table to everything. Instead, this should be masked by the appropriate component, which will then get called by it's store.
     mgEntity* entity;

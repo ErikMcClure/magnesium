@@ -5,13 +5,13 @@
 
 using namespace magnesium;
 
-mgSystemBase::mgSystemBase(ComponentBitfield required, int priority) : _required(required), _priority(priority)
+mgSystemBase::mgSystemBase(int priority) : _priority(priority)
 {
 
 }
 mgSystemBase::~mgSystemBase() { if(_manager) _manager->RemoveSystem(this); }
 
-mgSystemSimple::mgSystemSimple(ComponentBitfield required, ComponentID iterator, int priority) : mgSystemBase(required, priority), _iterator(iterator)
+mgSystemSimple::mgSystemSimple(ComponentID iterator, int priority) : mgSystemBase(priority), _iterator(iterator)
 {
 
 }
@@ -27,10 +27,39 @@ void mgSystemSimple::Process()
     while(entities)
     {
       ++store->curIteration;
-      Iterate(*entities);
+      Iterate(**entities);
       ++entities;
     }
     store->FlushBuffer(); // Delete all the entities whose deletion was postponed because we had already iterated over them.
+  }
+}
+
+mgSystemComplex::mgSystemComplex(size_t required, int priority) : mgSystemBase(priority), _required(required)
+{
+
+}
+mgSystemComplex::~mgSystemComplex() { if(_manager) _manager->RemoveSystem(this); }
+void mgSystemComplex::Process()
+{
+  _process(mgEntity::SceneGraph());
+}
+void mgSystemComplex::_process(mgEntity& root)
+{
+  int i = 0;
+  size_t l = root.NumChildren();
+  mgEntity* const* p = root.Children();
+
+  if(root.childhint&_required)
+  {
+    while(i < l && p[i]->Order() < 0)
+      _process(*p[i++]);
+  }
+  if(root.graphcomponents&_required)
+    Iterate(root);
+  if(root.childhint&_required)
+  {
+    while(i < l)
+      _process(*p[i++]);
   }
 }
 
