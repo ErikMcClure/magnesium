@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __STREAM_H__BSS__
@@ -30,7 +30,7 @@ namespace bss_util {
     inline StreamSplitter(StreamSplitter&& mov) : std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}
 #endif
     inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode) { }
-    inline void BSS_FASTCALL AddTarget(std::ostream* stream) { sync(); _targets.push_back(stream); }
+    inline void AddTarget(std::ostream* stream) { sync(); _targets.push_back(stream); }
     inline void ClearTargets() { sync(); _targets.clear(); } //_wtargets.clear(); }
 
 #ifndef BSS_COMPILER_GCC

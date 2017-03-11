@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __STATEBLOCK_H__PS__
@@ -122,8 +122,8 @@ namespace planeshader {
     psStateblock* Combine(psStateblock* other) const;
     psStateblock* Append(STATEINFO state) const;
 
-    static psStateblock* BSS_FASTCALL Create(uint32_t numstates, ...);
-    static psStateblock* BSS_FASTCALL Create(const STATEINFO* infos, uint32_t numstates);
+    static psStateblock* Create(uint32_t numstates, ...);
+    static psStateblock* Create(const STATEINFO* infos, uint32_t numstates);
 
     static psStateblock* DEFAULT;
 
@@ -143,8 +143,8 @@ namespace planeshader {
     psTexblock* Combine(psTexblock* other) const;
     psTexblock* Append(STATEINFO state) const;
 
-    static psTexblock* BSS_FASTCALL Create(uint32_t numstates, ...);
-    static psTexblock* BSS_FASTCALL Create(const STATEINFO* infos, uint32_t numstates);
+    static psTexblock* Create(uint32_t numstates, ...);
+    static psTexblock* Create(const STATEINFO* infos, uint32_t numstates);
 
     static psTexblock* DEFAULT;
 

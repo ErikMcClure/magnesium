@@ -31,7 +31,7 @@ namespace magnesium {
     LiquidFunSystem(const B2INIT& init, int priority = 0);
     LiquidFunSystem(const LFINIT& init, int priority = 0);
     ~LiquidFunSystem();
-    virtual void Preprocess() override;
+    virtual void Process() override;
     inline uint32_t GetParticleIters() const { return _particle_iters; }
     inline void SetParticleIters(uint32_t particleiters) { _particle_iters = particleiters; }
 

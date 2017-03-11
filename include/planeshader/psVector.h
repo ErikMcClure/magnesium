@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __VECTOR_H__PS__
@@ -25,14 +25,14 @@ namespace planeshader {
     psQuadraticHull();
     ~psQuadraticHull();
     void Clear();
-    void BSS_FASTCALL AppendQuadraticCurve(psVec p0, psVec p1, psVec p2, float thickness, uint32_t color, char cap);
+    void AppendQuadraticCurve(psVec p0, psVec p1, psVec p2, float thickness, uint32_t color, char cap);
 
     static const int CURVEBUFSIZE = 512 * 3;
     static inline psVec FromQuad(QuadVertex& v) { return psVec(v.x, v.y); }
     static void SetVert(float(&v)[4], psVec& x, float thickness);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
     bss_util::cDynArray<QuadVertex, uint32_t> _verts;
   };
 
@@ -66,13 +66,13 @@ namespace planeshader {
     inline const psVec(&Get() const)[4] { return _p; }
 
   protected:
-    void BSS_FASTCALL _addquad(const float(&P0)[2], const float(&P1)[2], const float(&P2)[2]);
+    void _addquad(const float(&P0)[2], const float(&P1)[2], const float(&P2)[2]);
     psVec _p[4];
     float _thickness;
     float _maxerr;
   };
 
-  class PS_DLLEXPORT psRoundedRect : public psSolid, public psColored, public psDriverHold
+  class PS_DLLEXPORT psRoundRect : public psSolid, public psColored, public psDriverHold
   {
     struct RRVertex
     {
@@ -85,10 +85,10 @@ namespace planeshader {
     };
 
   public:
-    psRoundedRect(const psRoundedRect& copy);
-    psRoundedRect(psRoundedRect&& mov);
-    explicit psRoundedRect(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
-    virtual ~psRoundedRect();
+    psRoundRect(const psRoundRect& copy);
+    psRoundRect(psRoundRect&& mov);
+    explicit psRoundRect(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    virtual ~psRoundRect();
     const psRect& GetCorners() const { return _corners; }
     void SetCorners(const psRect& corners) { _corners = corners; }
     float GetOutline() const { return _edge; }
@@ -97,13 +97,51 @@ namespace planeshader {
     void SetOutlineColor(psColor32 color) { _outline = color; }
 
     static const int RRBUFSIZE = 64;
-    static void DrawRoundedRect(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& corners, psFlag flags, psColor32 color32, psColor32 outline32, float edge);
+    static void DrawRoundRect(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& corners, psFlag flags, psColor32 color32, psColor32 outline32, float edge);
 
-    psRoundedRect& operator=(const psRoundedRect& copy);
-    psRoundedRect& operator=(psRoundedRect&& mov);
+    psRoundRect& operator=(const psRoundRect& copy);
+    psRoundRect& operator=(psRoundRect&& mov);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
+
+    psRect _corners;
+    psColor32 _outline;
+    float _edge;
+  };
+
+  class PS_DLLEXPORT psRoundTri : public psSolid, public psColored, public psDriverHold
+  {
+    struct RRVertex
+    {
+      float x, y, z, t;
+      psRect dimpivot;
+      psRect corners;
+      float outline;
+      uint32_t color;
+      uint32_t outlinecolor;
+    };
+
+  public:
+    psRoundTri(const psRoundTri& copy);
+    psRoundTri(psRoundTri&& mov);
+    explicit psRoundTri(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    virtual ~psRoundTri();
+    const psRect& GetCorners() const { return _corners; }
+    void SetCorners(const psRect& corners) { _corners = corners; }
+    float GetOutline() const { return _edge; }
+    void SetOutline(float outline) { _edge = outline; }
+    psColor32 GetOutlineColor() const { return _outline; }
+    void SetOutlineColor(psColor32 color) { _outline = color; }
+
+    static const int RTRIBUFSIZE = 64;
+    static void DrawRoundTri(psShader* shader, psStateblock* stateblock, const psRectRotateZ& rect, const psRect& corners, psFlag flags, psColor32 color32, psColor32 outline32, float edge);
+
+    psRoundTri& operator=(const psRoundTri& copy);
+    psRoundTri& operator=(psRoundTri&& mov);
+
+  protected:
+    virtual void _render() override;
 
     psRect _corners;
     psColor32 _outline;
@@ -141,7 +179,7 @@ namespace planeshader {
     psRenderCircle& operator=(psRenderCircle&& mov);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
 
     psRect _arcs;
     psColor32 _outline;

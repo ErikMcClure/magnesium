@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __CAMERA_H__PS__
@@ -24,15 +24,15 @@ namespace planeshader {
     // Gets the absolute mouse coordinates with respect to this camera. If RT is null, uses the primary monitor.
     psVec GetMouseAbsolute(const psTex* rt = 0) const;
     // Gets a rect representing the visible area of this camera in absolute coordinates given the provided flags.
-    const psRectRotate BSS_FASTCALL GetScreenRect(psFlag flags=0) const;
+    const psRectRotate GetScreenRect(psFlag flags=0) const;
     // Gets or sets the viewport of the camera
     const psRect& GetViewPort() const { return _viewport; }
-    inline void BSS_FASTCALL SetViewPort(const psRect& vp) { _viewport = vp; }
-    void BSS_FASTCALL SetViewPortAbs(const psRect& vp, const psTex* rt = 0); // The viewport must be in pixels, but fractional values are technically valid here if rendering at a strange DPI
-    void BSS_FASTCALL SetPivotAbs(const psVec& pivot, const psTex* rt = 0);
+    inline void SetViewPort(const psRect& vp) { _viewport = vp; }
+    void SetViewPortAbs(const psRect& vp, const psTex* rt = 0); // The viewport must be in pixels, but fractional values are technically valid here if rendering at a strange DPI
+    void SetPivotAbs(const psVec& pivot, const psTex* rt = 0);
     inline const psVec& GetExtent() const { return _extent; }
-    inline void BSS_FASTCALL SetExtent(float znear, float zfar) { _extent.x = znear; _extent.y = zfar; }
-    inline void BSS_FASTCALL SetExtent(const psVec& extent) { _extent = extent; }
+    inline void SetExtent(float znear, float zfar) { _extent.x = znear; _extent.y = zfar; }
+    inline void SetExtent(const psVec& extent) { _extent = extent; }
     inline psCamera& operator =(const psCamera& copy) { psLocatable::operator =(copy); return *this; }
     inline const psRect& Apply(const psTex* rt) const;
     inline bool Cull(psSolid* solid) const;
@@ -57,7 +57,7 @@ namespace planeshader {
       CamCache(const CamCache&);
       CamCache();
       inline void SetSSE();
-      BSS_FORCEINLINE bool BSS_FASTCALL Cull(const psRect& rect, float rectz, float camz, psFlag flags);
+      BSS_FORCEINLINE bool Cull(const psRect& rect, float rectz, float camz, psFlag flags);
     };
 
   protected:

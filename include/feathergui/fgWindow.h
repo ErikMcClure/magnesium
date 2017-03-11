@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_WINDOW_H__
-#define _FG_WINDOW_H__
+#ifndef __FG_WINDOW_H__
+#define __FG_WINDOW_H__
 
 #include "fgButton.h"
 
@@ -44,9 +44,9 @@ typedef struct _FG_WINDOW {
 #endif
 } fgWindow;
 
-FG_EXTERN void FG_FASTCALL fgWindow_Init(fgWindow* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgWindow_Destroy(fgWindow* self);
-FG_EXTERN size_t FG_FASTCALL fgWindow_Message(fgWindow* self, const FG_Msg* msg);
+FG_EXTERN void fgWindow_Init(fgWindow* self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgWindow_Destroy(fgWindow* self);
+FG_EXTERN size_t fgWindow_Message(fgWindow* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

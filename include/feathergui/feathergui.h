@@ -1,5 +1,5 @@
 /* Feather - Lightweight GUI Abstraction Layer
-   Copyright ©2016 Black Sphere Studios
+   Copyright ©2017 Black Sphere Studios
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@
 #ifndef __FEATHER_GUI_H__
 #define __FEATHER_GUI_H__
 
-#include <assert.h>
 #include <string.h> // memcpy,memset
-#include <malloc.h> 
+#include <stddef.h>
 #include "bss_compiler.h"
 
 #ifdef  __cplusplus
@@ -31,11 +30,12 @@ typedef float FREL; // Change this to double for double precision (why on earth 
 typedef float FABS; // We seperate both of these types because then you don't have to guess if a float is relative or absolute
 typedef unsigned int FG_UINT; 
 typedef unsigned int fgFlag;
+typedef void* fgAsset;
+typedef void* fgFont;
 
 #define FGUI_VERSION_MAJOR 0
 #define FGUI_VERSION_MINOR 1
 #define FGUI_VERSION_REVISION 0
-#define FG_FASTCALL BSS_COMPILER_FASTCALL
 #define FG_EXTERN extern BSS_COMPILER_DLLEXPORT
 #define FG_ACCEPT 1
 
@@ -50,6 +50,12 @@ typedef unsigned int fgFlag;
 #define FG_DLLEXPORT
 #endif
 
+#ifdef BSS_DEBUG // Used for dealing with windows eating assertions inside callback functions
+#define fgassert(x) if(!(x)) { *((int*)0) = 0; } 
+#else
+#define fgassert(x) 
+#endif
+
 // A unified coordinate specifies things in terms of absolute and relative positions.
 typedef struct {
   FABS abs; // Absolute coordinates are added to relative coordinates, which specify a point from a linear interpolation of the parent's dimensions
@@ -62,6 +68,7 @@ MAKE_VEC(FREL,RelVec);
 MAKE_VEC(FABS,AbsVec);
 // A coordinate vector specifies a point by unified coordinates
 MAKE_VEC(Coord,CVec);
+MAKE_VEC(int, fgIntVec);
 
 #define MAKE_RECT(_T,_T2,_N) typedef struct { \
   union { \
@@ -83,11 +90,7 @@ MAKE_RECT(FABS,AbsVec,AbsRect);
 // A coordinate rect specifies its topleft and bottomright corners in terms of coordinate vectors.
 MAKE_RECT(Coord,CVec,CRect);
 
-static BSS_FORCEINLINE FG_UINT FG_FASTCALL fbnext(FG_UINT in)
-{
-  return in + 1 + (in>>1) + (in>>3) - (in>>7);
-}
-static BSS_FORCEINLINE FABS FG_FASTCALL lerp(FABS a, FABS b, FREL amt)
+static BSS_FORCEINLINE FABS fglerp(FABS a, FABS b, FREL amt)
 {
 	return a+((FABS)((b-a)*amt));
 }
@@ -124,6 +127,9 @@ FG_EXTERN const fgColor fgColor_WHITE;
 FG_EXTERN const fgTransform fgTransform_DEFAULT;
 FG_EXTERN const fgTransform fgTransform_EMPTY;
 FG_EXTERN const fgTransform fgTransform_CENTER;
+FG_EXTERN const CRect CRect_EMPTY;
+FG_EXTERN const AbsVec AbsVec_EMPTY;
+FG_EXTERN const fgIntVec fgIntVec_EMPTY;
 
 enum FGMOVE
 {
@@ -139,25 +145,42 @@ enum FGMOVE
   FGMOVE_CENTER = (FGMOVE_CENTERX | FGMOVE_CENTERY),
   FGMOVE_ROTATION = (1 << 7),
   FGMOVE_PADDING = (1 << 8),
-  FGMOVE_MARGIN = (1 << 9)
+  FGMOVE_MARGIN = (1 << 9),
 };
 
-enum FGSETTEXT {
-  FGSETTEXT_UTF8 = 0,
-  FGSETTEXT_UTF32,
-  FGSETTEXT_PLACEHOLDER_UTF8,
-  FGSETTEXT_PLACEHOLDER_UTF32,
-  FGSETTEXT_MASK
+enum FGTEXTFMT
+{
+  FGTEXTFMT_UTF8 = 0,
+  FGTEXTFMT_UTF16 = 1,
+  FGTEXTFMT_UTF32 = 2,
+  FGTEXTFMT_PLACEHOLDER_UTF8 = 4,
+  FGTEXTFMT_PLACEHOLDER_UTF16 = 5,
+  FGTEXTFMT_PLACEHOLDER_UTF32 = 6,
+  FGTEXTFMT_DYNAMIC_UTF8 = 8,
+  FGTEXTFMT_DYNAMIC_UTF16 = 9,
+  FGTEXTFMT_DYNAMIC_UTF32 = 10,
+  FGTEXTFMT_MASK = 15,
 };
 
-enum FGSETSTYLE {
+enum FGSETSTYLE
+{
   FGSETSTYLE_NAME = 0,
   FGSETSTYLE_INDEX,
   FGSETSTYLE_POINTER,
-  FGSETSTYLE_SETFLAG,
-  FGSETSTYLE_REMOVEFLAG,
-  FGSETSTYLE_SETFLAGINDEX,
-  FGSETSTYLE_REMOVEFLAGINDEX,
+};
+
+enum FGSETCOLOR
+{
+  FGSETCOLOR_MAIN = 0,
+  FGSETCOLOR_PLACEHOLDER,
+  FGSETCOLOR_CURSOR,
+  FGSETCOLOR_SELECT,
+  FGSETCOLOR_HOVER,
+  FGSETCOLOR_DRAG,
+  FGSETCOLOR_EDGE,
+  FGSETCOLOR_DIVIDER,
+  FGSETCOLOR_COLUMNDIVIDER,
+  FGSETCOLOR_ROWEVEN,
 };
 
 enum FGDIM
@@ -167,10 +190,91 @@ enum FGDIM
   FGDIM_FIXED,
 };
 
+enum FGCHECKED
+{
+  FGCHECKED_NONE = 0,
+  FGCHECKED_CHECKED = 1,
+  FGCHECKED_INDETERMINATE = 2,
+};
+
+enum FGUNIT
+{
+  FGUNIT_DP = 0, // By default, all feathergui units are in DPI-scaled units.
+  FGUNIT_SP = 1,
+  FGUNIT_EM = 2,
+  FGUNIT_PX = 3, // Corresponds to exactly one pixel regardless of DPI
+  FGUNIT_LEFT_DP = 0,
+  FGUNIT_LEFT_SP = (1 << 0),
+  FGUNIT_LEFT_EM = (2 << 0),
+  FGUNIT_LEFT_PX = (3 << 0),
+  FGUNIT_LEFT_MASK = (0b11 << 0),
+  FGUNIT_LEFT = 0,
+  FGUNIT_TOP_DP = 0,
+  FGUNIT_TOP_SP = (1 << 2),
+  FGUNIT_TOP_EM = (2 << 2),
+  FGUNIT_TOP_PX = (3 << 2),
+  FGUNIT_TOP_MASK = (0b11 << 2),
+  FGUNIT_TOP = 2,
+  FGUNIT_RIGHT_DP = 0,
+  FGUNIT_RIGHT_SP = (1 << 4),
+  FGUNIT_RIGHT_EM = (2 << 4),
+  FGUNIT_RIGHT_PX = (3 << 4),
+  FGUNIT_RIGHT_MASK = (0b11 << 4),
+  FGUNIT_RIGHT = 4,
+  FGUNIT_BOTTOM_DP = 0,
+  FGUNIT_BOTTOM_SP = (1 << 6),
+  FGUNIT_BOTTOM_EM = (2 << 6),
+  FGUNIT_BOTTOM_PX = (3 << 6),
+  FGUNIT_BOTTOM_MASK = (0b11 << 6),
+  FGUNIT_BOTTOM = 6,
+  FGUNIT_X_DP = 0,
+  FGUNIT_X_SP = (1 << 8),
+  FGUNIT_X_EM = (2 << 8),
+  FGUNIT_X_PX = (3 << 8),
+  FGUNIT_X_MASK = (0b11 << 8),
+  FGUNIT_X = 8,
+  FGUNIT_Y_DP = 0,
+  FGUNIT_Y_SP = (1 << 10),
+  FGUNIT_Y_EM = (2 << 10),
+  FGUNIT_Y_PX = (3 << 10),
+  FGUNIT_Y_MASK = (0b11 << 10),
+  FGUNIT_Y = 10,
+  FGUNIT_RIGHT_WIDTH = (1 << 12),
+  FGUNIT_BOTTOM_HEIGHT = (1 << 13),
+};
+
+enum FGITEM
+{
+  FGITEM_DEFAULT = 0,
+  FGITEM_TEXT, 
+  FGITEM_ELEMENT,
+  FGITEM_ROW,
+  FGITEM_COLUMN,
+  FGITEM_LOCATION,
+  FGITEM_COUNT,
+};
+
+enum FGVALUE
+{
+  FGVALUE_UNKNOWN = 0,
+  FGVALUE_INT64 = 1,
+  FGVALUE_FLOAT = 2,
+  FGVALUE_POINTER = 3,
+};
+
+enum FGSETPARENT
+{
+  FGSETPARENT_DEFAULT = 0,
+  FGSETPARENT_FIRST = 1,
+  FGSETPARENT_LAST = 2,
+};
+
 enum FG_MSGTYPE
 {
+  FG_UNKNOWN = 0,
   FG_CONSTRUCT = 1,
   FG_DESTROY, // Notification when the element is being destroyed. Sending this message will not destroy the element or call the destructor.
+  FG_CLONE,
   FG_MOVE, // Passed when any change is made to an element. 1: propagating up, 2: x-axis resize, 4: y-axis resize, 8: x-axis move, 16: y-axis move, 32: x center move, 64: y center move, 128: rotation change, 256: padding change
   FG_SETALPHA, // Used so an entire widget can be made to fade in or out. (Support is not guaranteed)
   FG_SETAREA,
@@ -182,15 +286,15 @@ enum FG_MSGTYPE
   FG_SETPARENT, // Adds this element to the parent in the first argument, inserting it after the child in the second argument, or before the root if the second argument is NULL.
   FG_ADDCHILD, // Pass an FG_Msg with this type and set the other pointer to the child that should be added.
   FG_REMOVECHILD, // Verifies child's parent is this, then sets the child's parent to NULL.
+  FG_REORDERCHILD, // This is used ONLY when a child cannot be removed and re-added to a parent and must be directly re-ordered within them.
+  FG_PARENTCHANGE, // This is ONLY used to notify a child that it's parent has changed, because FG_SETPARENT might not ever be called if FG_ADDCHILD is called directly.
   FG_LAYOUTCHANGE, 
   FG_LAYOUTFUNCTION,
   FG_LAYOUTLOAD, // Loads a layout passed in the first pointer with an optional custom class name resolution function passed into the second pointer of type fgElement* (*)(const char*, fgTransform*, fgFlag)
-  FG_DRAG, // Sent to initiate a drag&drop
-  FG_DRAGGING, // Sent to any element a dragged element is hovering over so it can set the cursor icon.
+  FG_DRAGOVER, // Sent to any element a dragged element is hovering over so it can set the cursor icon.
   FG_DROP, // Sent when an element is "dropped" on another element. Whether or not this does anything is up to the control.
   FG_DRAW,
   FG_INJECT,
-  FG_CLONE, // Clones the fgElement
   FG_SETSKIN, // Sets the skin. If NULL, uses GETSKIN to resolve the skin.
   FG_GETSKIN,
   FG_SETSTYLE, // Sets the style. -1 causes it to call GETSTYLE to try and resolve the style index.
@@ -202,6 +306,8 @@ enum FG_MSGTYPE
   FG_GETUSERDATA, 
   FG_SETDIM,
   FG_GETDIM,
+  FG_SETSCALING,
+  FG_GETSCALING,
   // fgControl
   FG_MOUSEDOWN,
   FG_MOUSEDBLCLICK,
@@ -210,7 +316,6 @@ enum FG_MSGTYPE
   FG_MOUSEOFF,
   FG_MOUSEMOVE,
   FG_MOUSESCROLL, 
-  FG_MOUSELEAVE, // Sent when the mouse leaves the root area, forces a MOUSEOFF message on current hover window.
   FG_TOUCHBEGIN,
   FG_TOUCHEND,
   FG_TOUCHMOVE,
@@ -224,8 +329,10 @@ enum FG_MSGTYPE
   FG_LOSTFOCUS,
   FG_SETNAME, // Sets the unique name for this object for skin collection mapping. Can be null.
   FG_GETNAME, // May return a unique string for this object, or will return NULL.
+  FG_SETCONTEXTMENU,
+  FG_GETCONTEXTMENU,
   // fgButton and others
-  FG_NUETRAL, // Sent when a button or other hover-enabled control switches to it's nuetral state
+  FG_NEUTRAL, // Sent when a button or other hover-enabled control switches to it's neutral state
   FG_HOVER, // Sent when a hover-enabled control switches to its hover state
   FG_ACTIVE, // Sent when a hover-enabled control switches to its active state
   FG_ACTION, // Sent when a hover-enabled control recieves a valid click event (a MOUSEUP inside the control while it has focus)
@@ -235,11 +342,13 @@ enum FG_MSGTYPE
   FG_REMOVEITEM,
   FG_SETITEM,
   FG_GETSELECTEDITEM, // Used to get the selected item (or items, or text) in a control.
-  // fgCheckbox, fgRadioButton, fgProgressbar, etc.
-  FG_GETSTATE, // Gets the on/off state of a checkbox or the current progress on a progress bar
-  FG_SETSTATE, // Sets the on/off state or progress
+  // fgCheckbox, fgRadiobutton, fgProgressbar, etc.
+  FG_GETVALUE, // Gets the on/off state of a checkbox or the current progress on a progress bar
+  FG_SETVALUE, // Sets the on/off state or progress
+  FG_GETRANGE, 
+  FG_SETRANGE,
   // fgResource or fgText
-  FG_SETRESOURCE,
+  FG_SETASSET,
   FG_SETUV,
   FG_SETCOLOR,
   FG_SETOUTLINE,
@@ -247,7 +356,7 @@ enum FG_MSGTYPE
   FG_SETLINEHEIGHT,
   FG_SETLETTERSPACING,
   FG_SETTEXT,
-  FG_GETRESOURCE,
+  FG_GETASSET,
   FG_GETUV,
   FG_GETCOLOR,
   FG_GETOUTLINE,
@@ -474,7 +583,7 @@ enum FG_MOUSEBUTTON // Used in FG_Msg.button and FG_Msg.allbtn
 
 enum FG_CURSOR
 {
-  FGCURSOR_CUSTOM = 0,
+  FGCURSOR_NONE = 0,
   FGCURSOR_ARROW,
   FGCURSOR_IBEAM,
   FGCURSOR_CROSS,
@@ -487,14 +596,19 @@ enum FG_CURSOR
   FGCURSOR_RESIZEALL,
   FGCURSOR_NO,
   FGCURSOR_HELP, // contextual menu cursor on mac
-  // FGCURSOR_DRAG, // Mac has a default drag cursor, but windows doesn't
+  FGCURSOR_DRAG, // Mac has a default drag cursor, but windows doesn't
+  FGCURSOR_CUSTOM,
+  FGCURSOR_OVERRIDE = 0x40,
 };
 
 enum FG_CLIPBOARD
 {
-  FGCLIPBOARD_TEXT = 0,
+  FGCLIPBOARD_NONE = 0,
+  FGCLIPBOARD_TEXT,
   FGCLIPBOARD_WAVE,
   FGCLIPBOARD_BITMAP,
+  FGCLIPBOARD_FILE,
+  FGCLIPBOARD_ELEMENT,
   FGCLIPBOARD_CUSTOM,
   FGCLIPBOARD_ALL,
 };
@@ -508,15 +622,19 @@ enum FG_MOUSEFLAGS {
 
 typedef struct _FG_MOUSESTATE
 {
-  int x, y; // Last known position of the mouse for this control
+  float x, y; // Last known position of the mouse for this control
   unsigned char buttons; // Last known configuration of mouse buttons recieved by this control
   unsigned char state;
 } fgMouseState;
 
+struct _FG_ELEMENT;
+
 // General message structure which contains the message type and then various kinds of information depending on the type.
 typedef struct _FG_MSG {
+  unsigned short type;
+  unsigned short subtype;
   union {
-    struct { int x; int y; // Mouse and touch events
+    struct { float x; float y; // Mouse and touch events
       union { 
         struct { unsigned char button; unsigned char allbtn; }; 
         struct { short scrolldelta; short scrollhdelta; }; // MOUSESCROLL
@@ -531,12 +649,10 @@ typedef struct _FG_MSG {
     struct { float joyvalue; short joyaxis; }; // JOYAXIS
     struct { char joydown; short joybutton; }; // JOYBUTTON
     struct {
-      union { void* other; ptrdiff_t otherint; FABS otherf; };
-      union { void* other2; size_t otheraux; FABS otherfaux; };
+      union { void* p; ptrdiff_t i; size_t u; FABS f; struct _FG_ELEMENT* e; };
+      union { void* p2; ptrdiff_t i2; size_t u2; FABS f2; struct _FG_ELEMENT* e2; };
     };
   };
-  unsigned short type;
-  unsigned char subtype;
 
 #ifdef __cplusplus
   inline bool IsPressed() const { return (button&allbtn) != 0; }
@@ -547,35 +663,57 @@ typedef struct _FG_MSG {
 #endif
 } FG_Msg;
 
-FG_EXTERN AbsVec FG_FASTCALL ResolveVec(const CVec* v, const AbsRect* last);
-FG_EXTERN char FG_FASTCALL CompareMargins(const AbsRect* l, const AbsRect* r); // Returns 0 if both are the same or a difference bitset otherwise.
-FG_EXTERN char FG_FASTCALL CompareCRects(const CRect* l, const CRect* r); // Returns 0 if both are the same or a difference bitset otherwise.
-FG_EXTERN char FG_FASTCALL CompareTransforms(const fgTransform* l, const fgTransform* r);
-FG_EXTERN void FG_FASTCALL MoveCRect(FABS x, FABS y, CRect* r);
-FG_EXTERN char FG_FASTCALL HitAbsRect(const AbsRect* r, FABS x, FABS y);
-//FG_EXTERN void FG_FASTCALL ToIntAbsRect(const AbsRect* r, int target[static 4]);
-FG_EXTERN void FG_FASTCALL ToIntAbsRect(const AbsRect* r, int target[4]);
-FG_EXTERN void FG_FASTCALL ToLongAbsRect(const AbsRect* r, long target[4]);
-FG_EXTERN char FG_FASTCALL MsgHitAbsRect(const FG_Msg* msg, const AbsRect* r);
-FG_EXTERN char* FG_FASTCALL fgCopyText(const char* text);
-FG_EXTERN void FG_FASTCALL fgUpdateMouseState(fgMouseState* state, const FG_Msg* msg);
-FG_EXTERN char FG_FASTCALL fgRectIntersect(const AbsRect* l, const AbsRect* r); // Returns 1 if the rectangles intersect, or 0 otherwise
+FG_EXTERN AbsVec ResolveVec(const CVec* v, const AbsRect* last);
+FG_EXTERN inline char CompareMargins(const AbsRect* l, const AbsRect* r); // Returns 0 if both are the same or a difference bitset otherwise.
+FG_EXTERN inline char CompareCRects(const CRect* l, const CRect* r); // Returns 0 if both are the same or a difference bitset otherwise.
+FG_EXTERN inline char CompareTransforms(const fgTransform* l, const fgTransform* r);
+FG_EXTERN inline void MoveCRect(FABS x, FABS y, CRect* r);
+FG_EXTERN inline char HitAbsRect(const AbsRect* r, FABS x, FABS y);
+//FG_EXTERN void ToIntAbsRect(const AbsRect* r, int target[static 4]);
+FG_EXTERN inline void ToIntAbsRect(const AbsRect* r, int target[4]);
+FG_EXTERN inline void ToLongAbsRect(const AbsRect* r, long target[4]);
+FG_EXTERN inline char MsgHitAbsRect(const FG_Msg* msg, const AbsRect* r);
+FG_EXTERN const char* fgCopyText(const char* text, const char* file, size_t line);
+FG_EXTERN void fgFreeText(const char* text, const char* file, size_t line);
+FG_EXTERN inline void fgUpdateMouseState(fgMouseState* state, const FG_Msg* msg);
+FG_EXTERN inline char fgRectIntersect(const AbsRect* l, const AbsRect* r); // Returns 1 if the rectangles intersect, or 0 otherwise
+FG_EXTERN inline void fgRectIntersection(const AbsRect* BSS_RESTRICT l, const AbsRect* BSS_RESTRICT r, AbsRect* out);
+FG_EXTERN inline void fgScaleRectDPI(AbsRect* rect, int dpix, int dpiy);
+FG_EXTERN size_t fgUTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen);
+FG_EXTERN size_t fgUTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen);
+FG_EXTERN size_t fgUTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen);
+FG_EXTERN size_t fgUTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen);
+FG_EXTERN size_t fgUTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen);
+FG_EXTERN size_t fgUTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen);
+
+typedef struct _FG_DRAW_AUX_DATA {
+  size_t fgSZ;
+  fgIntVec dpi;
+  AbsVec scale;
+  AbsVec scalecenter;
+} fgDrawAuxData;
 
 #ifdef  __cplusplus
 }
 
 template<int I, typename T>
-void BSS_FORCEINLINE static fgSendMsgArg(FG_Msg&, T) = delete;
+void BSS_FORCEINLINE fgSendMsgArg(FG_Msg&, T);
 
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<1, const void*>(FG_Msg& msg, const void* p) { msg.other = const_cast<void*>(p); }
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<1, void*>(FG_Msg& msg, void* p) { msg.other = p; }
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<1, float>(FG_Msg& msg, float p) { msg.otherf = p; }
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<1, ptrdiff_t>(FG_Msg& msg, ptrdiff_t p) { msg.otherint = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, const void*>(FG_Msg& msg, const void* p) { msg.p = const_cast<void*>(p); }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, void*>(FG_Msg& msg, void* p) { msg.p = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, float>(FG_Msg& msg, float p) { msg.f = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, ptrdiff_t>(FG_Msg& msg, ptrdiff_t p) { msg.i = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, size_t>(FG_Msg& msg, size_t p) { msg.u = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, const struct _FG_ELEMENT*>(FG_Msg& msg, const struct _FG_ELEMENT* p) { msg.p = const_cast<struct _FG_ELEMENT*>(p); }
+template<> void BSS_FORCEINLINE fgSendMsgArg<1, struct _FG_ELEMENT*>(FG_Msg& msg, struct _FG_ELEMENT* p) { msg.p = p; }
 
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<2, const void*>(FG_Msg& msg, const void* p) { msg.other2 = const_cast<void*>(p); }
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<2, void*>(FG_Msg& msg, void* p) { msg.other2 = p; }
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<2, float>(FG_Msg& msg, float p) { msg.otherfaux = p; }
-template<> void BSS_FORCEINLINE BSS_EXPLICITSTATIC fgSendMsgArg<2, size_t>(FG_Msg& msg, size_t p) { msg.otheraux = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, const void*>(FG_Msg& msg, const void* p) { msg.p2 = const_cast<void*>(p); }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, void*>(FG_Msg& msg, void* p) { msg.p2 = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, float>(FG_Msg& msg, float p) { msg.f2 = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, ptrdiff_t>(FG_Msg& msg, ptrdiff_t p) { msg.i2 = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, size_t>(FG_Msg& msg, size_t p) { msg.u2 = p; }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, const struct _FG_ELEMENT*>(FG_Msg& msg, const struct _FG_ELEMENT* p) { msg.p2 = const_cast<struct _FG_ELEMENT*>(p); }
+template<> void BSS_FORCEINLINE fgSendMsgArg<2, struct _FG_ELEMENT*>(FG_Msg& msg, struct _FG_ELEMENT* p) { msg.p2 = p; }
 
 template<int I, typename... Args> struct fgSendMsgCall;
 template<int I, typename Arg, typename... Args>
@@ -587,7 +725,6 @@ struct fgSendMsgCall<I, Arg, Args...> {
 };
 template<int I>
 struct fgSendMsgCall<I> { BSS_FORCEINLINE static void F(FG_Msg& msg) {} };
-
 #endif
 
 #endif

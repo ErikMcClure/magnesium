@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_SLIDER_H__
-#define _FG_SLIDER_H__
+#ifndef __FG_SLIDER_H__
+#define __FG_SLIDER_H__
 
 #include "fgControl.h"
 
@@ -22,9 +22,9 @@ typedef struct _FG_SLIDER {
 #endif
 } fgSlider;
 
-FG_EXTERN void FG_FASTCALL fgSlider_Init(fgSlider* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgSlider_Destroy(fgSlider* self);
-FG_EXTERN size_t FG_FASTCALL fgSlider_Message(fgSlider* self, const FG_Msg* msg);
+FG_EXTERN void fgSlider_Init(fgSlider* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgSlider_Destroy(fgSlider* self);
+FG_EXTERN size_t fgSlider_Message(fgSlider* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

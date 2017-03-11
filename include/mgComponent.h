@@ -83,7 +83,6 @@ namespace magnesium {
       //_store.Back().entity = p; 
       assert(_store.Back().entity == p);
       p->ComponentListInsert(_id, index);
-      p->components += _id;
       return index;
     }
     T* Get(size_t index = 0) { return (index < _store.Length()) ? _store.begin() + index : nullptr; }
@@ -97,7 +96,6 @@ namespace magnesium {
       if(index >= _store.Length()) return false;
       mgEntity* e = _store[index].entity;
       e->ComponentListRemove(_id);
-      e->components -= _id;
       return RemoveInternal(_id, index);
     }
     virtual void FlushBuffer() override

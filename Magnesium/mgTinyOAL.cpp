@@ -18,8 +18,8 @@ using namespace tinyoal;
 #endif
 #endif
 
-TinyOALSystem::TinyOALSystem(unsigned char defnumbuf, std::ostream* errout, const char* forceOAL, const char* forceOGG, const char* forceFLAC, const char* forceMP3) :
-  cTinyOAL(defnumbuf, errout, forceOAL, forceOGG, forceFLAC, forceMP3)
+TinyOALSystem::TinyOALSystem(unsigned char defnumbuf, const char* forceOAL, const char* forceOGG, const char* forceFLAC, const char* forceMP3) :
+  cTinyOAL(defnumbuf, forceOAL, forceOGG, forceFLAC, forceMP3)
 {
 }
 TinyOALSystem::~TinyOALSystem() {}

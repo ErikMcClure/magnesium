@@ -1,11 +1,11 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __FEATHER_H__PS__
 #define __FEATHER_H__PS__
 
-#include "feathergui\fgRoot.h"
-#include "feathergui\fgMonitor.h"
+#include "feathergui/fgRoot.h"
+#include "feathergui/fgMonitor.h"
 #include "psRenderable.h"
 
 struct HWND__;
@@ -13,6 +13,8 @@ struct HINSTANCE__;
 struct HICON__;
 struct tagPOINTS;
 struct tagRECT;
+struct _MARGINS;
+struct _DWM_BLURBEHIND;
 
 #if defined(_WIN64)
 typedef int64_t longptr_t;
@@ -32,7 +34,7 @@ namespace planeshader {
     static psFlag GetDrawFlags(fgFlag flags);
 
   protected:
-    void BSS_FASTCALL _render();
+    void _render();
   };
 
   class PS_DLLEXPORT psMonitor : public fgMonitor
@@ -68,14 +70,22 @@ namespace planeshader {
     inline void SetBackBuffer(psTex* backbuffer) { _backbuffer = backbuffer; }
     inline psTex* const* GetBackBuffer() { return !_backbuffer ? 0 : &_backbuffer; }
 
+    static void WndRegister(HINSTANCE__* instance, const wchar_t* icon, HICON__* iconrc);
+    static void CheckDesktopComposition();
+
   protected:
     HWND__* WndCreate(HINSTANCE__* instance, tagRECT& dim, MODE mode, fgFlag flags, HWND__* hWnd);
 
-    static void WndRegister(HINSTANCE__* instance, const wchar_t* icon, HICON__* iconrc);
-    static size_t FG_FASTCALL Message(fgMonitor* self, const FG_Msg* m);
+    static size_t Message(fgMonitor* self, const FG_Msg* m);
+    static void Destroy(psMonitor* self);
     static longptr_t __stdcall WndProc(HWND__* hWnd, uint32_t message, size_t wParam, longptr_t lParam);
     static tagPOINTS* __stdcall _STCpoints(HWND__* hWnd, tagPOINTS* target);
     static void _lockcursor(HWND__* hWnd, bool lock);
+
+
+    static long(__stdcall *dwmextend)(HWND__*, const struct _MARGINS*);
+    static long(__stdcall *dwmblurbehind)(HWND__*, const struct _DWM_BLURBEHIND*);
+    static HINSTANCE__* dwm;
 
     HWND__* _window;
     psGUIManager* _manager;

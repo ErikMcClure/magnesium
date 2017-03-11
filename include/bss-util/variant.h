@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __VARIANT_H__BSS__
@@ -36,7 +36,6 @@ namespace bss_util {
 		template<class U>
 		inline static void construct(int tag, char* store, typename std::remove_reference<U>::type&& v)
 		{
-			int test = V::template pubgetpos<T>::value;
 			if(tag == V::template pubgetpos<T>::value)
 				new(store) T((T&&)(*reinterpret_cast<T*>(v._store)));
 			else

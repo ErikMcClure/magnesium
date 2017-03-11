@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_PROGRESSBAR_H__
-#define _FG_PROGRESSBAR_H__
+#ifndef __FG_PROGRESSBAR_H__
+#define __FG_PROGRESSBAR_H__
 
 #include "fgControl.h"
 #include "fgText.h"
@@ -23,10 +23,9 @@ typedef struct _FG_PROGRESSBAR {
 #endif
 } fgProgressbar;
 
-FG_EXTERN fgElement* FG_FASTCALL fgProgressbar_Create(FREL value, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgProgressbar_Init(fgProgressbar* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgProgressbar_Destroy(fgProgressbar* self);
-FG_EXTERN size_t FG_FASTCALL fgProgressbar_Message(fgProgressbar* self, const FG_Msg* msg);
+FG_EXTERN void fgProgressbar_Init(fgProgressbar* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgProgressbar_Destroy(fgProgressbar* self);
+FG_EXTERN size_t fgProgressbar_Message(fgProgressbar* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

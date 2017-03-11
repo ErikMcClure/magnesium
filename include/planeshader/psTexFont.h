@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __TEXFONT_H__PS__
@@ -43,8 +43,8 @@ namespace planeshader {
   public:
     typedef bss_util::delegate<void, size_t, psRectRotateZ&, uint32_t&> DELEGATE;
     // Draws text in the given rectangle. Returns the dimensions of the text which can be cached used to assemble an area if the text doesn't change.
-    psVec DrawText(psShader* shader, const psStateblock* stateblock, const int* text, float lineheight, float letterspacing = 0.0f, const psRectRotateZ& area = psRectRotateZ(0, 0, 0, 0, 0), uint32_t color = 0xFFFFFFFF, psFlag flags = 0, DELEGATE d = DELEGATE(0, 0), const float(&transform)[4][4] = psDriver::identity);
-    psVec DrawText(psShader* shader, const psStateblock* stateblock, const char* text, float lineheight, float letterspacing = 0.0f, const psRectRotateZ& area = psRectRotateZ(0,0,0,0,0), uint32_t color = 0xFFFFFFFF, psFlag flags = 0, DELEGATE d = DELEGATE(0, 0), const float(&transform)[4][4] = psDriver::identity);
+    psVec DrawText(psShader* shader, const psStateblock* stateblock, const int* text, float lineheight, float letterspacing = 0.0f, const psRectRotateZ& area = psRectRotateZ(0, 0, 0, 0, 0), uint32_t color = 0xFFFFFFFF, psFlag flags = 0, DELEGATE d = DELEGATE(0, 0));
+    psVec DrawText(psShader* shader, const psStateblock* stateblock, const char* text, float lineheight, float letterspacing = 0.0f, const psRectRotateZ& area = psRectRotateZ(0,0,0,0,0), uint32_t color = 0xFFFFFFFF, psFlag flags = 0, DELEGATE d = DELEGATE(0, 0));
     // Given the drawing flags and text, this calculates what size would be required to display all the text. If dest has nonnegative width or height, that dimension is kept constant while calculating the other.
     void CalcTextDim(const int* text, psVec& dest, float lineheight, float letterspacing = 0.0f, psFlag flags = 0);
     // Lets you access the underlying textures

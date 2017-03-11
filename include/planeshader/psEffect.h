@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __EFFECT_H__PS__
@@ -28,7 +28,7 @@ namespace planeshader {
   protected:
     bool _sort();
     void _sortvisit(psRenderable* child, bool& fail, uint32_t& order);
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
 
     static char CompEdge(const Edge& l, const Edge& r) { return SGNCOMPARE(l.f, r.f); }
     static bool LessEdge(const Edge& l, const Edge& r) { return l.f < r.f; }

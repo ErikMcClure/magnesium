@@ -40,7 +40,7 @@ void b2PhysicsComponent::Init(const b2BodyDef& def)
   _userdata = def.userData;
   _body->SetUserData(this);
 }
-b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2FixtureDef& fd, bool append)
+b2CompoundFixture& b2PhysicsComponent::AddCompoundFixture(const b2FixtureDef& fd, bool append)
 { 
   assert(_body);
   b2Fixture* f = _body->CreateFixture(&fd);
@@ -51,7 +51,7 @@ b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2F
 
   return *_fixtures.back();
 }
-b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2Shape& shape, float density, bool append)
+b2CompoundFixture& b2PhysicsComponent::AddCompoundFixture(const b2Shape& shape, float density, bool append)
 { 
   assert(_body);
   b2Fixture* f = _body->CreateFixture(&shape, density);
@@ -62,13 +62,13 @@ b2CompoundFixture& BSS_FASTCALL b2PhysicsComponent::AddCompoundFixture(const b2S
 
   return *_fixtures.back();
 }
-b2Vec2 BSS_FASTCALL b2PhysicsComponent::GetPosition() const
+b2Vec2 b2PhysicsComponent::GetPosition() const
 {
   b2Vec2 p = _body->GetPosition();
   p *= Box2DSystem::Instance()->F_PPM;
   return p;
 }
-void BSS_FASTCALL b2PhysicsComponent::SetTransform(const b2Vec2& pos, float rotation)
+void b2PhysicsComponent::SetTransform(const b2Vec2& pos, float rotation)
 {
   assert(_body);
   b2Vec2 p(pos);
@@ -76,7 +76,7 @@ void BSS_FASTCALL b2PhysicsComponent::SetTransform(const b2Vec2& pos, float rota
   _body->SetTransform(p, rotation);
 }
 
-b2PhysicsComponent& BSS_FASTCALL b2PhysicsComponent::operator =(b2PhysicsComponent&& right)
+b2PhysicsComponent& b2PhysicsComponent::operator =(b2PhysicsComponent&& right)
 { 
   _destruct();
   _body = right._body;
@@ -100,7 +100,7 @@ Box2DSystem::~Box2DSystem()
   _instance = 0;
   Unload();
 }
-void Box2DSystem::Preprocess()
+void Box2DSystem::Process()
 {
   if(_frozen || !_world)
     return;
@@ -132,8 +132,6 @@ void Box2DSystem::Preprocess()
   }
 }
 Box2DSystem* Box2DSystem::Instance() { return _instance; }
-void Box2DSystem::Process(mgEntity* entity) {}
-void Box2DSystem::Postprocess() {}
 
 void Box2DSystem::SayGoodbye(b2Joint* joint) {}
 void Box2DSystem::SayGoodbye(b2Fixture* fixture) {}

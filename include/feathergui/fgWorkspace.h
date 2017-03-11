@@ -1,8 +1,8 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_WORKSPACE_H__
-#define _FG_WORKSPACE_H__
+#ifndef __FG_WORKSPACE_H__
+#define __FG_WORKSPACE_H__
 
 #include "fgScrollbar.h"
 
@@ -29,7 +29,7 @@ typedef struct _FG_WORKSPACE {
   unsigned int gridcolor[2]; // color of the grid's x and y axis lines.
   unsigned int rulercolor[2]; // color of the major and minor lines on the ruler
   unsigned int crosshaircolor; // color of the lines drawn to where the cursor is
-  unsigned int dpi;
+  fgIntVec dpi;
   AbsVec gridsize;
 #ifdef  __cplusplus
   inline operator fgElement*() { return &scrollbar.control.element; }
@@ -37,9 +37,9 @@ typedef struct _FG_WORKSPACE {
 #endif
 } fgWorkspace;
 
-FG_EXTERN void FG_FASTCALL fgWorkspace_Init(fgWorkspace* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform);
-FG_EXTERN void FG_FASTCALL fgWorkspace_Destroy(fgWorkspace* self);
-FG_EXTERN size_t FG_FASTCALL fgWorkspace_Message(fgWorkspace* self, const FG_Msg* msg);
+FG_EXTERN void fgWorkspace_Init(fgWorkspace* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgWorkspace_Destroy(fgWorkspace* self);
+FG_EXTERN size_t fgWorkspace_Message(fgWorkspace* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __TEX_H__PS__
@@ -9,7 +9,6 @@
 #include "psStateblock.h"
 #include "psColor.h"
 #include "bss-util/cRefCounter.h"
-#include "bss-util/cSmartPtr.h"
 
 namespace planeshader {
   class PS_DLLEXPORT psPixelArray : public psDriverHold
@@ -73,19 +72,19 @@ namespace planeshader {
     inline bool Resize(psVeciu dim, RESIZE resize = RESIZE_DISCARD);
 
     // Returns an existing texture object if it has the same path or creates a new one if necessary 
-    static psTex* BSS_FASTCALL Create(const char* file, uint32_t usage = USAGE_SHADER_RESOURCE, FILTERS mipfilter = FILTER_TRIANGLE, uint8_t miplevels = 0, FILTERS loadfilter = FILTER_NONE, bool sRGB = false, psTexblock* texblock = 0, psVeciu dpi = psVeciu(psGUIManager::BASE_DPI));
+    static psTex* Create(const char* file, uint32_t usage = USAGE_SHADER_RESOURCE, FILTERS mipfilter = FILTER_TRIANGLE, uint8_t miplevels = 0, FILTERS loadfilter = FILTER_NONE, bool sRGB = false, psTexblock* texblock = 0, psVeciu dpi = psVeciu(psGUIManager::BASE_DPI));
     // if datasize is 0, data is assumed to be a path. If datasize is nonzero, data is assumed to be a pointer to memory where the texture is stored
-    static psTex* BSS_FASTCALL Create(const void* data, uint32_t datasize, uint32_t usage = USAGE_SHADER_RESOURCE, FILTERS mipfilter = FILTER_TRIANGLE, uint8_t miplevels = 0, FILTERS loadfilter = FILTER_NONE, bool sRGB = false, psTexblock* texblock = 0, psVeciu dpi = psVeciu(psGUIManager::BASE_DPI));
-    static psTex* BSS_FASTCALL Create(const psTex& copy);
-    static psTex* BSS_FASTCALL Create(psVeciu dim, FORMATS format, uint32_t usage, uint8_t miplevels = 0, psTexblock* texblock = 0, psVeciu dpi = psVeciu(psGUIManager::BASE_DPI));
+    static psTex* Create(const void* data, uint32_t datasize, uint32_t usage = USAGE_SHADER_RESOURCE, FILTERS mipfilter = FILTER_TRIANGLE, uint8_t miplevels = 0, FILTERS loadfilter = FILTER_NONE, bool sRGB = false, psTexblock* texblock = 0, psVeciu dpi = psVeciu(psGUIManager::BASE_DPI));
+    static psTex* Create(const psTex& copy);
+    static psTex* Create(psVeciu dim, FORMATS format, uint32_t usage, uint8_t miplevels = 0, psTexblock* texblock = 0, psVeciu dpi = psVeciu(psGUIManager::BASE_DPI));
 
     psTex& operator=(const psTex& right);
     psTex& operator=(psTex&& right);
 
   protected:
-    static psTex* BSS_FASTCALL _create(void* res, void* view, psVeciu dpi, psTexblock* texblock);
+    static psTex* _create(void* res, void* view, psVeciu dpi, psTexblock* texblock);
 
-    void BSS_FASTCALL _applydesc(TEXTURE_DESC& desc);
+    void _applydesc(TEXTURE_DESC& desc);
     virtual void DestroyThis() override;
 
     void* _res; // In DX11 this is the shader resource view. In DX9 it's the texture pointer.
@@ -94,7 +93,7 @@ namespace planeshader {
     uint8_t _miplevels;
     uint32_t _usage;
     FORMATS _format;
-    bss_util::cAutoRef<psTexblock> _texblock;
+    bss_util::ref_ptr<psTexblock> _texblock;
     psVeciu _dpi; // Actual DPI of this texture. The returned dimensions are scaled by this.
   };
 }

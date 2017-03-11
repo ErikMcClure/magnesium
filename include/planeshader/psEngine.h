@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __ENGINE_H__PS__
@@ -12,8 +12,9 @@
 #include "psGUIManager.h"
 #include "psDriver.h"
 
-#define PSLOG(level) BSSLOG(*psEngine::Instance(),level)
-#define PSLOGV(level,...) BSSLOGV(*psEngine::Instance(),level,__VA_ARGS__)
+#define PSLOG(level,...) psEngine::Instance()->Log(__FILE__,__LINE__,(level),__VA_ARGS__)
+#define PSLOGF(level,format,...) psEngine::Instance()->LogFormat(__FILE__,__LINE__,(level),format,__VA_ARGS__)
+#define PSLOGP(level,format,...) psEngine::Instance()->PrintLog(__FILE__,__LINE__,(level),format,__VA_ARGS__)
 
 namespace planeshader {
   class psPass;
@@ -51,7 +52,7 @@ namespace planeshader {
   };
 
   // Core engine object
-  class PS_DLLEXPORT psEngine : public psGUIManager, public bss_util::cLog, public psDriverHold
+  class PS_DLLEXPORT psEngine : public psGUIManager, public psDriverHold
   {
   public:
     // Constructor
@@ -80,11 +81,27 @@ namespace planeshader {
     inline uint16_t NumPass() const { return _passes.Capacity(); }
     inline const char* GetMediaPath() const { return _mediapath.c_str(); }
     inline psMonitor::MODE GetMode() const { return _mode; }
+    inline bss_util::cLog& GetLog() { return _log; }
+
+    inline int PrintLog(const char* file, uint32_t line, uint8_t level, const char* format, ...)
+    {
+      va_list vl;
+      va_start(vl, format);
+      int r = _log.PrintLogV(LOGSOURCE, file, line, level, format, vl);
+      va_end(vl);
+      return r;
+    }
+    inline int PrintLogV(const char* file, uint32_t line, uint8_t level, const char* format, va_list args) { return _log.PrintLog(LOGSOURCE, file, line, level, format, args); }
+    template<typename... Args>
+    BSS_FORCEINLINE void Log(const char* file, uint32_t line, uint8_t level, Args... args) { _log.Log<Args...>(LOGSOURCE, file, line, level, args...); }
+    template<typename... Args>
+    BSS_FORCEINLINE void LogFormat(const char* file, uint32_t line, uint8_t level, const char* format, Args... args) { _log.LogFormat<Args...>(LOGSOURCE, file, line, level, format, args...); }
 
     psPass& operator [](uint16_t index) { assert(index<_passes.Capacity()); return *_passes[index]; }
     const psPass& operator [](uint16_t index) const { assert(index<_passes.Capacity()); return *_passes[index]; }
 
     static psEngine* Instance(); // Cannot be inline'd for DLL reasons.
+    static const char* LOGSOURCE;
 
   protected:
     virtual void _onresize(psVeciu dim, bool fullscreen) override;
@@ -95,6 +112,7 @@ namespace planeshader {
     cStr _mediapath;
     psMonitor::MODE _mode;
     uint64_t _frameprofiler;
+    bss_util::cLog _log;
 
     static psEngine* _instance;
   };

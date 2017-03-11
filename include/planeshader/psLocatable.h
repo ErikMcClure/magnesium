@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __LOCATABLE_H__PS__
@@ -17,21 +17,21 @@ namespace planeshader {
     // Gets the rotation 
     inline FNUM GetRotation() const { return _rotation; }
     // Sets the rotation of this object 
-    virtual void BSS_FASTCALL SetRotation(FNUM rotation);
+    virtual void SetRotation(FNUM rotation);
     // Gets the pivot
     inline const psVec& GetPivot() const { return _pivot; }
     // Sets the pivot (this is where the image will rotate around) 
-    virtual void BSS_FASTCALL SetPivot(const psVec& pivot);
+    virtual void SetPivot(const psVec& pivot);
     // Gets the position relative to the object parent 
     inline const psVec3D& GetPosition() const { return _relpos; }
     // Sets the position of this object 
-    inline void BSS_FASTCALL SetPositionX(FNUM X) { SetPosition(X, _relpos.y, _relpos.z); }
-    inline void BSS_FASTCALL SetPositionY(FNUM Y) { SetPosition(_relpos.x, Y, _relpos.z); }
-    inline void BSS_FASTCALL SetPositionZ(FNUM Z) { SetPosition(_relpos.x, _relpos.y, Z); }
-    inline void BSS_FASTCALL SetPosition(const psVec& pos) { SetPosition(pos.x, pos.y, _relpos.z); }
-    inline void BSS_FASTCALL SetPosition(const psVec3D& pos) { SetPosition(pos.x, pos.y, pos.z); }
-    inline void BSS_FASTCALL SetPosition(FNUM X, FNUM Y) { SetPosition(X, Y, _relpos.z); }
-    virtual void BSS_FASTCALL SetPosition(FNUM X, FNUM Y, FNUM Z);
+    inline void SetPositionX(FNUM X) { SetPosition(X, _relpos.y, _relpos.z); }
+    inline void SetPositionY(FNUM Y) { SetPosition(_relpos.x, Y, _relpos.z); }
+    inline void SetPositionZ(FNUM Z) { SetPosition(_relpos.x, _relpos.y, Z); }
+    inline void SetPosition(const psVec& pos) { SetPosition(pos.x, pos.y, _relpos.z); }
+    inline void SetPosition(const psVec3D& pos) { SetPosition(pos.x, pos.y, pos.z); }
+    inline void SetPosition(FNUM X, FNUM Y) { SetPosition(X, Y, _relpos.z); }
+    virtual void SetPosition(FNUM X, FNUM Y, FNUM Z);
 
     inline psLocatable& operator=(const psLocatable& right) { _relpos=right._relpos; _rotation=right._rotation; _pivot=right._pivot; return *this; }
 

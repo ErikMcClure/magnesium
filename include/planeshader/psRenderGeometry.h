@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __RENDER_GEOMETRY_H__PS__
@@ -33,7 +33,7 @@ namespace planeshader {
     static void DrawEllipse(float x, float y, float a, float b, uint32_t color);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
   };
 
   class PS_DLLEXPORT psRenderLine : public psInheritable, public psColored, public psDriverHold
@@ -54,7 +54,7 @@ namespace planeshader {
     static inline void DrawLine(const psLine& p, uint32_t color) { DrawLine(psLine3D(p.x1, p.y1, 0, p.x2, p.y2, 0), color); }
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
 
     psVec3D _point;
   };
@@ -72,10 +72,10 @@ namespace planeshader {
     psRenderPolygon& operator =(const psPolygon& right);
 
     static void DrawPolygon(const psVec* p, uint32_t num, uint32_t color, const psVec3D& offset = VEC3D_ZERO);
-    static void DrawPolygon(const psVertex* p, uint32_t num, const float(&transform)[4][4] = psDriver::identity);
+    static void DrawPolygon(const psVertex* p, uint32_t num);
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
   };
 
   class PS_DLLEXPORT psFullScreenQuad : public psInheritable, public psTextured, public psColored, public psDriverHold
@@ -87,7 +87,7 @@ namespace planeshader {
     virtual uint8_t NumTextures() const override { return psTextured::NumTextures(); }
 
   protected:
-    virtual void BSS_FASTCALL _render() override;
+    virtual void _render() override;
   };
 }
 #endif

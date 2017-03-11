@@ -44,15 +44,14 @@ namespace magnesium {
   struct MG_DLLEXPORT psTilesetComponent : psGenericComponent<psTilesetComponent, planeshader::psTileset> { explicit psTilesetComponent(mgEntity* e=0) : psGenericComponent(e) {} };
   struct MG_DLLEXPORT psTextComponent : psGenericComponent<psTextComponent, planeshader::psText> { explicit psTextComponent(mgEntity* e=0) : psGenericComponent(e) {} };
   struct MG_DLLEXPORT psRenderCircleComponent : psGenericComponent<psRenderCircleComponent, planeshader::psRenderCircle> { explicit psRenderCircleComponent(mgEntity* e=0) : psGenericComponent(e) {} };
-  struct MG_DLLEXPORT psRoundedRectComponent : psGenericComponent<psRoundedRectComponent, planeshader::psRoundedRect> { explicit psRoundedRectComponent(mgEntity* e=0) : psGenericComponent(e) {} };
+  struct MG_DLLEXPORT psRoundRectComponent : psGenericComponent<psRoundRectComponent, planeshader::psRoundRect> { explicit psRoundRectComponent(mgEntity* e=0) : psGenericComponent(e) {} };
 
-  class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystem<psRenderableComponent, psRenderableComponent>
+  class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystem<void, psRenderableComponent>
   {
   public:
     PlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0);
     ~PlaneshaderSystem();
-    virtual void Process(mgEntity* entity) override;
-    virtual void Postprocess() override;
+    virtual void Process() override;
 
     template<typename T>
     inline static void InitComponent(mgEntity* e, ComponentID p)

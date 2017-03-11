@@ -5,13 +5,34 @@
 
 using namespace magnesium;
 
-mgSystemBase::mgSystemBase(ComponentBitfield required, ComponentID iterator, int priority) : _required(required), _iterator(iterator), _priority(priority)
+mgSystemBase::mgSystemBase(ComponentBitfield required, int priority) : _required(required), _priority(priority)
 {
 
 }
 mgSystemBase::~mgSystemBase() { if(_manager) _manager->RemoveSystem(this); }
-void mgSystemBase::Preprocess() {}
-void mgSystemBase::Postprocess() {}
+
+mgSystemSimple::mgSystemSimple(ComponentBitfield required, ComponentID iterator, int priority) : mgSystemBase(required, priority), _iterator(iterator)
+{
+
+}
+mgSystemSimple::~mgSystemSimple() { if(_manager) _manager->RemoveSystem(this); }
+void mgSystemSimple::Process()
+{
+  mgComponentStoreBase* store = mgComponentStoreBase::GetStore(_iterator);
+  if(store != 0)
+  {
+    auto& entities = store->GetEntities();
+    store->curIteration = 0;
+
+    while(entities)
+    {
+      ++store->curIteration;
+      Iterate(*entities);
+      ++entities;
+    }
+    store->FlushBuffer(); // Delete all the entities whose deletion was postponed because we had already iterated over them.
+  }
+}
 
 mgSystemManager::mgSystemManager()
 {
@@ -35,22 +56,7 @@ void mgSystemManager::Process()
   for(mgSystemBase* s : _systems)
   {
     mgRefCounter::GrabAll();
-    s->Preprocess();
-    mgComponentStoreBase* store = mgComponentStoreBase::GetStore(s->_iterator);
-    if(store != 0)
-    {
-      auto& entities = store->GetEntities();
-      store->curIteration = 0;
-
-      while(entities)
-      {
-        ++store->curIteration;
-        s->Process(*entities);
-        ++entities;
-      }
-      store->FlushBuffer(); // Delete all the entities whose deletion was postponed because we had already iterated over them.
-    }
-    s->Postprocess();
+    s->Process();
     mgRefCounter::DropAll();
   }
 }

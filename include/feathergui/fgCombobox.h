@@ -1,34 +1,28 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "feathergui.h"
 
-#ifndef _FG_COMBOBOX_H__
-#define _FG_COMBOBOX_H__
+#ifndef __FG_COMBOBOX_H__
+#define __FG_COMBOBOX_H__
 
 #include "fgTextbox.h"
-#include "fgButton.h"
-#include "fgBox.h"
+#include "fgDropdown.h"
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
-enum FGCOMBOBOX_FLAGS
-{
-  FGCOMBOBOX_EDITBOX = (FGSCROLLBAR_SHOWV << 1),
-};
-
-// A combobox is a text-only dropdown that can optionally let the user edit the text.
+// A combobox is a text-only dropdown that allows the user to edit the text
 typedef struct {
-  fgTextbox box; // GETSELECTEDITEM returns either the selected item or the text typed into the combobox.
-  fgButton button;
-  fgBox dropdown; // ADDITEM is used to add an arbitrary object to the list. 
+  fgDropdown box; // GETSELECTEDITEM returns either the selected item or the text typed into the combobox.
+  fgTextbox text;
 #ifdef  __cplusplus
-  inline operator fgElement*() { return &box.window.control.element; }
+  inline operator fgElement*() { return &box.box.scroll.control.element; }
 #endif
 } fgCombobox;
 
-FG_EXTERN void FG_FASTCALL fgCombobox_Init(fgCombobox* self, fgControl* parent, fgFlag flags, const fgTransform* transform);
-FG_EXTERN char FG_FASTCALL fgCombobox_Message(fgCombobox* self, const FG_Msg* msg);
+FG_EXTERN void fgCombobox_Init(fgCombobox* BSS_RESTRICT self, fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT next, const char* name, fgFlag flags, const fgTransform* transform, unsigned short units);
+FG_EXTERN void fgCombobox_Destroy(fgCombobox* self);
+FG_EXTERN size_t fgCombobox_Message(fgCombobox* self, const FG_Msg* msg);
 
 #ifdef  __cplusplus
 }

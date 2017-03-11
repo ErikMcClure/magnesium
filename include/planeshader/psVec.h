@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __VEC_H__PS__
@@ -10,9 +10,9 @@
 namespace planeshader {
   // Geometric point intersection and distance functions
   template<typename T>
-  static BSS_FORCEINLINE bool BSS_FASTCALL IntersectEllipse(T X, T Y, T A, T B, T x, T y) { T tx=X-x; T ty=Y-y; return ((tx*tx)/(A*A)) + ((ty*ty)/(B*B)) <= 1; }
+  static BSS_FORCEINLINE bool IntersectEllipse(T X, T Y, T A, T B, T x, T y) { T tx=X-x; T ty=Y-y; return ((tx*tx)/(A*A)) + ((ty*ty)/(B*B)) <= 1; }
   template<typename T>
-  static inline void BSS_FASTCALL EllipseNearestPoint(T A, T B, T cx, T cy, T& outX, T& outY)
+  static inline void EllipseNearestPoint(T A, T B, T cx, T cy, T& outX, T& outY)
   {
     //f(t) = (A*A - B*B)cos(t)sin(t) - x*A*sin(t) + y*B*cos(t)
     //f'(t) = (A*A - B*B)(cos²(t) - sin²(t)) - x*a*cos(t) - y*B*sin(t)
@@ -43,11 +43,11 @@ namespace planeshader {
     outY=B*sin(t);
   }
   template<typename T>
-  static BSS_FORCEINLINE T BSS_FASTCALL PointLineInfDistSqr(T X, T Y, T X1, T Y1, T X2, T Y2) { T tx=X2-X1; T ty=Y2-Y1; T det=(tx*(Y1-Y)) - ((X1-X)*ty); return (det*det)/((tx*tx)+(ty*ty)); }
+  static BSS_FORCEINLINE T PointLineInfDistSqr(T X, T Y, T X1, T Y1, T X2, T Y2) { T tx=X2-X1; T ty=Y2-Y1; T det=(tx*(Y1-Y)) - ((X1-X)*ty); return (det*det)/((tx*tx)+(ty*ty)); }
   template<typename T>
-  static BSS_FORCEINLINE T BSS_FASTCALL PointLineInfDist(T X, T Y, T X1, T Y1, T X2, T Y2) { T tx=X2-X1; T ty=Y2-Y1; return ((tx*(Y1-Y)) - ((X1-X)*ty))/bss_util::FastSqrt((tx*tx)+(ty*ty)); }
+  static BSS_FORCEINLINE T PointLineInfDist(T X, T Y, T X1, T Y1, T X2, T Y2) { T tx=X2-X1; T ty=Y2-Y1; return ((tx*(Y1-Y)) - ((X1-X)*ty))/bss_util::FastSqrt((tx*tx)+(ty*ty)); }
   template<typename T>
-  static inline T BSS_FASTCALL PointLineDistSqr(T X, T Y, T X1, T Y1, T X2, T Y2) //line segment
+  static inline T PointLineDistSqr(T X, T Y, T X1, T Y1, T X2, T Y2) //line segment
   {
     float vx = X1-X; float vy = Y1-Y; float ux = X2-X1; float uy = Y2-Y1; float length = ux*ux+uy*uy;
     float det = (-vx*ux)+(-vy*uy); //if this is < 0 or > length then its outside the line segment
@@ -56,9 +56,9 @@ namespace planeshader {
     return (det*det)/length;
   }
   template<typename T>
-  static BSS_FORCEINLINE T BSS_FASTCALL PointLineDist(T X, T Y, T X1, T Y1, T X2, T Y2) { return bss_util::FastSqrt(PointLineDistSqr(X, Y, X1, Y1, X2, Y2)); }
+  static BSS_FORCEINLINE T PointLineDist(T X, T Y, T X1, T Y1, T X2, T Y2) { return bss_util::FastSqrt(PointLineDistSqr(X, Y, X1, Y1, X2, Y2)); }
   template<typename T>
-  static inline void BSS_FASTCALL NearestPointToLineInf(T X, T Y, T X1, T Y1, T X2, T Y2, T& outX, T& outY) //treated as infinite line
+  static inline void NearestPointToLineInf(T X, T Y, T X1, T Y1, T X2, T Y2, T& outX, T& outY) //treated as infinite line
   {
     T tx=X2-X1; T ty=Y2-Y1;
     T u = ((X-X1)*tx + (Y-Y1)*ty)/((tx*tx) + (ty*ty));
@@ -67,7 +67,7 @@ namespace planeshader {
     outY=Y1 + u*ty;
   }
   template<typename T>
-  static inline void BSS_FASTCALL NearestPointToLine(T X, T Y, T X1, T Y1, T X2, T Y2, T& outX, T& outY) //treated as line segment
+  static inline void NearestPointToLine(T X, T Y, T X1, T Y1, T X2, T Y2, T& outX, T& outY) //treated as line segment
   {
     T ux=X2-X1; T uy=Y2-Y1;
     T vx=X1-X; T vy=Y1-Y;

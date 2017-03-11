@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_BITFIELD_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
@@ -40,8 +40,8 @@ namespace bss_util
     // Initializes the bitfield with the given flag values, if any
     inline explicit cBitField(T init=0) : _bits(init) {}
     // Sets the entire bitfield to the given value
-    BSS_FORCEINLINE void BSS_FASTCALL Set(T bits) { _bits=bits; }
-    BSS_FORCEINLINE void BSS_FASTCALL Set(T bits, T mask) { _bits^=(bits^(_bits&mask)); }
+    BSS_FORCEINLINE void Set(T bits) { _bits=bits; }
+    BSS_FORCEINLINE void Set(T bits, T mask) { _bits^=(bits^(_bits&mask)); }
     // Gets the entire bitfield
     BSS_FORCEINLINE T Get() const { return _bits; }
     BSS_FORCEINLINE bool Get(T bit) const { return (_bits&bit)!=0; }

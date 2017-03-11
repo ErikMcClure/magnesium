@@ -238,6 +238,8 @@ public:
   cDynArray<psVec3D> _buildings;
 };
 
+std::function<size_t(const FG_Msg&)> guipreprocess;
+
 int main(int argc, char** argv)
 {
   SetWorkDirToCur();
@@ -273,7 +275,7 @@ int main(int argc, char** argv)
   globalcam.SetExtent(psVec(0.2, 50000));
   ps[0].SetCamera(&globalcam);
   ps[0].SetClearColor(0xFF111122);
-  ps[0].SetDPI(psGUIManager::BASE_DPI * 4);
+  ps[0].SetDPI(psVeciu(psGUIManager::BASE_DPI * 4));
 
   mgEntityT<psTilesetComponent, b2PhysicsComponent> map;
   auto tsmap = map.Get<psTilesetComponent>();
@@ -285,7 +287,7 @@ int main(int argc, char** argv)
   
   Player* player = new Player(LoadPointImg("../media/LD34/player.png"), 100);
 
-  std::function<size_t(const FG_Msg&)> guipreprocess = [&](const FG_Msg& evt) -> size_t
+  guipreprocess = [&](const FG_Msg& evt) -> size_t
   {
     if(evt.type == FG_KEYDOWN || evt.type == FG_KEYUP)
     {
@@ -314,7 +316,7 @@ int main(int argc, char** argv)
           b->SetLinearVelocity(b2Vec2(b->GetLinearVelocity().x, 0));
           b->ApplyLinearImpulse(b2Vec2(0, -jump*psbox2d.GetGravity().y), b->GetLocalCenter(), true);
         }
-      break;
+        break;
       case FG_KEY_ESCAPE:
         if(isdown) ps.Quit();
         break;
@@ -322,7 +324,7 @@ int main(int argc, char** argv)
     }
     return 0;
   };
-  ps.SetPreprocess(guipreprocess);
+  fgSetInjectFunc([](_FG_ROOT*, const FG_Msg* m) -> size_t { return guipreprocess(*m); });
 
   player->Get<mgLogicComponent>()->onlogic = [](mgEntity* e) {
     const float maxspeed = 8.0f;

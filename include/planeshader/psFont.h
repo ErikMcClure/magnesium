@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in PlaneShader.h
 
 #ifndef __FONT_H__PS__
@@ -18,7 +18,7 @@ namespace planeshader {
     // Iterates through the string and preloads all the glyphs that are used. This is useful for common characters that you know will be loaded eventually. Returns the number of characters successfully loaded 
     uint16_t PreloadGlyphs(const char* glyphs);
     uint16_t PreloadGlyphs(const int* glyphs);
-    int GetDPI() const { return _dpi; }
+    const psVeciu& GetDPI() const { return _dpi; }
     int GetPointSize() const { return _pointsize; }
     const char* GetPath() const { return _path; }
 
@@ -33,11 +33,12 @@ namespace planeshader {
     };
 
     FONT_ANTIALIAS GetAntialias() const;
-    static psFont* Create(const char* file, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, int dpi = 0);
+    static psFont* Create(const char* file, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, const psVeciu& dpi = psVeciu(0, 0));
+    static psFont* Create(const char* family, short weight, bool italic, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, const psVeciu& dpi = psVeciu(0,0));
 
   protected:
     psFont(const psFont&) = delete;
-    psFont(const char* file, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, int dpi = 0);
+    psFont(const char* file, int psize, FONT_ANTIALIAS antialias = FAA_ANTIALIAS, const psVeciu& dpi = psVeciu(0, 0));
     ~psFont();
     virtual psGlyph* _loadglyph(uint32_t codepoint) override;
     virtual float _loadkerning(uint32_t prev, uint32_t cur) override;
@@ -52,7 +53,7 @@ namespace planeshader {
 
     uint32_t _antialiased;
     int _pointsize;
-    int _dpi;
+    psVeciu _dpi;
     uint8_t* _buf;
     FT_Face _ft2face;
     psVeciu _curpos;
