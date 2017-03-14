@@ -3,6 +3,8 @@
 
 #include "mgPlaneshader.h"
 #include "mgEngine.h"
+#include "planeshader/psPass.h"
+#include "planeshader/psCamera.h"
 
 using namespace magnesium;
 using namespace planeshader;
@@ -29,36 +31,84 @@ void PlaneshaderSystem::Process()
   if(!Begin()) return;
 
   // Iterate over entire scene graph, rendering everything
-  _process(mgEntity::SceneGraph());
+  psRectRotateZ base = { };
+  _process(mgEntity::SceneGraph(), base);
 
   End();
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();
 }
-void PlaneshaderSystem::Iterate(mgEntity& entity)
-{
 
-}
-
-void PlaneshaderSystem::_process(mgEntity& root)
+void PlaneshaderSystem::_process(mgEntity& root, const psRectRotateZ& prev)
 {
   int i = 0;
   size_t l = root.NumChildren();
   mgEntity* const* p = root.Children();
+  psMatrix m;
+  psRectRotateZ rect = prev;
 
-  auto r = root.Get<psRenderableComponent>();
-  ResolveComponent<psRenderableComponent>(root)->Render();
+  auto locatable = root.Get<psLocatableComponent>();
+  auto solid = root.Get<psSolidComponent>();
+  bool cull = false;
+  psPass* pass = 0;
 
-  if(root.childhint&_required)
+  if(locatable)
   {
-    while(i < l && p[i]->Order() < 0)
-      _process(*p[i++]);
+    psLocatable* loc = locatable->Get();
+    rect = prev.RelativeTo(loc->GetPosition(), loc->GetRotation(), loc->GetPivot());
+    if(l > 0)
+      loc->GetTransform(m);
+
+    if(solid)
+    {
+      psSolid* s = solid->Get();
+      pass = s->GetPass();
+      if(!pass) pass = psPass::CurPass;
+      if(pass != 0)
+        cull = pass->GetCamera()->Cull(rect, s->GetFlags());
+    }
   }
-  if(root.graphcomponents&_required)
-    Iterate(root);
-  if(root.childhint&_required)
+
+  if((root.childhint&_required) == _required && l > 0)
   {
+    if(locatable)
+      _driver->PushTransform(m);
+    while(i < l && p[i]->Order() < 0)
+      _process(*p[i++], rect);
+    if(locatable)
+      _driver->PopTransform();
+  }
+  if((root.graphcomponents&_required) == _required)
+  {
+    psRenderable* renderable = root.Get<psRenderableComponent>()->Get();
+    auto gui = root.Get<psGUIComponent>();
+    if(gui)
+    {
+      if(solid)
+      {
+        psRectRotateZ absrect = pass->GetCamera()->Resolve(rect);
+        fgTransform t = { {absrect.left, 0, absrect.top, 0, absrect.right, 0, absrect.bottom, 0}, absrect.rotation, {absrect.pivot.x, 0, absrect.pivot.y, 0} };
+        gui->element.SetTransform(t);
+      }
+      else
+      {
+        pass = renderable->GetPass();
+        if(!pass) pass = psPass::CurPass;
+        psRectRotateZ absrect = pass->GetCamera()->Resolve(rect);
+        fgTransform t = { { absrect.left, 0, absrect.top, 0, absrect.left, 0, absrect.top, 0 }, absrect.rotation, { absrect.pivot.x, 0, absrect.pivot.y, 0 } };
+        gui->element.SetTransform(t);
+      }
+    }
+    if(!cull)
+      renderable->Render();
+  }
+  if((root.childhint&_required) == _required && i < l)
+  {
+    if(locatable)
+      _driver->PushTransform(m);
     while(i < l)
-      _process(*p[i++]);
+      _process(*p[i++], rect);
+    if(locatable)
+      _driver->PopTransform();
   }
 }

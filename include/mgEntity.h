@@ -21,6 +21,7 @@ namespace magnesium {
     T* operator ->() { return ref; }
     const T* operator ->() const { return ref; }
     T& operator *() { return ref; }
+    bool operator !() const { return !ref; }
     const T& operator *() const { return ref; }
     operator T*() { return ref; }
 
@@ -43,7 +44,7 @@ namespace magnesium {
     template<class T> // Gets a component of type T if it belongs to this entity, otherwise returns NULL
     inline COMPONENT_REF(T) Get() { ComponentID index = _componentlist.Get(T::ID()); return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); }
     template<class T> // Adds a component of type T to this entity
-    inline COMPONENT_REF(T) Add() { T::Store().Add(this); return Get<T>(); }
+    inline COMPONENT_REF(T) Add() { T::Store().Add<T>(this); return Get<T>(); }
     template<class T> // Removes a component of type T from this entity
     inline bool Remove() { ComponentID index = _componentlist.Get(T::ID()); if(index != (ComponentID)~0) return T::Store().Remove(_componentlist[index]); }
     inline mgEntity* Parent() const { return _parent; }

@@ -11,81 +11,49 @@ mgSystemBase::mgSystemBase(int priority) : _priority(priority)
 }
 mgSystemBase::~mgSystemBase() { if(_manager) _manager->RemoveSystem(this); }
 
-mgSystemSimple::mgSystemSimple(ComponentID iterator, int priority) : mgSystemBase(priority), _iterator(iterator)
-{
-
-}
-mgSystemSimple::~mgSystemSimple() { if(_manager) _manager->RemoveSystem(this); }
-void mgSystemSimple::Process()
-{
-  mgComponentStoreBase* store = mgComponentStoreBase::GetStore(_iterator);
-  if(store != 0)
-  {
-    auto& entities = store->GetEntities();
-    store->curIteration = 0;
-
-    while(entities)
-    {
-      ++store->curIteration;
-      Iterate(**entities);
-      ++entities;
-    }
-    store->FlushBuffer(); // Delete all the entities whose deletion was postponed because we had already iterated over them.
-  }
-}
-
-mgSystemComplex::mgSystemComplex(size_t required, int priority) : mgSystemBase(priority), _required(required)
-{
-
-}
-mgSystemComplex::~mgSystemComplex() { if(_manager) _manager->RemoveSystem(this); }
-void mgSystemComplex::Process()
-{
-  _process(mgEntity::SceneGraph());
-}
-void mgSystemComplex::_process(mgEntity& root)
-{
-  int i = 0;
-  size_t l = root.NumChildren();
-  mgEntity* const* p = root.Children();
-
-  if(root.childhint&_required)
-  {
-    while(i < l && p[i]->Order() < 0)
-      _process(*p[i++]);
-  }
-  if(root.graphcomponents&_required)
-    Iterate(root);
-  if(root.childhint&_required)
-  {
-    while(i < l)
-      _process(*p[i++]);
-  }
-}
+mgSystemSimple::mgSystemSimple(ComponentID iterator, int priority) : mgSystemBase(priority), _iterator(iterator) {}
+mgSystemComplex::mgSystemComplex(size_t required, int priority) : mgSystemBase(priority), _required(required) {}
 
 mgSystemManager::mgSystemManager()
 {
 }
 mgSystemManager::~mgSystemManager()
 {
-  for(mgSystemBase* s : _systems)
-    s->_manager = 0;
+  for(auto& s : _systems)
+    s.first->_manager = 0;
 }
-void mgSystemManager::AddSystem(mgSystemBase* system)
+void mgSystemManager::AddSystem(mgSystemBase* system, SystemID id)
 {
-  _systems.Insert(system);
+  _systems.Insert(system, id);
+}
+bool mgSystemManager::RemoveSystem(SystemID id)
+{
+  return RemoveSystem(_systemhash.Get(id));
 }
 bool mgSystemManager::RemoveSystem(mgSystemBase* system)
 {
+  if(!system) return false;
   system->_manager = 0;
-  return _systems.Remove(_systems.Find(system));
+  size_t index = _systems.Get(system);
+  if(index >= _systems.Length())
+    return false;
+
+  _systemhash.Remove(_systems[index]);
+  _systems.RemoveIndex(index);
+  return true;
 }
+mgSystemBase::mgMessageResult mgSystemManager::MessageSystem(SystemID id, ptrdiff_t m, void* p)
+{
+  mgSystemBase* system = _systemhash.Get(id);
+  return (!system) ? mgSystemBase::mgMessageResult{ 0 } : system->Message(m, p);
+}
+
 void mgSystemManager::Process()
 {
-  for(mgSystemBase* s : _systems)
+  for(auto& s : _systems)
   {
     mgRefCounter::GrabAll();
-    s->Process();
+    s.first->Process();
     mgRefCounter::DropAll();
   }
 }

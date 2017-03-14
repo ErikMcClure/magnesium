@@ -53,12 +53,17 @@ namespace magnesium {
   class MG_DLLEXPORT LiquidFunPlaneshaderSystem : public PlaneshaderSystem
   {
   public:
-    LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init, int priority = 0);
-    LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init, int priority = 0);
+    LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0, SystemID box2DSystem = mgSystemManager::GetSystemID<LiquidFunSystem>());
     ~LiquidFunPlaneshaderSystem();
-    virtual void Iterate(mgEntity& entity) override;
-    
+    virtual void Process() override;
+    virtual void _process(mgEntity& root, const planeshader::psRectRotateZ& prev) override;
+
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
+
+  protected:
+    SystemID _physid;
+    ComponentID _physrequired;
+    float _ppm;
   };
 }
 

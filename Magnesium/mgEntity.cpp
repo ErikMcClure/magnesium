@@ -127,5 +127,5 @@ void mgEntity::_removechild(mgEntity* child)
   if(i >= 0)
     _children.Remove(i);
   if(!_children.Length())
-    childhint = COMPONENTBITFIELD_EMPTY;
+    childhint = 0;
 }

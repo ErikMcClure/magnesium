@@ -42,7 +42,7 @@ namespace planeshader {
     // Sets the center position using coordinates relative to the dimensions
     inline void SetPivotRel(const psVec& relpos) { SetPivot(relpos*_dim); }
     // Generates a matrix transform using the solid's position, rotation, pivot, and scaling (used when the actual dimensions are implicit)
-    void GetTransform(bss_util::Matrix<float, 4, 4>& matrix);
+    void GetTransform(psMatrix& matrix);
 
     psSolid& operator =(const psSolid& right);
     psSolid& operator =(psSolid&& right);

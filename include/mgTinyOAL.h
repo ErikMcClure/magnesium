@@ -13,8 +13,7 @@ namespace magnesium {
   public:
     TinyOALSystem(unsigned char defnumbuf = 4, const char* forceOAL = 0, const char* forceOGG = 0, const char* forceFLAC = 0, const char* forceMP3 = 0);
     ~TinyOALSystem();
-    virtual void Preprocess();
-    virtual void Process(mgEntity* entity);
+    virtual void Process() override;
   };
 }
 
