@@ -5,6 +5,7 @@
 #define __LOCATABLE_H__PS__
 
 #include "psVec.h"
+#include "psDriver.h"
 
 namespace planeshader {
   // This holds position information. 
@@ -32,6 +33,7 @@ namespace planeshader {
     inline void SetPosition(const psVec3D& pos) { SetPosition(pos.x, pos.y, pos.z); }
     inline void SetPosition(FNUM X, FNUM Y) { SetPosition(X, Y, _relpos.z); }
     virtual void SetPosition(FNUM X, FNUM Y, FNUM Z);
+    void GetTransform(psMatrix& matrix);
 
     inline psLocatable& operator=(const psLocatable& right) { _relpos=right._relpos; _rotation=right._rotation; _pivot=right._pivot; return *this; }
 

@@ -96,7 +96,7 @@ namespace magnesium {
 
 #pragma warning(push)
 #pragma warning(disable:4275)
-  class MG_DLLEXPORT Box2DSystem : public b2DestructionListener, public b2ContactListener, public mgSystem<void, b2PhysicsComponent>
+  class MG_DLLEXPORT Box2DSystem : public b2DestructionListener, public b2ContactListener, public mgSystem<void>
   {
 #pragma warning(pop)
   public:

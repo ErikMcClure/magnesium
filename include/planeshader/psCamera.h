@@ -35,6 +35,7 @@ namespace planeshader {
     inline void SetExtent(const psVec& extent) { _extent = extent; }
     inline psCamera& operator =(const psCamera& copy) { psLocatable::operator =(copy); return *this; }
     inline const psRect& Apply(const psTex* rt) const;
+    inline psRectRotateZ Resolve(const psRectRotateZ& rect) const;
     inline bool Cull(psSolid* solid) const;
     inline bool Cull(const psRectRotateZ& rect, psFlag flags) const;
 
@@ -53,6 +54,7 @@ namespace planeshader {
       sseVec SSEfixed_hold;
       float last;
       float lastfixed;
+      psRectRotateZ full;
 
       CamCache(const CamCache&);
       CamCache();

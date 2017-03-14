@@ -7,11 +7,10 @@
 #include "mgEntity.h"
 
 namespace magnesium {
+  template<typename... Components>
+  struct mgEntity_AddComponents { inline static void f(mgEntity* e) {} };
   template<typename Component, typename... Components>
-  struct mgEntity_AddComponents { static inline void f(mgEntity* e) { e->Add<Component>(); mgEntity_AddComponents<Components...>::f(e); } };
-
-  template<typename Component>
-  struct mgEntity_AddComponents<Component> { static inline void f(mgEntity* e) { e->Add<Component>(); } };
+  struct mgEntity_AddComponents<Component, Components...> { inline static void f(mgEntity* e) { e->Add<Component>(); mgEntity_AddComponents<Components...>::f(e); } };
 
   template<typename... Components>
   struct mgEntityT : mgEntity { mgEntityT() : mgEntity() { mgEntity_AddComponents<Components...>::f(this); } virtual void DestroyThis() { delete this; } };
@@ -50,14 +49,12 @@ namespace magnesium {
     mgComponentStoreBase(ComponentID id);
     ~mgComponentStoreBase();
     virtual bool RemoveInternal(ComponentID id, size_t index) = 0; // we have to pass a component's own ID to it's remove function because this gets called from inside the DLL, which does not have access to the correct static instances
-    virtual size_t MessageComponent(size_t index, void* msg, ptrdiff_t msgint) = 0;
     virtual EntityIterator GetEntities() const = 0;
     virtual mgEntity** GetEntity(size_t index) = 0;
     virtual void FlushBuffer() = 0;
 
     static mgComponentStoreBase* GetStore(ComponentID id);
     static bool RemoveComponent(ComponentID id, size_t index);
-    static size_t MessageComponent(ComponentID id, size_t index, void* msg, ptrdiff_t msgint);
     static void* dllrealloc(void* p, size_t sz);
     static void dllfree(void* p);
 
@@ -76,11 +73,13 @@ namespace magnesium {
   public:
     mgComponentStore() : mgComponentStoreBase(T::ID()) {}
     ~mgComponentStore() { Clear(); }
+    template<typename D> // D is usually T, but sometimes it's a special constructor that contains additional information for the component
     size_t Add(mgEntity* p)
-    { 
+    {
+      static_assert(sizeof(D) == sizeof(T), "Illegal alternative constructor");
+      static_assert(std::is_base_of<T, D>::value, "Must be derived from T");
       assert(mgComponentRef<T>::Counter() <= 0);
-      size_t index = _store.AddConstruct(p); 
-      //_store.Back().entity = p; 
+      size_t index = reinterpret_cast<bss_util::cDynArray<D, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<D>>&>(_store).AddConstruct(p); // sneak in substitute constructor
       assert(_store.Back().entity == p);
       p->ComponentListInsert(_id, T::GraphID(), index);
       return index;
@@ -88,7 +87,7 @@ namespace magnesium {
     T* Get(size_t index = 0) { return (index < _store.Length()) ? _store.begin() + index : nullptr; }
     virtual mgEntity** GetEntity(size_t index) override { return (index < _store.Length()) ? &_store[index].entity : nullptr; }
     virtual EntityIterator GetEntities() const override // By getting the address of the entity, this will work no matter what the inheritance structure of T is
-    { 
+    {
       return EntityIterator(const_cast<mgEntity**>(&_store.begin()->entity), _store.Length(), sizeof(T));
     }
     bool Remove(size_t index)
@@ -104,11 +103,6 @@ namespace magnesium {
       for(size_t index : _buf)
         RemoveInternal(_id, index);
       _buf.Clear();
-    }
-    virtual size_t MessageComponent(size_t index, void* msg, ptrdiff_t msgint) override
-    {
-      if(index >= _store.Length()) return 0;
-      return _store[index].Message(msg, msgint);
     }
     void Clear() { while(RemoveInternal(_id, 0)); } // Remove all components by simply removing the root component until there are none left. This only takes O(n) time because the replacement operation is O(1)
 
@@ -141,20 +135,39 @@ namespace magnesium {
 
   struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
 
-  template<typename T, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
+  template<typename T, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE, typename... ImpliedComponents>
   struct mgComponent : mgComponentCounter
   {
-    explicit mgComponent(mgEntity* e) : entity(e) {}
+    explicit mgComponent(mgEntity* e) : entity(e) { mgEntity_AddComponents<ImpliedComponents...>::f(e); }
     mgComponent(const mgComponent& copy) : entity(copy.entity) {}
     mgComponent(mgComponent&& copy) : entity(copy.entity) {}
     static ComponentID ID() { static ComponentID value = curID++; return value; }
     static ComponentID GraphID() { static ComponentID value = SCENEGRAPH ? ((curGraphID <<= 1) >> 1) : 0; return value; }
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
-    size_t Message(void* msg, ptrdiff_t msgint) { return 0; } // Not virtual so we don't accidentally add a virtual function table to everything. Instead, this should be masked by the appropriate component, which will then get called by it's store.
     mgEntity* entity;
 
     mgComponent& operator=(const mgComponent& copy) { entity = copy.entity; return *this; }
     mgComponent& operator=(mgComponent&& copy) { entity = copy.entity; return *this; }
+  };
+
+  template<typename T, typename D>
+  inline T* CastComponent(mgEntity* entity) { return static_cast<T*>(entity->Get<D>()); }
+
+  template<typename T, typename D, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
+  struct mgComponentInherit : mgComponent<T, SCENEGRAPH, ArrayType>
+  {
+    explicit mgComponentInherit(mgEntity* e = 0, D* (*f)(mgEntity*) = 0) : mgComponent(e), func(f) {}
+    D* (*func)(mgEntity*);
+    D* Get() { return func(entity); }
+  };
+
+  template<class T, bool SCENEGRAPH>
+  struct MG_DLLEXPORT mgComponentInheritBase : mgComponentInherit<mgComponentInheritBase<T, SCENEGRAPH>, T, SCENEGRAPH> {
+    explicit mgComponentInheritBase(mgEntity* e = 0, T* (*f)(mgEntity*) = 0) : mgComponentInherit(e, f) {}
+  };
+  template<class D, class T, bool SCENEGRAPH>
+  struct MG_DLLEXPORT mgComponentInheritInit : mgComponentInheritBase<T, SCENEGRAPH> {
+    explicit mgComponentInheritInit(mgEntity* e = 0) : mgComponentInheritBase(e, &CastComponent<T, D>) {}
   };
 }
 

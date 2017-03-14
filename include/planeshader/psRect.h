@@ -182,6 +182,18 @@ namespace planeshader {
     inline psRectRotateT<T>& operator =(const psRectRotateT<T>& _right) { if(&_right!=this) { psRectT<T>::operator =(_right); rotation=_right.rotation; pivot=_right.pivot; } return *this; }
     BSS_FORCEINLINE psRectRotateT<T> EnforceLTRB() const { return psRectRotateT<T>(psRectT<T>::EnforceLTRB(), rotation, pivot); }
     BSS_FORCEINLINE psRectRotateT<T> Inflate(T amount) const { return psRectRotateT<T>(psRectT<T>::Inflate(amount), rotation, pivot); }
+    inline psRectRotateT RelativeTo(const psVec& pos, float r, const psVec& p) const
+    {
+      psRectRotateT ret(*this, r + rotation, pivot);
+      if(r != 0.0f)
+      {
+        psVec::RotatePoint(ret.left, ret.top, r, ret.left - pivot.x, ret.top - pivot.y);
+        psVec::RotatePoint(ret.right, ret.bottom, r, ret.left - pivot.x, ret.top - pivot.y);
+      }
+      ret.topleft += pos + p;
+      ret.bottomright += pos + p;
+      return ret;
+    }
 
     T rotation;
     VEC pivot; //this is what its rotated around
@@ -211,6 +223,7 @@ namespace planeshader {
     inline psRectRotateZT<T>& operator =(const psRectRotateZT<T>& _right) { psRectRotateT<T>::operator =(_right); z=_right.z; return *this; }
     BSS_FORCEINLINE psRectRotateZT<T> EnforceLTRB() const { return psRectRotateZT<T>(psRectRotateT<T>::EnforceLTRB(), z); }
     BSS_FORCEINLINE psRectRotateZT<T> Inflate(T amount) const { return psRectRotateZT<T>(psRectRotateT<T>::Inflate(amount), z); }
+    BSS_FORCEINLINE psRectRotateZT RelativeTo(const psVec3D& pos, float r, const psVec& p) const { return psRectRotateZT<T>(psRectRotateT<T>::RelativeTo(pos.xy, r, p), pos.z + z); }
 
     T z;
   };

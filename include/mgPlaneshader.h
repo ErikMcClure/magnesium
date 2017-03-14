@@ -13,87 +13,40 @@
 #include "planeshader\psEngine.h"
 
 namespace magnesium {
-  struct MG_DLLEXPORT psRenderableComponent : mgComponent<psRenderableComponent, true> { explicit psRenderableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psRenderable TYPE; };
-  struct MG_DLLEXPORT psLocatableComponent : mgComponent<psLocatableComponent> { explicit psLocatableComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psLocatable TYPE; };
-  struct MG_DLLEXPORT psSolidComponent : mgComponent<psSolidComponent> { explicit psSolidComponent(mgEntity* e = 0) : mgComponent(e) {} ComponentID id; typedef planeshader::psSolid TYPE; };
+  typedef mgComponentInheritBase<planeshader::psRenderable, true> psRenderableComponent;
+  typedef mgComponentInheritBase<planeshader::psInheritable, true> psInheritableComponent;
+  typedef mgComponentInheritBase<planeshader::psLocatable, true> psLocatableComponent;
+  typedef mgComponentInheritBase<planeshader::psSolid, true> psSolidComponent;
 
-  template<class T, class D>
-  struct psGenericComponent : mgComponent<T, bss_util::CARRAY_MOVE>, D
-  {
-    psGenericComponent(mgEntity* e) : mgComponent<T, bss_util::CARRAY_MOVE>(e)
-    {
-      PlaneshaderSystem::InitComponent<psRenderableComponent>(e, ID());
-      PlaneshaderSystem::InitComponent<psLocatableComponent>(e, ID());
-      PlaneshaderSystem::InitComponent<psSolidComponent>(e, ID());
-    }
-    psGenericComponent(psGenericComponent&& mov) : mgComponent<T, bss_util::CARRAY_MOVE>(std::move(mov)), D(std::move(mov)) {}
-    psGenericComponent& operator=(psGenericComponent&& mov) { mgComponent::operator=(std::move(mov)); D::operator=(std::move(mov)); return *this; }
-    size_t Message(void* msg, ptrdiff_t msgint)
-    {
-      if(msgint == psRenderableComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<planeshader::psRenderable*>(this));
-      if(msgint == psLocatableComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<planeshader::psLocatable*>(this));
-      if(msgint == psSolidComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<planeshader::psSolid*>(this));
-      return 0; 
-    }
+  template<class T>
+  struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss_util::CARRAY_SIMPLE,
+    mgComponentInheritInit<T, planeshader::psRenderable, true>,
+    mgComponentInheritInit<T, planeshader::psInheritable, true>,
+    mgComponentInheritInit<T, planeshader::psLocatable, true>,
+    mgComponentInheritInit<T, planeshader::psSolid, true>> {
+    explicit psGenericComponent(mgEntity* e = 0) : mgComponent(e) {}
   };
 
-  struct MG_DLLEXPORT psImageComponent : psGenericComponent<psImageComponent, planeshader::psImage> { explicit psImageComponent(mgEntity* e=0) : psGenericComponent(e) {} };
-  struct MG_DLLEXPORT psTilesetComponent : psGenericComponent<psTilesetComponent, planeshader::psTileset> { explicit psTilesetComponent(mgEntity* e=0) : psGenericComponent(e) {} };
-  struct MG_DLLEXPORT psTextComponent : psGenericComponent<psTextComponent, planeshader::psText> { explicit psTextComponent(mgEntity* e=0) : psGenericComponent(e) {} };
-  struct MG_DLLEXPORT psRenderCircleComponent : psGenericComponent<psRenderCircleComponent, planeshader::psRenderCircle> { explicit psRenderCircleComponent(mgEntity* e=0) : psGenericComponent(e) {} };
-  struct MG_DLLEXPORT psRoundRectComponent : psGenericComponent<psRoundRectComponent, planeshader::psRoundRect> { explicit psRoundRectComponent(mgEntity* e=0) : psGenericComponent(e) {} };
+  typedef psGenericComponent<planeshader::psImage> psImageComponent;
+  typedef psGenericComponent<planeshader::psTileset> psTilesetComponent;
+  typedef psGenericComponent<planeshader::psText> psTextComponent;
+  typedef psGenericComponent<planeshader::psRenderCircle> psRenderCircleComponent;
+  typedef psGenericComponent<planeshader::psRoundRect> psRoundRectComponent;
 
   class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystemComplex
   {
+    typedef void(*PROCESSFN)(mgEntity&, const planeshader::psRectRotateZ&, void(*)(mgEntity&, const planeshader::psRectRotateZ&, void*));
+
   public:
     PlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0);
     ~PlaneshaderSystem();
     virtual void Process() override;
-    virtual void Iterate(mgEntity& entity) override;
-    
-    template<typename T>
-    inline static void InitComponent(mgEntity* e, ComponentID p)
-    {
-      if(p != (ComponentID)~0)
-      {
-        T* r = e->Get<T>();
-        if(!r) r = e->Add<T>();
-        r->id = p;
-      }
-    }
-
-    template<typename C>
-    static typename C::TYPE* ResolveComponent(mgEntity& entity)
-    {
-      C* c = entity.Get<C>();
-      if(c)
-        return reinterpret_cast<typename C::TYPE*>(mgComponentStoreBase::MessageComponent(c->id, entity.ComponentListGet(c->id), 0, C::ID()));
-      return 0;
-    }
 
   protected:
-    void _process(mgEntity& root);
+    virtual void _process(mgEntity& root, const planeshader::psRectRotateZ& prev);
   };
 
-  struct MG_DLLEXPORT RawRenderableComponent : mgComponent<RawRenderableComponent, bss_util::CARRAY_MOVE>, planeshader::psRenderable
-  {
-    explicit RawRenderableComponent(mgEntity* e = 0) : mgComponent(e) { PlaneshaderSystem::InitComponent<psRenderableComponent>(e, ID()); }
-    RawRenderableComponent(RawRenderableComponent&& mov) : mgComponent(std::move(mov)), planeshader::psRenderable(std::move(mov)) {}
-    RawRenderableComponent& operator=(RawRenderableComponent&& mov) { mgComponent::operator=(std::move(mov)); planeshader::psRenderable::operator=(std::move(mov)); return *this; }
-    size_t Message(void* msg, ptrdiff_t msgint)
-    {
-      if(msgint == psRenderableComponent::ID())
-        return reinterpret_cast<size_t>(static_cast<planeshader::psRenderable*>(this));
-      return 0;
-    }
-    virtual void _render() { if(render) render(entity); }
-    void(*render)(mgEntity* e);
-  };
-
-  struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent>
+  struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent, true>
   {
     explicit psGUIComponent(mgEntity* e = 0) : mgComponent(e) {}
     fgElement element;

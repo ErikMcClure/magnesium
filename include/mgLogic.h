@@ -7,9 +7,9 @@
 #include "mgSystem.h"
 
 namespace magnesium {
-  struct mgLogicComponent : mgComponent<mgLogicComponent, bss_util::CARRAY_MOVE> {
+  struct mgLogicComponent : mgComponent<mgLogicComponent, false, bss_util::CARRAY_MOVE> {
     explicit mgLogicComponent(mgEntity* e = 0) : mgComponent(e) {}
-    void (*onlogic)(mgEntity*);
+    void (*onlogic)(mgEntity&);
   };
 
   class MG_DLLEXPORT LogicSystem : public mgSystem<mgLogicComponent>
@@ -17,7 +17,10 @@ namespace magnesium {
   public:
     LogicSystem();
     ~LogicSystem();
-    virtual void Iterate(mgEntity& entity) override;
+    virtual void Process() override;
+
+    static void Iterator(mgSystemBase*, mgEntity& entity);
+    std::function<void()> process;
   };
 }
 

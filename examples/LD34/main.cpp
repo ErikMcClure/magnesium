@@ -10,6 +10,7 @@
 #include "mgLogic.h"
 #include "Box2D/Box2D.h"
 #include "planeshader/psPass.h"
+#include "bss-util/cRefCounter.h"
 
 using namespace bss_util;
 using namespace magnesium;
@@ -220,23 +221,23 @@ public:
   COMPONENT_REF(mgLogicComponent) Logic() { return Get<mgLogicComponent>(); }
 };
 
-class BackgroundGen : public mgEntityT<RawRenderableComponent>
-{
-public:
-  BackgroundGen(uint64_t seed)
-  {
-    xorshift_engine<uint64_t> engine;
-    std::uniform_real_distribution<float> dx(10, 100);
-    std::uniform_real_distribution<float> dz(1, 20);
-
-    Get<RawRenderableComponent>()->render = [](mgEntity* e) {
-      BackgroundGen* bg = static_cast<BackgroundGen*>(e);
-
-    };
-  }
-
-  cDynArray<psVec3D> _buildings;
-};
+//class BackgroundGen : public mgEntityT<RawRenderableComponent>
+//{
+//public:
+//  BackgroundGen(uint64_t seed)
+//  {
+//    xorshift_engine<uint64_t> engine;
+//    std::uniform_real_distribution<float> dx(10, 100);
+//    std::uniform_real_distribution<float> dz(1, 20);
+//
+//    Get<RawRenderableComponent>()->render = [](mgEntity* e) {
+//      BackgroundGen* bg = static_cast<BackgroundGen*>(e);
+//
+//    };
+//  }
+//
+//  cDynArray<psVec3D> _buildings;
+//};
 
 std::function<size_t(const FG_Msg&)> guipreprocess;
 
@@ -254,9 +255,9 @@ int main(int argc, char** argv)
 #ifdef BSS_DEBUG
   b2init.hertz = 0;
 #endif
-  PlaneshaderSystem ps(init, 0);
+  LiquidFunPlaneshaderSystem ps(init, 0);
   TinyOALSystem tinyoal;
-  LiquidFunPlaneshaderSystem psbox2d(b2init, -1);
+  LiquidFunSystem psbox2d(b2init, -1);
   LogicSystem logic;
 
   mgEngine engine;
@@ -285,7 +286,7 @@ int main(int argc, char** argv)
 
   LoadMap(psTex::Create("../media/LD34/testmap.png", USAGE_STAGING), tsmap, &map, psTex::Create("../media/LD34/key.png", USAGE_STAGING));
   
-  Player* player = new Player(LoadPointImg("../media/LD34/player.png"), 100);
+  ref_ptr<Player> player = new Player(LoadPointImg("../media/LD34/player.png"), 100);
 
   guipreprocess = [&](const FG_Msg& evt) -> size_t
   {
@@ -326,9 +327,9 @@ int main(int argc, char** argv)
   };
   fgSetInjectFunc([](_FG_ROOT*, const FG_Msg* m) -> size_t { return guipreprocess(*m); });
 
-  player->Get<mgLogicComponent>()->onlogic = [](mgEntity* e) {
+  player->Get<mgLogicComponent>()->onlogic = [](mgEntity& e) {
     const float maxspeed = 8.0f;
-    b2PhysicsComponent* phys = e->Get<b2PhysicsComponent>();
+    b2PhysicsComponent* phys = e.Get<b2PhysicsComponent>();
     if(dirkeys[10])
       phys->GetBody()->ApplyForceToCenter(b2Vec2(mgclamp(-maxspeed - phys->GetBody()->GetLinearVelocity().x, -maxspeed, 0), 0), true);
     if(dirkeys[11])
@@ -337,10 +338,10 @@ int main(int argc, char** argv)
       phys->GetBody()->ApplyForceToCenter(b2Vec2(mgclamp(-phys->GetBody()->GetLinearVelocity().x, -maxspeed*0.5f, maxspeed*0.5f), 0), true);
   };
 
-  logic.preprocess = [&]() {
+  logic.process = [&]() {
     float secdelta = mgEngine::Instance()->GetDeltaNS() / 1000000000.0f;
     float scale = dirkeys[8] ? 0.01f : 1.0f;
-    psLocatable* loc = ps.ResolveComponent<psLocatableComponent>(player);
+    psLocatable* loc = player->Get<psLocatableComponent>()->Get();
     psVec sdim = psEngine::Instance()->GetDriver()->GetBackBuffer()->GetRawDim();
     globalcam.SetPositionX(mgclamp(loc->GetPosition().x - sdim.x*0.5, maxcam.left, maxcam.right));
     globalcam.SetPositionY(mgclamp(loc->GetPosition().y - sdim.y*0.5, maxcam.top, maxcam.bottom));
@@ -362,7 +363,7 @@ int main(int argc, char** argv)
       globalcam.SetRotation(globalcam.GetRotation() - dirspeeds[3] * secdelta * scale);*/
   };
 
-  BackgroundGen bg(0);
+  //BackgroundGen bg(0);
 
   engine.ResetDelta();
   engine.ResetTime();

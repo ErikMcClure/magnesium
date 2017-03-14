@@ -8,8 +8,13 @@ using namespace magnesium;
 LogicSystem::LogicSystem() {}
 LogicSystem::~LogicSystem() {}
 
-void LogicSystem::Iterate(mgEntity* entity)
+void LogicSystem::Process()
 {
-  auto& f = entity->Get<mgLogicComponent>()->onlogic;
-  if(f) f(entity);
+  mgSystemSimple::Iterate<&LogicSystem::Iterator>(this);
+}
+
+void LogicSystem::Iterator(mgSystemBase*, mgEntity& entity)
+{
+  auto& f = entity.Get<mgLogicComponent>()->onlogic;
+  if (f) f(entity);
 }

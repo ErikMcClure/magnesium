@@ -23,8 +23,7 @@ TinyOALSystem::TinyOALSystem(unsigned char defnumbuf, const char* forceOAL, cons
 {
 }
 TinyOALSystem::~TinyOALSystem() {}
-void TinyOALSystem::Preprocess()
+void TinyOALSystem::Process()
 {
   Update(); // TODO: put this on a seperate thread.
 }
-void TinyOALSystem::Process(mgEntity* entity) {}

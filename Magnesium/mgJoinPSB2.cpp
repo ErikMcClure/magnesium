@@ -85,30 +85,39 @@ void psDebugDraw::_render()
 void magnesium::Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos)
 {
   auto b = entity->Get<b2PhysicsComponent>();
-  psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
-  if(r) r->SetPosition(pos);
+  auto r = entity->Get<psLocatableComponent>();
+  if(r) r->Get()->SetPosition(pos);
   if(b) b->SetPosition(b2Vec2(pos.x, pos.y));
 }
 void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 {
   auto b = entity->Get<b2PhysicsComponent>();
-  psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
-  if(r) r->SetRotation(rotation);
+  auto r = entity->Get<psLocatableComponent>();
+  if(r) r->Get()->SetRotation(rotation);
   if(b) b->SetRotation(rotation);
 }
 
-LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const Box2DSystem::B2INIT& init, int priority) : LiquidFunSystem(init, priority) {}
-LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const LiquidFunSystem::LFINIT& init, int priority) : LiquidFunSystem(init, priority) {}
+LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
+  PlaneshaderSystem(init, priority), _physid(id) {}
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
-void LiquidFunPlaneshaderSystem::Iterate(mgEntity* entity)
+void LiquidFunPlaneshaderSystem::Process()
 {
-  auto b = entity->Get<b2PhysicsComponent>();
-  psLocatable* r = PlaneshaderSystem::ResolveComponent<psLocatableComponent>(entity);
-  if(r)
+  float _ppm = _manager->MessageSystem(_physid, 1, 0).f;
+  PlaneshaderSystem::Process();
+}
+void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psRectRotateZ& prev)
+{
+  if((root.graphcomponents&_physrequired) == _physrequired)
   {
+    auto b = root.Get<b2PhysicsComponent>();
+    auto r = root.Get<psLocatableComponent>();
+    assert(r);
     assert(b);
-    r->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= _init.ppm);
-    r->SetPosition(toVec(b->GetPosition()));
-    r->SetRotation(b->GetRotation());
+    psLocatable* loc = r->Get();
+    loc->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= _ppm);
+    loc->SetPosition(toVec(b->GetPosition()));
+    loc->SetRotation(b->GetRotation());
   }
+
+  PlaneshaderSystem::_process(root, prev);
 }
