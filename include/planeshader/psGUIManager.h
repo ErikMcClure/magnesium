@@ -54,7 +54,6 @@ namespace planeshader {
     // Get/Sets the quit value
     inline void Quit() { _quit = true; }
     inline bool GetQuit() const { return _quit; }
-
     static psVeciu GetMonitorDPI(int);
 
     friend class psMonitor;
@@ -75,6 +74,7 @@ namespace planeshader {
     void _exactmousecalc();
     void _updaterootarea();
     virtual void _onresize(psVeciu dim, bool fullscreen) = 0;
+    size_t _injectdefault(const FG_Msg&);
 
     static size_t Message(fgRoot* self, const FG_Msg* m);
 

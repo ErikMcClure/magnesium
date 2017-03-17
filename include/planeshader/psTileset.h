@@ -29,7 +29,7 @@ namespace planeshader {
   public:
     psTileset(const psTileset& copy);
     psTileset(psTileset&& mov);
-    explicit psTileset(const psVec3D& position = VEC3D_ZERO, FNUM rotation = 0.0f, const psVec& pivot = VEC_ZERO, psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    explicit psTileset(const psVec3D& position = VEC3D_ZERO, FNUM rotation = 0.0f, const psVec& pivot = VEC_ZERO, psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, const psVec& scale = VEC_ONE);
     ~psTileset();
     inline psVeci GetTileDim() const { return _tiledim; }
     void SetTileDim(psVeci tiledim);
@@ -54,7 +54,7 @@ namespace planeshader {
     psTileset& operator=(psTileset&& mov);
 
   protected:
-    virtual void _render() override;
+    virtual void _render(const psParent& parent) override;
     template<class T>
     BSS_FORCEINLINE bool _drawcheck(T* drawn, uint32_t k, int level) { return (k < _tiles.Length()) && !bss_util::bssGetBit<T>(drawn, k) && (level < _defs[_tiles[k].index].level); }
     

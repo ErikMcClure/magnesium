@@ -18,8 +18,10 @@ using namespace magnesium;
 #endif
 
 mgEngine* mgEngine::_instance = 0;
+const char* mgEngine::LOGSOURCE = "magnesium";
 
-mgEngine::mgEngine() : _timewarp(1.0) { _instance = this; }
+mgEngine::mgEngine(std::ostream* log) : _timewarp(1.0), _log(!log ? "Magnesium.log" : 0, log) { _instance = this; }
+mgEngine::mgEngine(const char* logfile) : _timewarp(1.0), _log(logfile) { _instance = this; }
 mgEngine::~mgEngine() { _instance = 0; }
 
 mgEngine* mgEngine::Instance() { return _instance; }

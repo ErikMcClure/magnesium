@@ -14,16 +14,14 @@
 
 namespace magnesium {
   typedef mgComponentInheritBase<planeshader::psRenderable, true> psRenderableComponent;
-  typedef mgComponentInheritBase<planeshader::psInheritable, true> psInheritableComponent;
   typedef mgComponentInheritBase<planeshader::psLocatable, true> psLocatableComponent;
   typedef mgComponentInheritBase<planeshader::psSolid, true> psSolidComponent;
 
   template<class T>
   struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss_util::CARRAY_SIMPLE,
-    mgComponentInheritInit<T, planeshader::psRenderable, true>,
-    mgComponentInheritInit<T, planeshader::psInheritable, true>,
-    mgComponentInheritInit<T, planeshader::psLocatable, true>,
-    mgComponentInheritInit<T, planeshader::psSolid, true>> {
+    mgComponentInheritInit<psGenericComponent<T>, planeshader::psRenderable, true>,
+    mgComponentInheritInit<psGenericComponent<T>, planeshader::psLocatable, true>,
+    mgComponentInheritInit<psGenericComponent<T>, planeshader::psSolid, true>> {
     explicit psGenericComponent(mgEntity* e = 0) : mgComponent(e) {}
   };
 
@@ -43,7 +41,7 @@ namespace magnesium {
     virtual void Process() override;
 
   protected:
-    virtual void _process(mgEntity& root, const planeshader::psRectRotateZ& prev);
+    virtual void _process(mgEntity& root, const planeshader::psParent& prev);
   };
 
   struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent, true>

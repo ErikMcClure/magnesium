@@ -2,6 +2,7 @@
 // For conditions of distribution and use, see copyright notice in Magnesium.h
 
 #include "mgComponent.h"
+#include "mgEngine.h"
 
 using namespace magnesium;
 using namespace bss_util;
@@ -17,7 +18,6 @@ mgEntity::mgEntity(mgEntity* parent, int order) : id(0), graphcomponents(0), chi
   else
   {
     _parent = !parent ? &_root : parent;
-    _parent->Grab();
     _parent->_addchild(this);
   }
 }
@@ -37,14 +37,23 @@ mgEntity::mgEntity(mgEntity&& mov) : id(mov.id), graphcomponents(mov.graphcompon
 }
 mgEntity::~mgEntity()
 {
-  assert(!_children.Length());
+  for(size_t i = 0; i < _children.Length(); ++i)
+  {
+    int r;
+    if((r = _children[i]->Drop()) > 0)
+    {
+      MGLOGF(1, "Released child {0} but had {1} references remaining", _children[i], r);
+      assert(false); // Ideally this should never happen
+      if(_parent) // However in release mode, we can't crash, so we attempt to move this child to our parent instead
+        _parent->_addchild(_children[i]);
+      else
+        MGLOGF(1, "Child {0} leaked because there was no parent to fall back to!", _children[i]);
+    }
+  }
   for(const auto& pair : _componentlist)
     mgComponentStoreBase::RemoveComponent(pair.first, pair.second);
   if(_parent)
-  {
     _parent->_removechild(this);
-    _parent->Drop();
-  }
 }
 
 void mgEntity::SetParent(mgEntity* parent)
@@ -52,15 +61,11 @@ void mgEntity::SetParent(mgEntity* parent)
   if(parent == _parent)
     return;
   if(_parent)
-  {
     _parent->_removechild(this);
-    _parent->Drop();
-  }
   if(this != &_root)
   {
     _parent = !parent ? &_root : parent;
     _parent->_addchild(this);
-    _parent->Grab();
     _propagateIDs();
   }
 }

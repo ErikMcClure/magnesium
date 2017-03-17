@@ -7,6 +7,7 @@
 #include "feathergui/fgRoot.h"
 #include "feathergui/fgMonitor.h"
 #include "psRenderable.h"
+#include "bss-util/delegate.h"
 
 struct HWND__;
 struct HINSTANCE__;
@@ -28,13 +29,20 @@ namespace planeshader {
   class PS_DLLEXPORT psRoot : public fgRoot, public psDriverHold, public psRenderable
   {
   public:
+    typedef bss_util::delegate<size_t, const FG_Msg&> PS_MESSAGE;
+
     psRoot();
     ~psRoot();
+    inline PS_MESSAGE GetInject() const { return _psInject; }
+    inline void SetInject(PS_MESSAGE fn) { _psInject = fn; fgSetInjectFunc(_psInject.IsEmpty() ? fgRoot_DefaultInject : InjectDelegate); }
     
     static psFlag GetDrawFlags(fgFlag flags);
+    static size_t InjectDelegate(fgRoot* self, const FG_Msg* m) { return reinterpret_cast<psRoot*>(self)->_psInject(*m); }
 
   protected:
-    void _render();
+    virtual void _render(const psParent& parent) override;
+
+    PS_MESSAGE _psInject;
   };
 
   class PS_DLLEXPORT psMonitor : public fgMonitor

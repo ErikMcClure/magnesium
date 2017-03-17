@@ -21,7 +21,7 @@ using namespace planeshader;
 #endif
 #endif
 
-PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngine(init), mgSystemComplex(psRenderableComponent::GraphID(), priority)
+PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngine(init, &mgEngine::Instance()->GetLog().GetStream()), mgSystemComplex(psRenderableComponent::GraphID(), priority)
 {
   FlushMessages();
 }
@@ -31,33 +31,29 @@ void PlaneshaderSystem::Process()
   if(!Begin()) return;
 
   // Iterate over entire scene graph, rendering everything
-  psRectRotateZ base = { };
-  _process(mgEntity::SceneGraph(), base);
+  _process(mgEntity::SceneGraph(), psParent::Zero);
 
   End();
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();
 }
 
-void PlaneshaderSystem::_process(mgEntity& root, const psRectRotateZ& prev)
+void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
 {
   int i = 0;
   size_t l = root.NumChildren();
   mgEntity* const* p = root.Children();
-  psMatrix m;
-  psRectRotateZ rect = prev;
+  psParent parent = prev;
 
   auto locatable = root.Get<psLocatableComponent>();
   auto solid = root.Get<psSolidComponent>();
   bool cull = false;
   psPass* pass = 0;
-
+  
   if(locatable)
   {
     psLocatable* loc = locatable->Get();
-    rect = prev.RelativeTo(loc->GetPosition(), loc->GetRotation(), loc->GetPivot());
-    if(l > 0)
-      loc->GetTransform(m);
+    parent = prev.Push(loc->GetPosition(), loc->GetRotation(), loc->GetPivot());
 
     if(solid)
     {
@@ -65,18 +61,14 @@ void PlaneshaderSystem::_process(mgEntity& root, const psRectRotateZ& prev)
       pass = s->GetPass();
       if(!pass) pass = psPass::CurPass;
       if(pass != 0)
-        cull = pass->GetCamera()->Cull(rect, s->GetFlags());
+        cull = pass->GetCamera()->Cull(s, &prev);
     }
   }
 
   if((root.childhint&_required) == _required && l > 0)
   {
-    if(locatable)
-      _driver->PushTransform(m);
     while(i < l && p[i]->Order() < 0)
-      _process(*p[i++], rect);
-    if(locatable)
-      _driver->PopTransform();
+      _process(*p[i++], parent);
   }
   if((root.graphcomponents&_required) == _required)
   {
@@ -84,31 +76,28 @@ void PlaneshaderSystem::_process(mgEntity& root, const psRectRotateZ& prev)
     auto gui = root.Get<psGUIComponent>();
     if(gui)
     {
+      pass = renderable->GetPass();
+      if(!pass) pass = psPass::CurPass;
+      psParent resolved = pass->GetCamera()->Resolve(parent);
       if(solid)
       {
-        psRectRotateZ absrect = pass->GetCamera()->Resolve(rect);
-        fgTransform t = { {absrect.left, 0, absrect.top, 0, absrect.right, 0, absrect.bottom, 0}, absrect.rotation, {absrect.pivot.x, 0, absrect.pivot.y, 0} };
+        psVec pos = resolved.position.xy - resolved.pivot;
+        psVec dim = solid->Get()->GetDim();
+        fgTransform t = { {pos.x, 0, pos.y, 0, pos.x + dim.x, 0, pos.y + dim.y, 0}, resolved.rotation, { resolved.pivot.x, 0, resolved.pivot.y, 0} };
         gui->element.SetTransform(t);
       }
       else
       {
-        pass = renderable->GetPass();
-        if(!pass) pass = psPass::CurPass;
-        psRectRotateZ absrect = pass->GetCamera()->Resolve(rect);
-        fgTransform t = { { absrect.left, 0, absrect.top, 0, absrect.left, 0, absrect.top, 0 }, absrect.rotation, { absrect.pivot.x, 0, absrect.pivot.y, 0 } };
+        fgTransform t = { { resolved.position.x, 0, resolved.position.y, 0, resolved.position.x, 0, resolved.position.y, 0 }, resolved.rotation,{ resolved.pivot.x, 0, resolved.pivot.y, 0 } };
         gui->element.SetTransform(t);
       }
     }
     if(!cull)
-      renderable->Render();
+      renderable->Render(&prev);
   }
   if((root.childhint&_required) == _required && i < l)
   {
-    if(locatable)
-      _driver->PushTransform(m);
     while(i < l)
-      _process(*p[i++], rect);
-    if(locatable)
-      _driver->PopTransform();
+      _process(*p[i++], parent);
   }
 }

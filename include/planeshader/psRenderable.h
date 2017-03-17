@@ -6,6 +6,7 @@
 
 #include "psStateBlock.h"
 #include "psShader.h"
+#include "psParent.h"
 #include "bss-util/cBitField.h"
 #include "bss-util/LLBase.h"
 #include "bss-util/cTRBtree.h"
@@ -14,25 +15,24 @@ namespace planeshader {
   class PS_DLLEXPORT psRenderable
   {
     friend class psPass;
-    friend class psInheritable;
+    friend class psCullGroup;
 
   public:
     psRenderable(const psRenderable& copy);
     psRenderable(psRenderable&& mov);
     explicit psRenderable(psFlag flags=0, int zorder=0, psStateblock* stateblock=0, psShader* shader=0, psPass* pass=0);
     virtual ~psRenderable();
-    virtual void Render();
-    inline int GetZOrder() const { return _zorder; }
-    virtual void SetZOrder(int zorder);
+    virtual void Render(const psParent* parent);
+    int GetZOrder() const { return _zorder; }
+    void SetZOrder(int zorder);
     inline psPass* GetPass() const { return _pass; }
-    virtual void SetPass(psPass* pass);
+    void SetPass(psPass* pass);
     void SetPass(); // Sets the pass to the 0th pass.
     inline bss_util::cBitField<psFlag>& GetFlags() { return _flags; }
     inline psFlag GetFlags() const { return _flags; }
-    virtual psFlag GetAllFlags() const;
     inline psShader* GetShader() { return _shader; }
     inline const psShader* GetShader() const { return _shader; }
-    inline void SetShader(psShader* shader) { _shader=shader; _invalidate(); }
+    inline void SetShader(psShader* shader) { _shader=shader; }
     inline const psStateblock* GetStateblock() const { return _stateblock; }
     void SetStateblock(psStateblock* stateblock);
     virtual psTex* const* GetTextures() const;
@@ -41,24 +41,23 @@ namespace planeshader {
     virtual uint8_t NumRT() const;
     virtual void SetRenderTarget(psTex* rt, uint32_t index = 0);
     void ClearRenderTargets();
+    virtual psRenderable* Clone() const { return 0; }
 
     psRenderable& operator =(const psRenderable& right);
     psRenderable& operator =(psRenderable&& right);
 
     void Activate();
-    virtual void _render() = 0;
+    virtual void _render(const psParent& parent) = 0;
 
   protected:
     void _destroy();
-    void _invalidate();
     void _copyinsert(const psRenderable& r);
-    virtual psRenderable* _getparent() const;
-    virtual char _sort(psRenderable* r) const;
+    void _invalidate();
 
     bss_util::cBitField<psFlag> _flags;
     psPass* _pass; // Stores what pass we are in
-    uint8_t _internalflags;
     int _zorder;
+    uint8_t _internalflags;
     bss_util::ref_ptr<psStateblock> _stateblock;
     bss_util::ref_ptr<psShader> _shader;
     bss_util::LLBase<psRenderable> _llist;
@@ -68,8 +67,6 @@ namespace planeshader {
     enum INTERNALFLAGS : uint8_t
     {
       INTERNALFLAG_ACTIVE = 0x80,
-      INTERNALFLAG_SORTED = 0x40,
-      INTERNALFLAG_OWNED = 0x20,
     };
   };
 }
