@@ -32,7 +32,7 @@ namespace planeshader {
     static void SetVert(float(&v)[4], psVec& x, float thickness);
 
   protected:
-    virtual void _render() override;
+    virtual void _render(const psParent& parent) override;
     bss_util::cDynArray<QuadVertex, uint32_t> _verts;
   };
 
@@ -87,7 +87,7 @@ namespace planeshader {
   public:
     psRoundRect(const psRoundRect& copy);
     psRoundRect(psRoundRect&& mov);
-    explicit psRoundRect(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    explicit psRoundRect(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, const psVec& scale = VEC_ONE);
     virtual ~psRoundRect();
     const psRect& GetCorners() const { return _corners; }
     void SetCorners(const psRect& corners) { _corners = corners; }
@@ -103,7 +103,7 @@ namespace planeshader {
     psRoundRect& operator=(psRoundRect&& mov);
 
   protected:
-    virtual void _render() override;
+    virtual void _render(const psParent& parent) override;
 
     psRect _corners;
     psColor32 _outline;
@@ -125,7 +125,7 @@ namespace planeshader {
   public:
     psRoundTri(const psRoundTri& copy);
     psRoundTri(psRoundTri&& mov);
-    explicit psRoundTri(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    explicit psRoundTri(const psRectRotateZ& rect = psRectRotateZ(0, 0, 0, 0, 0, VEC_ZERO, 0), psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, const psVec& scale = VEC_ONE);
     virtual ~psRoundTri();
     const psRect& GetCorners() const { return _corners; }
     void SetCorners(const psRect& corners) { _corners = corners; }
@@ -141,7 +141,7 @@ namespace planeshader {
     psRoundTri& operator=(psRoundTri&& mov);
 
   protected:
-    virtual void _render() override;
+    virtual void _render(const psParent& parent) override;
 
     psRect _corners;
     psColor32 _outline;
@@ -163,7 +163,7 @@ namespace planeshader {
   public:
     psRenderCircle(const psRenderCircle& copy);
     psRenderCircle(psRenderCircle&& mov);
-    explicit psRenderCircle(float radius = 0, const psVec3D& position = VEC3D_ZERO, psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, psInheritable* parent = 0, const psVec& scale = VEC_ONE);
+    explicit psRenderCircle(float radius = 0, const psVec3D& position = VEC3D_ZERO, psFlag flags = 0, int zorder = 0, psStateblock* stateblock = 0, psShader* shader = 0, psPass* pass = 0, const psVec& scale = VEC_ONE);
     virtual ~psRenderCircle();
     const psRect& GetArcs() const { return _arcs; }
     void SetArcs(const psRect& arcs) { _arcs = arcs; }
@@ -179,7 +179,7 @@ namespace planeshader {
     psRenderCircle& operator=(psRenderCircle&& mov);
 
   protected:
-    virtual void _render() override;
+    virtual void _render(const psParent& parent) override;
 
     psRect _arcs;
     psColor32 _outline;

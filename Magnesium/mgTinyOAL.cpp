@@ -2,6 +2,7 @@
 // For conditions of distribution and use, see copyright notice in Magnesium.h
 
 #include "mgTinyOAL.h"
+#include "mgEngine.h"
 
 using namespace magnesium;
 using namespace tinyoal;
@@ -19,11 +20,15 @@ using namespace tinyoal;
 #endif
 
 TinyOALSystem::TinyOALSystem(unsigned char defnumbuf, const char* forceOAL, const char* forceOGG, const char* forceFLAC, const char* forceMP3) :
-  cTinyOAL(defnumbuf, forceOAL, forceOGG, forceFLAC, forceMP3)
+  cTinyOAL(defnumbuf, &Log, forceOAL, forceOGG, forceFLAC, forceMP3)
 {
 }
 TinyOALSystem::~TinyOALSystem() {}
 void TinyOALSystem::Process()
 {
   Update(); // TODO: put this on a seperate thread.
+}
+int TinyOALSystem::Log(const char* file, unsigned int line, unsigned char level, const char* format, va_list args)
+{
+  return mgEngine::Instance()->GetLog().PrintLogV("tinyoal", file, line, level, format, args);
 }

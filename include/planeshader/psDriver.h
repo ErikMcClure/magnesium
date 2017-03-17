@@ -58,8 +58,8 @@ namespace planeshader {
         float y;
         float z;
       };
-      psVec xy;
-      psVec3D xyz;
+      float xy[2];
+      float xyz[3];
     };
     float w; // We have a w element to pad this to 32 bytes
     uint32_t color;

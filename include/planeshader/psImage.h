@@ -15,8 +15,8 @@ namespace planeshader {
   public:
     psImage(const psImage& copy);
     psImage(psImage&& mov);
-    explicit psImage(psTex* tex = 0, const psVec3D& position=VEC3D_ZERO, FNUM rotation=0.0f, const psVec& pivot=VEC_ZERO, psFlag flags=0, int zorder=0, psStateblock* stateblock=0, psShader* shader=0, psPass* pass = 0, psInheritable* parent=0, const psVec& scale=VEC_ONE, uint32_t color=0xFFFFFFFF);
-    explicit psImage(const char* file, const psVec3D& position=VEC3D_ZERO, FNUM rotation=0.0f, const psVec& pivot=VEC_ZERO, psFlag flags=0, int zorder=0, psStateblock* stateblock=0, psShader* shader=0, psPass* pass = 0, psInheritable* parent=0, const psVec& scale=VEC_ONE, uint32_t color=0xFFFFFFFF);
+    explicit psImage(psTex* tex = 0, const psVec3D& position=VEC3D_ZERO, FNUM rotation=0.0f, const psVec& pivot=VEC_ZERO, psFlag flags=0, int zorder=0, psStateblock* stateblock=0, psShader* shader=0, psPass* pass = 0, const psVec& scale=VEC_ONE, uint32_t color=0xFFFFFFFF);
+    explicit psImage(const char* file, const psVec3D& position=VEC3D_ZERO, FNUM rotation=0.0f, const psVec& pivot=VEC_ZERO, psFlag flags=0, int zorder=0, psStateblock* stateblock=0, psShader* shader=0, psPass* pass = 0, const psVec& scale=VEC_ONE, uint32_t color=0xFFFFFFFF);
     virtual ~psImage();
     void AddSource(const psRect& r = RECT_UNITRECT);
     void ClearSources();
@@ -35,7 +35,7 @@ namespace planeshader {
     psImage& operator =(psImage&& right);
 
   protected:
-    virtual void _render() override;
+    virtual void _render(const psParent& parent) override;
     void _setuvs(uint32_t size);
     void _recalcdim();
 

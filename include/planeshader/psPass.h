@@ -11,12 +11,13 @@
 #include "bss-util\cDynArray.h"
 
 namespace planeshader {
-  class psSolid;
   class psMonitor;
 
   // Defines a single, encapsulated render pass in the pipeline
   class PS_DLLEXPORT psPass : public psDriverHold
   {
+    friend class psEngine;
+
   public:
     explicit psPass(psMonitor* monitor = 0);
     ~psPass();
@@ -28,6 +29,7 @@ namespace planeshader {
     inline void SetRenderTarget(psTex* rt=0) { _defaultrt = rt; }
     void Insert(psRenderable* r);
     void Remove(psRenderable* r);
+    void Defer(psRenderable* r, const psParent& parent);
     inline void SetClearColor(uint32_t color, bool enable = true) { _clearcolor = color; _clear = enable; }
     inline uint32_t GetClearColor() const { return _clearcolor; }
     psVeciu GetDPI();
@@ -38,9 +40,8 @@ namespace planeshader {
     static BSS_FORCEINLINE bss_util::LLBase<psRenderable>& GetRenderableAlt(psRenderable* r) { return r->_llist; }
     static BSS_FORCEINLINE char StandardCompare(psRenderable* const& l, psRenderable* const& r)
     {
-      return l->_sort(r);
-      //char c = SGNCOMPARE(l->_zorder, r->_zorder);
-      //if(!c) c = SGNCOMPARE(l,r); return c; 
+      char c = SGNCOMPARE(l->_zorder, r->_zorder);
+      return !c ? SGNCOMPARE(l,r) : c; 
     }
     static psPass* CurPass;
 
@@ -50,18 +51,16 @@ namespace planeshader {
 
   protected:
     void _sort(psRenderable* r);
-    void _addcullgroup(psCullGroup* g);
-    void _removecullgroup(psCullGroup* g);
 
     const psCamera* _cam;
     psRenderable* _renderables;
-    psCullGroup* _cullgroups;
     psTex* _defaultrt;
     ALLOC _renderalloc;
     uint32_t _clearcolor;
     bool _clear;
     psVeciu _dpi;
     psMonitor* _monitor;
+    bss_util::cDynArray<std::pair<psRenderable*, psParent>> _defer;
     bss_util::cTRBtree<psRenderable*, StandardCompare, ALLOC> _renderlist;
   };
 }

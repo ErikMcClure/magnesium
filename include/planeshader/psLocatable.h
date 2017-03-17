@@ -6,6 +6,7 @@
 
 #include "psVec.h"
 #include "psDriver.h"
+#include "psParent.h"
 
 namespace planeshader {
   // This holds position information. 
@@ -18,11 +19,11 @@ namespace planeshader {
     // Gets the rotation 
     inline FNUM GetRotation() const { return _rotation; }
     // Sets the rotation of this object 
-    virtual void SetRotation(FNUM rotation);
+    void SetRotation(FNUM rotation);
     // Gets the pivot
     inline const psVec& GetPivot() const { return _pivot; }
     // Sets the pivot (this is where the image will rotate around) 
-    virtual void SetPivot(const psVec& pivot);
+    void SetPivot(const psVec& pivot);
     // Gets the position relative to the object parent 
     inline const psVec3D& GetPosition() const { return _relpos; }
     // Sets the position of this object 
@@ -32,8 +33,8 @@ namespace planeshader {
     inline void SetPosition(const psVec& pos) { SetPosition(pos.x, pos.y, _relpos.z); }
     inline void SetPosition(const psVec3D& pos) { SetPosition(pos.x, pos.y, pos.z); }
     inline void SetPosition(FNUM X, FNUM Y) { SetPosition(X, Y, _relpos.z); }
-    virtual void SetPosition(FNUM X, FNUM Y, FNUM Z);
-    void GetTransform(psMatrix& matrix);
+    void SetPosition(FNUM X, FNUM Y, FNUM Z);
+    void GetTransform(psMatrix& matrix, const psParent* parent);
 
     inline psLocatable& operator=(const psLocatable& right) { _relpos=right._relpos; _rotation=right._rotation; _pivot=right._pivot; return *this; }
 

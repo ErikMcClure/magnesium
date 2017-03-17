@@ -36,8 +36,9 @@ namespace planeshader {
     inline psCamera& operator =(const psCamera& copy) { psLocatable::operator =(copy); return *this; }
     inline const psRect& Apply(const psTex* rt) const;
     inline psRectRotateZ Resolve(const psRectRotateZ& rect) const;
-    inline bool Cull(psSolid* solid) const;
-    inline bool Cull(const psRectRotateZ& rect, psFlag flags) const;
+    inline psParent Resolve(const psParent& rect) const;
+    inline bool Cull(psSolid* solid, const psParent* parent) const;
+    inline bool Cull(const psRectRotateZ& rect, const psParent* parent, psFlag flags) const;
 
     static const psVeci INVALID_LASTRELMOUSE;
     static const psCamera default_camera;
@@ -61,6 +62,8 @@ namespace planeshader {
       inline void SetSSE();
       BSS_FORCEINLINE bool Cull(const psRect& rect, float rectz, float camz, psFlag flags);
     };
+
+    inline const CamCache& GetCache() const { return _cache; }
 
   protected:
     psRect _viewport; // This is NOT an actual rectangle, it stores left/top/width/height

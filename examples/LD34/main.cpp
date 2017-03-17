@@ -38,6 +38,7 @@ using namespace tinyoal;
 #pragma comment(lib, "../../lib/bss-util" BSS_LIB32 BSS_LIBDEBUG  ".lib")
 #pragma comment(lib, "../../lib/liquidfun" BSS_LIB32 BSS_LIBDEBUG  ".lib")
 #pragma comment(lib, "../../lib/TinyOAL" BSS_LIB32 BSS_LIBDEBUG  ".lib")
+#pragma comment(lib, "../../lib/feathergui" BSS_LIB32 BSS_LIBDEBUG  ".lib")
 #endif
 
 #pragma warning(disable:4244)
@@ -239,11 +240,13 @@ public:
 //  cDynArray<psVec3D> _buildings;
 //};
 
-std::function<size_t(const FG_Msg&)> guipreprocess;
+std::function<size_t(const FG_Msg&)> guifunction;
 
 int main(int argc, char** argv)
 {
   SetWorkDirToCur();
+  mgEngine engine;
+
   PSINIT init;
   //init.width = 1024;
   //init.height = 768;
@@ -255,19 +258,18 @@ int main(int argc, char** argv)
 #ifdef BSS_DEBUG
   b2init.hertz = 0;
 #endif
-  LiquidFunPlaneshaderSystem ps(init, 0);
+  LiquidFunPlaneshaderSystem ps(init, -1);
   TinyOALSystem tinyoal;
-  LiquidFunSystem psbox2d(b2init, -1);
+  LiquidFunSystem psbox2d(b2init, 0);
   LogicSystem logic;
 
-  mgEngine engine;
   engine.AddSystem(&ps);
   engine.AddSystem(&tinyoal);
   engine.AddSystem(&psbox2d);
   engine.AddSystem(&logic);
 
   psDebugDraw psdd;
-  ps[0].Insert(&psdd);
+  //ps[0].Insert(&psdd);
   psbox2d.SetDebugDraw(&psdd);
 
   maxcam.left = -ps.GetDriver()->GetBackBuffer()->GetDim().x*0.375; // 3/8
@@ -276,7 +278,7 @@ int main(int argc, char** argv)
   globalcam.SetExtent(psVec(0.2, 50000));
   ps[0].SetCamera(&globalcam);
   ps[0].SetClearColor(0xFF111122);
-  ps[0].SetDPI(psVeciu(psGUIManager::BASE_DPI * 4));
+  //ps[0].SetDPI(psVeciu(psGUIManager::BASE_DPI * 4));
 
   mgEntityT<psTilesetComponent, b2PhysicsComponent> map;
   auto tsmap = map.Get<psTilesetComponent>();
@@ -288,8 +290,7 @@ int main(int argc, char** argv)
   
   ref_ptr<Player> player = new Player(LoadPointImg("../media/LD34/player.png"), 100);
 
-  guipreprocess = [&](const FG_Msg& evt) -> size_t
-  {
+  guifunction = [&](const FG_Msg& evt) -> size_t {
     if(evt.type == FG_KEYDOWN || evt.type == FG_KEYUP)
     {
       bool isdown = evt.type == FG_KEYDOWN;
@@ -325,7 +326,9 @@ int main(int argc, char** argv)
     }
     return 0;
   };
-  fgSetInjectFunc([](_FG_ROOT*, const FG_Msg* m) -> size_t { return guipreprocess(*m); });
+
+  fgSetInjectFunc([](struct _FG_ROOT* self, const FG_Msg* msg) -> size_t { return guifunction(*msg); });
+  //ps.GetGUI().SetInject(psRoot::PS_MESSAGE(guifunction));
 
   player->Get<mgLogicComponent>()->onlogic = [](mgEntity& e) {
     const float maxspeed = 8.0f;

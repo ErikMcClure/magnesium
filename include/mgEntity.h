@@ -7,6 +7,7 @@
 #include "mgRefCounter.h"
 #include "bss-util/cMap.h"
 #include "bss-util/cCompactArray.h"
+#include "bss-util/cTRBTree.h"
 
 namespace magnesium {
   typedef unsigned short ComponentID;
@@ -42,9 +43,9 @@ namespace magnesium {
     void ComponentListRemove(ComponentID id, ComponentID graphid);
     size_t& ComponentListGet(ComponentID id);
     template<class T> // Gets a component of type T if it belongs to this entity, otherwise returns NULL
-    inline COMPONENT_REF(T) Get() { ComponentID index = _componentlist.Get(T::ID()); return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); }
-    template<class T> // Adds a component of type T to this entity
-    inline COMPONENT_REF(T) Add() { T::Store().Add<T>(this); return Get<T>(); }
+    inline COMPONENT_REF(T::template TYPE) Get() { ComponentID index = _componentlist.Get(T::ID()); return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); }
+    template<class T> // Adds a component of type T to this entity if it doesn't already exist
+    inline COMPONENT_REF(T::template TYPE) Add() { if(_componentlist.Get(T::ID()) == (ComponentID)~0) T::Store().Add<T>(this); return Get<T::template TYPE>(); }
     template<class T> // Removes a component of type T from this entity
     inline bool Remove() { ComponentID index = _componentlist.Get(T::ID()); if(index != (ComponentID)~0) return T::Store().Remove(_componentlist[index]); }
     inline mgEntity* Parent() const { return _parent; }
@@ -53,6 +54,7 @@ namespace magnesium {
     void SetParent(mgEntity* parent);
     inline int Order() const { return _order; }
     void SetOrder(int order);
+    virtual const char* GetDebugName() const { return 0; }
 
     size_t id;
     size_t childhint; // Bitfield of scenegraph components our children might have

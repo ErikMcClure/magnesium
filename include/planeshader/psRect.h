@@ -184,14 +184,12 @@ namespace planeshader {
     BSS_FORCEINLINE psRectRotateT<T> Inflate(T amount) const { return psRectRotateT<T>(psRectT<T>::Inflate(amount), rotation, pivot); }
     inline psRectRotateT RelativeTo(const psVec& pos, float r, const psVec& p) const
     {
+      psVec dim = { right - left, bottom - top };
       psRectRotateT ret(*this, r + rotation, pivot);
       if(r != 0.0f)
-      {
         psVec::RotatePoint(ret.left, ret.top, r, ret.left - pivot.x, ret.top - pivot.y);
-        psVec::RotatePoint(ret.right, ret.bottom, r, ret.left - pivot.x, ret.top - pivot.y);
-      }
       ret.topleft += pos + p;
-      ret.bottomright += pos + p;
+      ret.bottomright = ret.topleft + dim;
       return ret;
     }
 

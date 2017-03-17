@@ -31,7 +31,7 @@ namespace magnesium {
   private:
     void _drawpolygon(const b2Vec2* vertices, int32 vertexCount, planeshader::psColor& color, planeshader::psColor& outline);
     void _drawcircle(const b2Vec2& center, float32 radius, planeshader::psColor& color, planeshader::psColor& outline);
-    virtual void _render();
+    virtual void _render(const planeshader::psParent& parent) override;
 
     struct DrawBuf {
       uint32_t vindex;
@@ -56,7 +56,7 @@ namespace magnesium {
     LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0, SystemID box2DSystem = mgSystemManager::GetSystemID<LiquidFunSystem>());
     ~LiquidFunPlaneshaderSystem();
     virtual void Process() override;
-    virtual void _process(mgEntity& root, const planeshader::psRectRotateZ& prev) override;
+    virtual void _process(mgEntity& root, const planeshader::psParent& prev) override;
 
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
 

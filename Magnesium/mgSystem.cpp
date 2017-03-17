@@ -5,7 +5,9 @@
 
 using namespace magnesium;
 
-mgSystemBase::mgSystemBase(int priority) : _priority(priority)
+SystemID mgSystemManager::sysid = 0;
+
+mgSystemBase::mgSystemBase(int priority) : _priority(priority), _manager(0)
 {
 
 }
@@ -25,6 +27,7 @@ mgSystemManager::~mgSystemManager()
 void mgSystemManager::AddSystem(mgSystemBase* system, SystemID id)
 {
   _systems.Insert(system, id);
+  system->_manager = this;
 }
 bool mgSystemManager::RemoveSystem(SystemID id)
 {

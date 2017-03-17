@@ -24,7 +24,7 @@ namespace planeshader {
   struct PSINIT
   {
     inline PSINIT() : width(0), height(0), driver(RealDriver::DRIVERTYPE_DX11), mode(psMonitor::MODE_WINDOWED), vsync(false), sRGB(false),
-      antialias(0), errout(0), mediapath("") {}
+      antialias(0), mediapath("") {}
 
     int width;
     int height;
@@ -33,7 +33,6 @@ namespace planeshader {
     bool vsync;
     bool sRGB;
     uint8_t antialias;
-    std::ostream* errout;
     const char* mediapath;
 
     template<typename Engine>
@@ -56,7 +55,7 @@ namespace planeshader {
   {
   public:
     // Constructor
-    psEngine(const PSINIT& init);
+    psEngine(const PSINIT& init, std::ostream* log = 0);
     ~psEngine();
     // Begins a frame. Returns false if rendering should stop.
     bool Begin();

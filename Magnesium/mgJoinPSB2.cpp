@@ -56,10 +56,10 @@ void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& col
   _drawbuf.Add(DrawBuf { _drawverts.Length(), 0, radius, color32, outline32 });
   _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(center));
 }
-void psDebugDraw::_render()
+void psDebugDraw::_render(const psParent& parent)
 {
   Matrix<float, 4, 4> m;
-  Matrix<float, 4, 4>::Identity(m);
+  parent.GetTransform(m.v);
   Matrix<float, 4, 4>::AffineScaling(Box2DSystem::Instance()->F_PPM, Box2DSystem::Instance()->F_PPM, 1.0f, m);
   _driver->PushTransform(m.v);
 
@@ -98,14 +98,14 @@ void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 }
 
 LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
-  PlaneshaderSystem(init, priority), _physid(id) {}
+  PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2PhysicsComponent::ID()|psLocatableComponent::ID()) {}
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
 void LiquidFunPlaneshaderSystem::Process()
 {
   float _ppm = _manager->MessageSystem(_physid, 1, 0).f;
   PlaneshaderSystem::Process();
 }
-void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psRectRotateZ& prev)
+void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
 {
   if((root.graphcomponents&_physrequired) == _physrequired)
   {

@@ -146,12 +146,10 @@ namespace magnesium {
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
     mgEntity* entity;
 
+    typedef T TYPE;
     mgComponent& operator=(const mgComponent& copy) { entity = copy.entity; return *this; }
     mgComponent& operator=(mgComponent&& copy) { entity = copy.entity; return *this; }
   };
-
-  template<typename T, typename D>
-  inline T* CastComponent(mgEntity* entity) { return static_cast<T*>(entity->Get<D>()); }
 
   template<typename T, typename D, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
   struct mgComponentInherit : mgComponent<T, SCENEGRAPH, ArrayType>
@@ -165,9 +163,18 @@ namespace magnesium {
   struct MG_DLLEXPORT mgComponentInheritBase : mgComponentInherit<mgComponentInheritBase<T, SCENEGRAPH>, T, SCENEGRAPH> {
     explicit mgComponentInheritBase(mgEntity* e = 0, T* (*f)(mgEntity*) = 0) : mgComponentInherit(e, f) {}
   };
-  template<class D, class T, bool SCENEGRAPH>
+  template<class D, class T, bool SCENEGRAPH> // Important: Remember that D should be the COMPONENT, not the object the component is representing!
   struct MG_DLLEXPORT mgComponentInheritInit : mgComponentInheritBase<T, SCENEGRAPH> {
-    explicit mgComponentInheritInit(mgEntity* e = 0) : mgComponentInheritBase(e, &CastComponent<T, D>) {}
+    explicit mgComponentInheritInit(mgEntity* e = 0) : mgComponentInheritBase(e, &CastComponent) {}
+
+    static inline T* CastComponent(mgEntity* entity) { return static_cast<T*>(entity->Get<D>()); } // Doing a direct cast here is preferred to an indirect method like Get() so null pointers are handled
+  };
+
+  struct MG_DLLEXPORT mgPosition : mgComponent<mgPosition>
+  {
+    float position[3];
+    float rotation;
+    float pivot[2];
   };
 }
 

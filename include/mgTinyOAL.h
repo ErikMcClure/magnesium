@@ -14,6 +14,8 @@ namespace magnesium {
     TinyOALSystem(unsigned char defnumbuf = 4, const char* forceOAL = 0, const char* forceOGG = 0, const char* forceFLAC = 0, const char* forceMP3 = 0);
     ~TinyOALSystem();
     virtual void Process() override;
+
+    static int Log(const char*, unsigned int, unsigned char, const char*, va_list);
   };
 }
 
