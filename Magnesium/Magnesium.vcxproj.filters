@@ -56,46 +56,46 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\mgComponent.h">
+    <ClInclude Include="..\include\magnesium\mgComponent.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Magnesium.h">
+    <ClInclude Include="..\include\magnesium\Magnesium.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgSystem.h">
+    <ClInclude Include="..\include\magnesium\mgSystem.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgPlaneshader.h">
+    <ClInclude Include="..\include\magnesium\mgPlaneshader.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgBox2D.h">
+    <ClInclude Include="..\include\magnesium\mgBox2D.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mg_dec.h">
+    <ClInclude Include="..\include\magnesium\mg_dec.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgEngine.h">
+    <ClInclude Include="..\include\magnesium\mgEngine.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgTinyOAL.h">
+    <ClInclude Include="..\include\magnesium\mgTinyOAL.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgLiquidFun.h">
+    <ClInclude Include="..\include\magnesium\mgLiquidFun.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgJoinPSB2.h">
+    <ClInclude Include="..\include\magnesium\mgJoinPSB2.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgRefCounter.h">
+    <ClInclude Include="..\include\magnesium\mgRefCounter.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgLogic.h">
+    <ClInclude Include="..\include\magnesium\mgLogic.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgControlMap.h">
+    <ClInclude Include="..\include\magnesium\mgControlMap.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\mgEntity.h">
+    <ClInclude Include="..\include\magnesium\mgEntity.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
