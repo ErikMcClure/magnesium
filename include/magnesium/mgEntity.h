@@ -34,7 +34,7 @@ namespace magnesium {
 #define COMPONENT_REF(T) T*
 #endif
 
-  struct MG_DLLEXPORT mgEntity : public mgRefCounter
+  struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss_util::TRB_NodeBase<mgEntity>
   {
     explicit mgEntity(mgEntity* parent = 0, int order = 0);
     mgEntity(mgEntity&& mov);
@@ -49,8 +49,8 @@ namespace magnesium {
     template<class T> // Removes a component of type T from this entity
     inline bool Remove() { ComponentID index = _componentlist.Get(T::ID()); if(index != (ComponentID)~0) return T::Store().Remove(_componentlist[index]); }
     inline mgEntity* Parent() const { return _parent; }
-    inline size_t NumChildren() const { return _children.Length(); }
-    inline mgEntity* const* Children() const { return _children.begin(); }
+    inline mgEntity* Children() const { return _first; }
+    inline mgEntity* Next() const { return next; }
     void SetParent(mgEntity* parent);
     inline int Order() const { return _order; }
     void SetOrder(int order);
@@ -60,20 +60,24 @@ namespace magnesium {
     size_t childhint; // Bitfield of scenegraph components our children might have
     size_t graphcomponents;
 
-    static mgEntity& SceneGraph() { return _root; }
-    static inline char Comp(mgEntity* const& l, mgEntity* const& r) { char c = SGNCOMPARE(l->_order, r->_order); return !c ? SGNCOMPARE(l, r) : c; }
+    static mgEntity& SceneGraph() { return root; }
+    static inline char Comp(const mgEntity& l, const mgEntity& r) { char c = SGNCOMPARE(l._order, r._order); return !c ? SGNCOMPARE(&l, &r) : c; }
 
   protected: 
+    explicit mgEntity(bool isNIL);
     void _addchild(mgEntity* child);
     void _removechild(mgEntity* child);
     void _propagateIDs();
 
     bss_util::cMap<ComponentID, size_t, bss_util::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
     mgEntity* _parent;
-    bss_util::cCompactArray<mgEntity*> _children; // each child takes a reference on its parent, preventing a parent from being destroyed until all it's children are gone.
+    mgEntity* _first;
+    mgEntity* _last;
+    mgEntity* _children;
     int _order;
 
-    static mgEntity _root;
+    static mgEntity root;
+    static mgEntity NIL;
   };
 }
 

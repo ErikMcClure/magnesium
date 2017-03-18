@@ -175,7 +175,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MAGNESIUM_EXPORTS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -194,7 +194,7 @@
       <PreprocessorDefinitions>MG_STATIC_LIB;WIN32;_DEBUG;_WINDOWS;_USRDLL;MAGNESIUM_EXPORTS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -213,7 +213,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;MAGNESIUM_EXPORTS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -232,7 +232,7 @@
       <PreprocessorDefinitions>MG_STATIC_LIB;_DEBUG;_WINDOWS;_USRDLL;MAGNESIUM_EXPORTS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -257,7 +257,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -283,7 +283,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -309,7 +309,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -335,7 +335,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/magnesium;../include</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -345,6 +345,41 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(VcpkgEnabled)' == 'true'">
+    <PostBuildEvent>
+      <Message>Copy include files to vcpkg folder</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).dll" "$(VcpkgRoot)bin" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)bin" /c /y /q /i
+xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release Static|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)lib" /c /y /q /i
+xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)debug\lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).dll" "$(VcpkgRoot)debug\bin" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\bin" /c /y /q /i
+xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug Static|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)debug\lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\lib" /c /y /q /i
+xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mgBox2D.cpp" />
@@ -361,20 +396,20 @@
     <ClCompile Include="mgTinyOAL.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\Magnesium.h" />
-    <ClInclude Include="..\include\mgBox2D.h" />
-    <ClInclude Include="..\include\mgComponent.h" />
-    <ClInclude Include="..\include\mgControlMap.h" />
-    <ClInclude Include="..\include\mgEngine.h" />
-    <ClInclude Include="..\include\mgEntity.h" />
-    <ClInclude Include="..\include\mgJoinPSB2.h" />
-    <ClInclude Include="..\include\mgLiquidFun.h" />
-    <ClInclude Include="..\include\mgLogic.h" />
-    <ClInclude Include="..\include\mgPlaneshader.h" />
-    <ClInclude Include="..\include\mgRefCounter.h" />
-    <ClInclude Include="..\include\mgSystem.h" />
-    <ClInclude Include="..\include\mgTinyOAL.h" />
-    <ClInclude Include="..\include\mg_dec.h" />
+    <ClInclude Include="..\include\magnesium\Magnesium.h" />
+    <ClInclude Include="..\include\magnesium\mgBox2D.h" />
+    <ClInclude Include="..\include\magnesium\mgComponent.h" />
+    <ClInclude Include="..\include\magnesium\mgControlMap.h" />
+    <ClInclude Include="..\include\magnesium\mgEngine.h" />
+    <ClInclude Include="..\include\magnesium\mgEntity.h" />
+    <ClInclude Include="..\include\magnesium\mgJoinPSB2.h" />
+    <ClInclude Include="..\include\magnesium\mgLiquidFun.h" />
+    <ClInclude Include="..\include\magnesium\mgLogic.h" />
+    <ClInclude Include="..\include\magnesium\mgPlaneshader.h" />
+    <ClInclude Include="..\include\magnesium\mgRefCounter.h" />
+    <ClInclude Include="..\include\magnesium\mgSystem.h" />
+    <ClInclude Include="..\include\magnesium\mgTinyOAL.h" />
+    <ClInclude Include="..\include\magnesium\mg_dec.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Magnesium.rc" />

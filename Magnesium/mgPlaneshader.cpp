@@ -40,9 +40,7 @@ void PlaneshaderSystem::Process()
 
 void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
 {
-  int i = 0;
-  size_t l = root.NumChildren();
-  mgEntity* const* p = root.Children();
+  mgEntity* cur = root.Children();
   psParent parent = prev;
 
   auto locatable = root.Get<psLocatableComponent>();
@@ -65,10 +63,13 @@ void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
     }
   }
 
-  if((root.childhint&_required) == _required && l > 0)
+  if((root.childhint&_required) == _required && cur != 0)
   {
-    while(i < l && p[i]->Order() < 0)
-      _process(*p[i++], parent);
+    while(cur != 0 && cur->Order() < 0)
+    {
+      _process(*cur, parent);
+      cur = cur->Next();
+    }
   }
   if((root.graphcomponents&_required) == _required)
   {
@@ -95,9 +96,12 @@ void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
     if(!cull)
       renderable->Render(&prev);
   }
-  if((root.childhint&_required) == _required && i < l)
+  if((root.childhint&_required) == _required && cur != 0)
   {
-    while(i < l)
-      _process(*p[i++], parent);
+    while(cur)
+    {
+      _process(*cur, parent);
+      cur = cur->Next();
+    }
   }
 }

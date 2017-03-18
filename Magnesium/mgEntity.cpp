@@ -7,22 +7,19 @@
 using namespace magnesium;
 using namespace bss_util;
 
-mgEntity mgEntity::_root(0);
+mgEntity mgEntity::root(false);
+mgEntity mgEntity::NIL(true);
 
-mgEntity::mgEntity(mgEntity* parent, int order) : id(0), graphcomponents(0), childhint(0), _order(order)
+mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), id(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0)
 {
-  if(this == &_root)
-  {
-    _parent = 0;
-  }
-  else
-  {
-    _parent = !parent ? &_root : parent;
-    _parent->_addchild(this);
-  }
 }
-mgEntity::mgEntity(mgEntity&& mov) : id(mov.id), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)), childhint(mov.childhint),
-  _children(std::move(mov._children)), _parent(mov._parent), _order(mov._order)
+mgEntity::mgEntity(mgEntity* parent, int order) : TRB_NodeBase<mgEntity>(&NIL), id(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0)
+{
+  _parent = !parent ? &root : parent;
+  _parent->_addchild(this);
+}
+mgEntity::mgEntity(mgEntity&& mov) : TRB_NodeBase<mgEntity>(&NIL), id(mov.id), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)),
+childhint(mov.childhint), _parent(mov._parent), _order(mov._order), _children(mov._children), _first(mov._first), _last(mov._last)
 {
   if(_parent)
   {
@@ -32,23 +29,35 @@ mgEntity::mgEntity(mgEntity&& mov) : id(mov.id), graphcomponents(mov.graphcompon
   mov.graphcomponents = 0;
   mov.childhint = 0;
   mov.id = 0;
+  mov._children = 0;
+  mov._first = 0;
+  mov._last = 0;
+  mgEntity* cur = _first;
+  while(cur)
+  {
+    assert(cur->_parent == &mov);
+    cur->_parent = this;
+    cur = cur->next;
+  }
   for(auto& iter : _componentlist)
     *mgComponentStoreBase::GetStore(iter.first)->GetEntity(iter.second) = this;
 }
 mgEntity::~mgEntity()
 {
-  for(size_t i = 0; i < _children.Length(); ++i)
+  mgEntity* cur = _first;
+  while(cur)
   {
     int r;
-    if((r = _children[i]->Drop()) > 0)
+    if((r = cur->Drop()) > 0)
     {
-      MGLOGF(1, "Released child {0} but had {1} references remaining", _children[i], r);
+      MGLOGF(1, "Released child {0} but had {1} references remaining", cur, r);
       assert(false); // Ideally this should never happen
       if(_parent) // However in release mode, we can't crash, so we attempt to move this child to our parent instead
-        _parent->_addchild(_children[i]);
+        _parent->_addchild(cur);
       else
-        MGLOGF(1, "Child {0} leaked because there was no parent to fall back to!", _children[i]);
+        MGLOGF(1, "Child {0} leaked because there was no parent to fall back to!", cur);
     }
+    cur = cur->next;
   }
   for(const auto& pair : _componentlist)
     mgComponentStoreBase::RemoveComponent(pair.first, pair.second);
@@ -62,9 +71,9 @@ void mgEntity::SetParent(mgEntity* parent)
     return;
   if(_parent)
     _parent->_removechild(this);
-  if(this != &_root)
+  if(this != &root)
   {
-    _parent = !parent ? &_root : parent;
+    _parent = !parent ? &root : parent;
     _parent->_addchild(this);
     _propagateIDs();
   }
@@ -111,26 +120,12 @@ void mgEntity::_propagateIDs()
 void mgEntity::_addchild(mgEntity* child)
 {
   assert(child->_parent == this);
-
-  if(_children.Empty())
-    _children.Add(child);
-  else
-  {
-    ptrdiff_t loc;
-    if(mgEntity::Comp(child, _children.Front()) < 0) loc = 0;
-    else if(mgEntity::Comp(child, _children.Back()) >= 0) loc = _children.Length();
-    else loc = binsearch_after<mgEntity*, ptrdiff_t, &mgEntity::Comp>(_children.begin(), _children.Length(), child);
-    _children.Insert(child, loc);
-  }
+  TRB_NodeBase<mgEntity>::InsertNode<&mgEntity::Comp>(child, _children, _first, _last, &NIL);
 }
 void mgEntity::_removechild(mgEntity* child)
 {
   assert(child->_parent == this);
-
-  ptrdiff_t i = binsearch_exact<mgEntity*, mgEntity*, ptrdiff_t, &mgEntity::Comp>(_children.begin(), child, 0, _children.Length());
-
-  if(i >= 0)
-    _children.Remove(i);
-  if(!_children.Length())
+  TRB_NodeBase<mgEntity>::RemoveNode(child, _children, _first, _last, &NIL);
+  if(!_first)
     childhint = 0;
 }
