@@ -7,18 +7,6 @@
 
 using namespace magnesium;
 
-#ifdef BSS_COMPILER_MSC
-#if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../lib/liquidfun_d.lib")
-#elif defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../lib/liquidfun.lib")
-#elif defined(BSS_DEBUG)
-#pragma comment(lib, "../lib/liquidfun32_d.lib")
-#else
-#pragma comment(lib, "../lib/liquidfun32.lib")
-#endif
-#endif
-
 LiquidFunSystem::LiquidFunSystem(const LFINIT& init, int priority) : Box2DSystem(init.b2init, priority), _particle_iters(init.particle_iters)
 {
   Reload();
