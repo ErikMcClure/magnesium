@@ -9,18 +9,6 @@
 using namespace magnesium;
 using namespace planeshader;
 
-#ifdef BSS_COMPILER_MSC
-#if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../lib/PlaneShader_d.lib")
-#elif defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../lib/PlaneShader.lib")
-#elif defined(BSS_DEBUG)
-#pragma comment(lib, "../lib/PlaneShader32_d.lib")
-#else
-#pragma comment(lib, "../lib/PlaneShader32.lib")
-#endif
-#endif
-
 PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngine(init, &mgEngine::Instance()->GetLog().GetStream()), mgSystemComplex(psRenderableComponent::GraphID(), priority)
 {
   FlushMessages();

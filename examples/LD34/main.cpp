@@ -17,30 +17,6 @@ using namespace magnesium;
 using namespace planeshader;
 using namespace tinyoal;
 
-#ifdef BSS_COMPILER_MSC
-#ifdef BSS_DEBUG
-#define BSS_LIBDEBUG "_d"
-#else
-#define BSS_LIBDEBUG 
-#endif
-#ifndef BSS_CPU_x86_64
-#define BSS_LIB32 "32"
-#else
-#define BSS_LIB32 
-#endif
-
-#ifdef MG_STATIC_LIB
-#pragma comment(lib, "../../bin/Magnesium" BSS_LIB32 "_s" BSS_LIBDEBUG ".lib")
-#else
-#pragma comment(lib, "../../bin/Magnesium" BSS_LIB32 BSS_LIBDEBUG ".lib")
-#endif
-#pragma comment(lib, "../../lib/PlaneShader" BSS_LIB32 BSS_LIBDEBUG  ".lib")
-#pragma comment(lib, "../../lib/bss-util" BSS_LIB32 BSS_LIBDEBUG  ".lib")
-#pragma comment(lib, "../../lib/liquidfun" BSS_LIB32 BSS_LIBDEBUG  ".lib")
-#pragma comment(lib, "../../lib/TinyOAL" BSS_LIB32 BSS_LIBDEBUG  ".lib")
-#pragma comment(lib, "../../lib/feathergui" BSS_LIB32 BSS_LIBDEBUG  ".lib")
-#endif
-
 #pragma warning(disable:4244)
 
 psCamera globalcam;
@@ -256,7 +232,7 @@ int main(int argc, char** argv)
   b2init.ppm = 16;
   b2init.gravity[1] = 27.0f;
 #ifdef BSS_DEBUG
-  b2init.hertz = 0;
+  //b2init.hertz = 0;
 #endif
   LiquidFunPlaneshaderSystem ps(init, -1);
   TinyOALSystem tinyoal;
@@ -331,7 +307,8 @@ int main(int argc, char** argv)
   //ps.GetGUI().SetInject(psRoot::PS_MESSAGE(guifunction));
 
   player->Get<mgLogicComponent>()->onlogic = [](mgEntity& e) {
-    const float maxspeed = 8.0f;
+    float secdelta = mgEngine::Instance()->GetDeltaNS() / 1000000000.0f;
+    float maxspeed = 8.0f;
     b2PhysicsComponent* phys = e.Get<b2PhysicsComponent>();
     if(dirkeys[10])
       phys->GetBody()->ApplyForceToCenter(b2Vec2(mgclamp(-maxspeed - phys->GetBody()->GetLinearVelocity().x, -maxspeed, 0), 0), true);
