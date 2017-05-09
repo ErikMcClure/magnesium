@@ -8,7 +8,7 @@ using namespace magnesium;
 using namespace tinyoal;
 
 TinyOALSystem::TinyOALSystem(unsigned char defnumbuf, const char* forceOAL, const char* forceOGG, const char* forceFLAC, const char* forceMP3) :
-  cTinyOAL(defnumbuf, &Log, forceOAL, forceOGG, forceFLAC, forceMP3)
+  TinyOAL(defnumbuf, &Log, forceOAL, forceOGG, forceFLAC, forceMP3)
 {
 }
 TinyOALSystem::~TinyOALSystem() {}

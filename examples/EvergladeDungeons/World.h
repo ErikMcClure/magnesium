@@ -13,7 +13,7 @@ struct Sector : magnesium::b2PhysicsComponent {
 };
 // A map is simply a collection of sectors and interactable map entities.
 struct Map  {
-  bss_util::cHash<std::pair<int64_t, int64_t>, Sector> Sectors;
+  bss::Hash<std::pair<int64_t, int64_t>, Sector> Sectors;
   // Entities
   // Enemies
   // NPCs

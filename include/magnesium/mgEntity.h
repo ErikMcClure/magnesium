@@ -5,9 +5,9 @@
 #define __ENTITY_H__MG__
 
 #include "mgRefCounter.h"
-#include "bss-util/cMap.h"
-#include "bss-util/cCompactArray.h"
-#include "bss-util/cTRBTree.h"
+#include "bss-util/Map.h"
+#include "bss-util/CompactArray.h"
+#include "bss-util/TRBTree.h"
 
 namespace magnesium {
   typedef unsigned short ComponentID;
@@ -34,7 +34,7 @@ namespace magnesium {
 #define COMPONENT_REF(T) T*
 #endif
 
-  struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss_util::TRB_NodeBase<mgEntity>
+  struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss::TRB_NodeBase<mgEntity>
   {
     explicit mgEntity(mgEntity* parent = 0, int order = 0);
     mgEntity(mgEntity&& mov);
@@ -69,7 +69,7 @@ namespace magnesium {
     void _removechild(mgEntity* child);
     void _propagateIDs();
 
-    bss_util::cMap<ComponentID, size_t, bss_util::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
+    bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
     mgEntity* _parent;
     mgEntity* _first;
     mgEntity* _last;

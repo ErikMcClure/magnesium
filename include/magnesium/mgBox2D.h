@@ -9,8 +9,8 @@
 #include "Box2D/Dynamics/b2WorldCallbacks.h"
 #include "Box2D/Common/b2Draw.h"
 #include "Box2D/Dynamics/b2Body.h"
-#include "bss-util/cHash.h"
-#include "bss-util/cSerializer.h"
+#include "bss-util/Hash.h"
+#include "bss-util/Serializer.h"
 
 class b2Draw;
 class b2World;
@@ -109,7 +109,7 @@ namespace magnesium {
       float ppm;
 
       template<typename Engine>
-      void Serialize(bss_util::cSerializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e)
       {
         e.EvaluateType<B2INIT>(
           GenPair("gravity", gravity),
@@ -162,8 +162,8 @@ namespace magnesium {
 
     b2World* _world;
     mgDebugDraw* _debugdraw;
-    bss_util::cHash<std::pair<void*, void*>, uint32_t> _collisionhash; // When inserting collision pairs, the first pointer should always be less than the second
-    bss_util::cDynArray<std::pair<void*, void*>, uint32_t> _deletions; // Stores potential deletions
+    bss::Hash<std::pair<void*, void*>, uint32_t> _collisionhash; // When inserting collision pairs, the first pointer should always be less than the second
+    bss::DynArray<std::pair<void*, void*>, uint32_t> _deletions; // Stores potential deletions
     B2INIT _init;
     double _dt;
     bool _frozen;

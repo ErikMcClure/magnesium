@@ -5,8 +5,8 @@
 #define __CONTROL_MAP_H__MG__
 
 #include "mg_dec.h"
-#include "bss-util/cDynArray.h"
-#include "bss-util/cHash.h"
+#include "bss-util/DynArray.h"
+#include "bss-util/Hash.h"
 #include <functional>
 
 struct _FG_MSG;
@@ -58,11 +58,11 @@ namespace magnesium {
     void _processbutton(uint16_t id, bool down);
     void _processaxis(uint16_t id, float value);
 
-    bss_util::cDynArray<ControlAxis, uint16_t, bss_util::CARRAY_SAFE> _axismap;
-    bss_util::cDynArray<ControlButton, uint16_t, bss_util::CARRAY_SAFE> _buttonmap;
-    bss_util::cHash<size_t, uint16_t> _idmap;
-    bss_util::cHash<short, uint16_t> _joybuttonmap;
-    bss_util::cHash<short, uint16_t> _joyaxismap;
+    bss::DynArray<ControlAxis, uint16_t, bss::ARRAY_SAFE> _axismap;
+    bss::DynArray<ControlButton, uint16_t, bss::ARRAY_SAFE> _buttonmap;
+    bss::Hash<size_t, uint16_t> _idmap;
+    bss::Hash<short, uint16_t> _joybuttonmap;
+    bss::Hash<short, uint16_t> _joyaxismap;
     uint16_t _keys[256];
     size_t _curbindid;
     char _curbindtype;

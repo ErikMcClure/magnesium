@@ -10,9 +10,9 @@
 #include "mgLogic.h"
 #include "Box2D/Box2D.h"
 #include "planeshader/psPass.h"
-#include "bss-util/cRefCounter.h"
+#include "bss-util/RefCounter.h"
 
-using namespace bss_util;
+using namespace bss;
 using namespace magnesium;
 using namespace planeshader;
 using namespace tinyoal;
@@ -213,7 +213,7 @@ public:
 //    };
 //  }
 //
-//  cDynArray<psVec3D> _buildings;
+//  DynArray<psVec3D> _buildings;
 //};
 
 std::function<size_t(const FG_Msg&)> guifunction;

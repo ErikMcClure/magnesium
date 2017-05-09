@@ -10,7 +10,7 @@
 
 #ifndef _WINRESRC_
 
-#include "bss-util\bss_compiler.h"
+#include "bss-util\compiler.h"
 
 #if defined(MAGNESIUM_EXPORTS) || defined(MG_STATIC_LIB)
 #pragma warning(disable:4251)

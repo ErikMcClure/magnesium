@@ -18,7 +18,7 @@ namespace magnesium {
   typedef mgComponentInheritBase<planeshader::psSolid, true> psSolidComponent;
 
   template<class T>
-  struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss_util::CARRAY_SIMPLE,
+  struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss::ARRAY_SIMPLE,
     mgComponentInheritInit<psGenericComponent<T>, planeshader::psRenderable, true>,
     mgComponentInheritInit<psGenericComponent<T>, planeshader::psLocatable, true>,
     mgComponentInheritInit<psGenericComponent<T>, planeshader::psSolid, true>> {

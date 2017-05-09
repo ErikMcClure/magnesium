@@ -5,15 +5,15 @@
 #define __ENGINE_H__MG__
 
 #include "mgSystem.h"
-#include "bss-util\cHighPrecisionTimer.h"
-#include "bss-util\bss_log.h"
+#include "bss-util\HighPrecisionTimer.h"
+#include "bss-util\Logger.h"
 
 #define MGLOG(level,...) mgEngine::Instance()->Log(__FILE__,__LINE__,(level),__VA_ARGS__)
 #define MGLOGF(level,format,...) mgEngine::Instance()->LogFormat(__FILE__,__LINE__,(level),format,__VA_ARGS__)
 #define MGLOGP(level,format,...) mgEngine::Instance()->PrintLog(__FILE__,__LINE__,(level),format,__VA_ARGS__)
 
 namespace magnesium {
-  class MG_DLLEXPORT mgEngine : public mgSystemManager, public bss_util::cHighPrecisionTimer
+  class MG_DLLEXPORT mgEngine : public mgSystemManager, public bss::HighPrecisionTimer
   {
   public:
     explicit mgEngine(std::ostream* log = 0);
@@ -22,7 +22,7 @@ namespace magnesium {
     void UpdateDelta();
     inline double GetTimewarp() const { return _timewarp; }
     inline void SetTimewarp(double timewarp) { _timewarp = timewarp; }
-    inline bss_util::cLog& GetLog() { return _log; }
+    inline bss::Logger& GetLog() { return _log; }
 
     inline int PrintLog(const char* file, uint32_t line, uint8_t level, const char* format, ...)
     {
@@ -44,7 +44,7 @@ namespace magnesium {
   protected:
     static mgEngine* _instance;
     double _timewarp;
-    bss_util::cLog _log;
+    bss::Logger _log;
   };
 }
 

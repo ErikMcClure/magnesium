@@ -7,7 +7,7 @@
 #include "mgSystem.h"
 
 namespace magnesium {
-  struct mgLogicComponent : mgComponent<mgLogicComponent, false, bss_util::CARRAY_MOVE> {
+  struct mgLogicComponent : mgComponent<mgLogicComponent, false, bss::ARRAY_MOVE> {
     explicit mgLogicComponent(mgEntity* e = 0) : mgComponent(e) {}
     void (*onlogic)(mgEntity&);
   };

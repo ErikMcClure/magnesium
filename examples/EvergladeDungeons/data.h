@@ -5,9 +5,9 @@
 #define __DATA_H__
 
 #include "Everglade.h"
-#include "bss-util/cStr.h"
-#include "bss-util/cDynArray.h"
-#include "bss-util/cMap.h"
+#include "bss-util/Str.h"
+#include "bss-util/DynArray.h"
+#include "bss-util/Map.h"
 
 enum CHARACTER_STATS : uint16_t
 {
@@ -83,8 +83,8 @@ struct Item {
   ITEM_TYPE Type;
   ITEM_SUBTYPE Subtype;
   ITEM_RARITY Rarity;
-  bss_util::cMap<CHARACTER_STATS, double> Stats;
-  bss_util::cMap<CHARACTER_STATS, double> Requirements;
+  bss::Map<CHARACTER_STATS, double> Stats;
+  bss::Map<CHARACTER_STATS, double> Requirements;
 };
 
 enum RACES { // TODO: replace with actual races
@@ -141,21 +141,21 @@ struct Character {
   uint64_t Shield; // Current shield value
   double Stats[CHAR_STATS_NUM];
   double Base[4]; // Base Str, Dex, Wis, Vit stats as determined by the monster or the player's stat distribution
-  bss_util::cMap<SKILLS, uint64_t> Skills;
-  bss_util::cDynArray<Item> Equipment;
-  bss_util::cBitField<uint64_t> state;
+  bss::Map<SKILLS, uint64_t> Skills;
+  bss::DynArray<Item> Equipment;
+  bss::BitField<uint64_t> state;
   std::pair<double, double> status[STATUS_NUM];
 };
 
 struct Build {
   double Base[4];
-  bss_util::cMap<SKILLS, uint64_t> Skills;
+  bss::Map<SKILLS, uint64_t> Skills;
 };
 
 struct Player : Character {
   uint64_t Bleedout; // If player state is bleedout, number of nanoseconds until they die.
-  bss_util::cDynArray<Item> Inventory;
-  bss_util::cDynArray<Build> Builds;
+  bss::DynArray<Item> Inventory;
+  bss::DynArray<Build> Builds;
 };
 
 struct Enemy : Character {
@@ -179,11 +179,11 @@ struct User {
   };
 
   uint64_t ID;
-  cStr Username;
-  cStr Message; // Status message
-  bss_util::cDynArray<uint64_t> Friends;
+  Str Username;
+  Str Message; // Status message
+  bss::DynArray<uint64_t> Friends;
   USER_STATUS Status;
-  bss_util::cDynArray<Player, uint8_t> Characters;
+  bss::DynArray<Player, uint8_t> Characters;
   uint8_t CurrentCharacter; // Index of current character being played
   ConnectionInfo Connection;
 };

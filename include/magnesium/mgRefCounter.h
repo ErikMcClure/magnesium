@@ -5,7 +5,7 @@
 #define __REF_COUNTER_H__MG__
 
 #include "mg_dec.h"
-#include "bss-util/cHash.h"
+#include "bss-util/Hash.h"
 
 namespace magnesium {
   class MG_DLLEXPORT mgRefCounter
@@ -46,7 +46,7 @@ namespace magnesium {
     
     static int _refdefer;
     static mgRefCounter* _reflast;
-    static bss_util::cHash<mgRefCounter*, mgRefCounter*> _refbuffer;
+    static bss::Hash<mgRefCounter*, mgRefCounter*> _refbuffer;
   };
 }
 

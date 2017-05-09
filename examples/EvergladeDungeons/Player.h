@@ -5,7 +5,7 @@
 #define __PLAYER_H__
 
 #include "Everglade.h"
-#include "bss-util/cBitField.h"
+#include "bss-util/BitField.h"
 
 
 #endif

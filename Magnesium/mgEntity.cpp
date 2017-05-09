@@ -5,7 +5,7 @@
 #include "mgEngine.h"
 
 using namespace magnesium;
-using namespace bss_util;
+using namespace bss;
 
 mgEntity mgEntity::root(false);
 mgEntity mgEntity::NIL(true);
