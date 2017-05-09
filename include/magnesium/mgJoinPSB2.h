@@ -41,9 +41,9 @@ namespace magnesium {
       uint32_t outline;
     };
 
-    bss_util::cDynArray<DrawBuf, uint32_t> _drawbuf;
-    bss_util::cDynArray<planeshader::psVec, uint32_t> _drawverts;
-    bss_util::Matrix<float, 4, 4> _m;
+    bss::DynArray<DrawBuf, uint32_t> _drawbuf;
+    bss::DynArray<planeshader::psVec, uint32_t> _drawverts;
+    bss::Matrix<float, 4, 4> _m;
     float _alpha;
   };
 

@@ -4,11 +4,11 @@
 #include "mgComponent.h"
 
 using namespace magnesium;
-using namespace bss_util;
+using namespace bss;
 
 ComponentID mgComponentCounter::curID = 0;
 ComponentID mgComponentCounter::curGraphID = 1;
-cDynArray<mgComponentStoreBase*> mgComponentStoreBase::_stores;
+DynArray<mgComponentStoreBase*> mgComponentStoreBase::_stores;
 
 mgComponentStoreBase::mgComponentStoreBase(ComponentID id) : _id(id), curIteration(0)
 {

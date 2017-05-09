@@ -133,8 +133,8 @@ namespace magnesium {
   protected:
     static SystemID sysid;
 
-    bss_util::cMap<mgSystemBase*, SystemID, &SortSystem> _systems;
-    bss_util::cHash<SystemID, mgSystemBase*> _systemhash;
+    bss::Map<mgSystemBase*, SystemID, &SortSystem> _systems;
+    bss::Hash<SystemID, mgSystemBase*> _systemhash;
   };
 }
 

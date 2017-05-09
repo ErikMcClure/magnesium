@@ -19,7 +19,7 @@ namespace magnesium {
       uint32_t particle_iters;
 
       template<typename Engine>
-      void Serialize(bss_util::cSerializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e)
       {
         e.EvaluateType<LFINIT>(
           GenPair("b2init", b2init),

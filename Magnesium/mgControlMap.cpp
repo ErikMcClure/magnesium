@@ -5,7 +5,7 @@
 #include "feathergui/feathergui.h"
 
 using namespace magnesium;
-using namespace bss_util;
+using namespace bss;
 
 mgControlMap::mgControlMap() : _curbindid((uint16_t)-1), _curbindtype(0), _curbindcancel(DEFAULT_CANCEL)
 {
@@ -49,7 +49,7 @@ size_t mgControlMap::Message(const FG_Msg* msg)
   case FG_MOUSEUP:
   case FG_MOUSEDOWN:
   {
-    uint8_t code = bss_util::bsslog2_p2(msg->button);
+    uint8_t code = bss::bssLog2_p2(msg->button);
     if(code >= 3) ++code; // the last three buttons are interrupted by the FG_CANCEL key
     if(_keys[code] != (uint16_t)-1)
       _processbutton(_keys[code], msg->type == FG_MOUSEDOWN);

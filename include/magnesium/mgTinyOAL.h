@@ -5,10 +5,10 @@
 #define __TINYOAL_H__MG__
 
 #include "mgSystem.h"
-#include "tinyoal/cTinyOAL.h"
+#include "tinyoal/TinyOAL.h"
 
 namespace magnesium {
-  class MG_DLLEXPORT TinyOALSystem : public tinyoal::cTinyOAL, public mgSystem<void>
+  class MG_DLLEXPORT TinyOALSystem : public tinyoal::TinyOAL, public mgSystem<void>
   {
   public:
     TinyOALSystem(unsigned char defnumbuf = 4, const char* forceOAL = 0, const char* forceOGG = 0, const char* forceFLAC = 0, const char* forceMP3 = 0);

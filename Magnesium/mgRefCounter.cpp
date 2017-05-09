@@ -4,11 +4,11 @@
 #include "mgRefCounter.h"
 
 using namespace magnesium;
-using namespace bss_util;
+using namespace bss;
 
 int mgRefCounter::_refdefer = 0;
 mgRefCounter* mgRefCounter::_reflast = nullptr;
-cHash<mgRefCounter*, mgRefCounter*> mgRefCounter::_refbuffer;
+Hash<mgRefCounter*, mgRefCounter*> mgRefCounter::_refbuffer;
 
 int mgRefCounter::DropAll()
 {

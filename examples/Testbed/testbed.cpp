@@ -13,7 +13,7 @@
 #include "Box2D/Box2D.h"
 #include "planeshader/psPass.h"
 
-using namespace bss_util;
+using namespace bss;
 using namespace magnesium;
 using namespace planeshader;
 using namespace tinyoal;

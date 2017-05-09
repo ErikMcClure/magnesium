@@ -64,10 +64,10 @@ namespace magnesium {
     const ComponentID _id;
 
   private:
-    static bss_util::cDynArray<mgComponentStoreBase*> _stores; // this must only be accessed inside the magnesium DLL
+    static bss::DynArray<mgComponentStoreBase*> _stores; // this must only be accessed inside the magnesium DLL
   };
 
-  template<typename T, bss_util::ARRAY_TYPE ArrayType>
+  template<typename T, bss::ARRAY_TYPE ArrayType>
   class mgComponentStore : protected mgComponentStoreBase
   {
   public:
@@ -79,7 +79,7 @@ namespace magnesium {
       static_assert(sizeof(D) == sizeof(T), "Illegal alternative constructor");
       static_assert(std::is_base_of<T, D>::value, "Must be derived from T");
       assert(mgComponentRef<T>::Counter() <= 0);
-      size_t index = reinterpret_cast<bss_util::cDynArray<D, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<D>>&>(_store).AddConstruct(p); // sneak in substitute constructor
+      size_t index = reinterpret_cast<bss::DynArray<D, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<D>>&>(_store).AddConstruct(p); // sneak in substitute constructor
       assert(_store.Back().entity == p);
       p->ComponentListInsert(_id, T::GraphID(), index);
       return index;
@@ -129,13 +129,13 @@ namespace magnesium {
       _store.RemoveLast();
       return true;
     }
-    bss_util::cDynArray<T, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<T>> _store;
-    bss_util::cDynArray<size_t, size_t, bss_util::CARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumAllocPolicy<size_t>> _buf; // Buffered deletes
+    bss::DynArray<T, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<T>> _store;
+    bss::DynArray<size_t, size_t, bss::ARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumAllocPolicy<size_t>> _buf; // Buffered deletes
   };
 
   struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
 
-  template<typename T, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE, typename... ImpliedComponents>
+  template<typename T, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE, typename... ImpliedComponents>
   struct mgComponent : mgComponentCounter
   {
     explicit mgComponent(mgEntity* e) : entity(e) { mgEntity_AddComponents<ImpliedComponents...>::f(e); }
@@ -151,7 +151,7 @@ namespace magnesium {
     mgComponent& operator=(mgComponent&& copy) { entity = copy.entity; return *this; }
   };
 
-  template<typename T, typename D, bool SCENEGRAPH = false, bss_util::ARRAY_TYPE ArrayType = bss_util::CARRAY_SIMPLE>
+  template<typename T, typename D, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE>
   struct mgComponentInherit : mgComponent<T, SCENEGRAPH, ArrayType>
   {
     explicit mgComponentInherit(mgEntity* e = 0, D* (*f)(mgEntity*) = 0) : mgComponent(e), func(f) {}
