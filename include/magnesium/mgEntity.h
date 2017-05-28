@@ -34,7 +34,7 @@ namespace magnesium {
 #define COMPONENT_REF(T) T*
 #endif
 
-  struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss::TRB_NodeBase<mgEntity>
+  struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss::internal::TRB_NodeBase<mgEntity>
   {
     explicit mgEntity(mgEntity* parent = 0, int order = 0);
     mgEntity(mgEntity&& mov);

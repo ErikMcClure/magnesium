@@ -40,6 +40,7 @@ namespace magnesium {
 
     static mgEngine* Instance();
     static const char* LOGSOURCE;
+    static const bssVersionInfo Version;
 
   protected:
     static mgEngine* _instance;
