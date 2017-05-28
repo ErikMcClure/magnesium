@@ -7,6 +7,7 @@ using namespace magnesium;
 
 mgEngine* mgEngine::_instance = 0;
 const char* mgEngine::LOGSOURCE = "magnesium";
+const bssVersionInfo mgEngine::Version = { MG_VERSION_REVISION, MG_VERSION_MINOR, MG_VERSION_MAJOR };
 
 mgEngine::mgEngine(std::ostream* log) : _timewarp(1.0), _log(!log ? "Magnesium.log" : 0, log) { _instance = this; }
 mgEngine::mgEngine(const char* logfile) : _timewarp(1.0), _log(logfile) { _instance = this; }
