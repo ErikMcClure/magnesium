@@ -54,6 +54,9 @@
     <ClCompile Include="mgEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mgLua.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\magnesium\mgComponent.h">
@@ -96,6 +99,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\magnesium\mgEntity.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\magnesium\mgLua.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\magnesium\mg_lua_c.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

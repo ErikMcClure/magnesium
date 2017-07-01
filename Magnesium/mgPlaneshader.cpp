@@ -1,4 +1,4 @@
-// Copyright ©2016 Black Sphere Studios
+// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in Magnesium.h
 
 #include "mgPlaneshader.h"
@@ -21,9 +21,11 @@ void PlaneshaderSystem::Process()
   // Iterate over entire scene graph, rendering everything
   _process(mgEntity::SceneGraph(), psParent::Zero);
 
+  GetGUI().Render(0);
   End();
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();
+  fgRoot_Update(fgSingleton(), mgEngine::Instance()->GetDelta()*0.001);
 }
 
 void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
