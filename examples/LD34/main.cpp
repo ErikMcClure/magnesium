@@ -8,6 +8,7 @@
 #include "mgTinyOAL.h"
 #include "mgJoinPSB2.h"
 #include "mgLogic.h"
+#include "mgLua.h"
 #include "Box2D/Box2D.h"
 #include "planeshader/psPass.h"
 #include "bss-util/RefCounter.h"
@@ -216,12 +217,17 @@ public:
 //  DynArray<psVec3D> _buildings;
 //};
 
-std::function<size_t(const FG_Msg&)> guifunction;
+#include <sstream>
+
+std::function<size_t(fgRoot&, const FG_Msg&)> guifunction;
 
 int main(int argc, char** argv)
 {
   SetWorkDirToCur();
   mgEngine engine;
+
+  std::stringstream ssLog;
+  engine.GetLog().AddTarget(ssLog);
 
   PSINIT init;
   //init.width = 1024;
@@ -238,11 +244,13 @@ int main(int argc, char** argv)
   TinyOALSystem tinyoal;
   LiquidFunSystem psbox2d(b2init, 0);
   LogicSystem logic;
+  LuaSystem lua;
 
   engine.AddSystem(&ps);
   engine.AddSystem(&tinyoal);
   engine.AddSystem(&psbox2d);
   engine.AddSystem(&logic);
+  engine.AddSystem(&lua);
 
   psDebugDraw psdd;
   //ps[0].Insert(&psdd);
@@ -266,7 +274,8 @@ int main(int argc, char** argv)
   
   ref_ptr<Player> player = new Player(LoadPointImg("../media/LD34/player.png"), 100);
 
-  guifunction = [&](const FG_Msg& evt) -> size_t {
+  fgInject injector;
+  guifunction = [&](fgRoot& self, const FG_Msg& evt) -> size_t {
     if(evt.type == FG_KEYDOWN || evt.type == FG_KEYUP)
     {
       bool isdown = evt.type == FG_KEYDOWN;
@@ -300,10 +309,10 @@ int main(int argc, char** argv)
         break;
       }
     }
-    return 0;
+    return injector(&self, &evt);
   };
 
-  fgSetInjectFunc([](struct _FG_ROOT* self, const FG_Msg* msg) -> size_t { return guifunction(*msg); });
+  injector = fgSetInjectFunc([](struct _FG_ROOT* self, const FG_Msg* msg) -> size_t { return guifunction(*self, *msg); });
   //ps.GetGUI().SetInject(psRoot::PS_MESSAGE(guifunction));
 
   player->Get<mgLogicComponent>()->onlogic = [](mgEntity& e) {
@@ -345,12 +354,22 @@ int main(int argc, char** argv)
 
   //BackgroundGen bg(0);
 
+  fgLayout layout;
+  fgLayout_Init(&layout, 0, 0);
+  fgLayout_LoadFileXML(&layout, "../media/console.xml");
+  fgSingleton()->gui->LayoutLoad(&layout);
+
+  fgElement* console = fgGetID("console");
+
   engine.ResetDelta();
   engine.ResetTime();
   while(!ps.GetQuit())
   {
+    console->SetText(ssLog.str().c_str());
     engine.Process();
   }
+
+  fgLayout_Destroy(&layout);
 }
 
 struct HINSTANCE__;
