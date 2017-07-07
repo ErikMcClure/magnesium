@@ -9,9 +9,11 @@
 #include "mgJoinPSB2.h"
 #include "mgLogic.h"
 #include "mgLua.h"
+#include "mgConsole.h"
 #include "Box2D/Box2D.h"
 #include "planeshader/psPass.h"
 #include "bss-util/RefCounter.h"
+#include "feathergui/fgTextbox.h"
 
 using namespace bss;
 using namespace magnesium;
@@ -226,7 +228,8 @@ int main(int argc, char** argv)
   SetWorkDirToCur();
   mgEngine engine;
 
-  std::stringstream ssLog;
+  mgConsole console;
+  std::ostream ssLog(&console);
   engine.GetLog().AddTarget(ssLog);
 
   PSINIT init;
@@ -241,6 +244,10 @@ int main(int argc, char** argv)
   //b2init.hertz = 0;
 #endif
   LiquidFunPlaneshaderSystem ps(init, -1);
+
+  fgTransform consoletf = { {0, 0, 0, 0, 0, 1.0f, 320, 0 }, 0, {0, 0, 0, 0 } };
+  console.Load(ps.GetGUI().gui, 0, "console", FGELEMENT_BACKGROUND | FGELEMENT_IGNORE, &consoletf, 0);
+
   TinyOALSystem tinyoal;
   LiquidFunSystem psbox2d(b2init, 0);
   LogicSystem logic;
@@ -252,6 +259,17 @@ int main(int argc, char** argv)
   engine.AddSystem(&logic);
   engine.AddSystem(&lua);
 
+  fgTransform inputtf = { { 0, 0, 320, 0, 0, 1.0f, 320, 0 }, 0,{ 0, 0, 0, 0 } };
+  fgElement* input = fgCreate("textbox", ps.GetGUI().gui, 0, "console_input", FGELEMENT_EXPANDY | FGTEXTBOX_SINGLELINE | FGTEXTBOX_ACTION, &inputtf, 0);
+  std::function<void(struct _FG_ELEMENT* e, const FG_Msg* m)> inputaction = [&](struct _FG_ELEMENT* e, const FG_Msg* m) {
+    if(!m->subtype)
+    {
+      std::istringstream ss(std::string(e->GetText()));
+      lua.Load(ss, ssLog);
+      e->SetText("");
+    }
+  };
+  fgElement_AddLambdaListener(input, FG_ACTION, inputaction);
   psDebugDraw psdd;
   //ps[0].Insert(&psdd);
   psbox2d.SetDebugDraw(&psdd);
@@ -359,16 +377,15 @@ int main(int argc, char** argv)
   fgLayout_LoadFileXML(&layout, "../media/console.xml");
   fgSingleton()->gui->LayoutLoad(&layout);
 
-  fgElement* console = fgGetID("console");
 
   engine.ResetDelta();
   engine.ResetTime();
   while(!ps.GetQuit())
   {
-    console->SetText(ssLog.str().c_str());
     engine.Process();
   }
 
+  console.Destroy();
   fgLayout_Destroy(&layout);
 }
 
