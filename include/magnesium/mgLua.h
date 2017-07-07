@@ -70,6 +70,7 @@ namespace magnesium {
     ~LuaSystem();
     virtual void Process() override;
     int Load(std::istream& s, const char* name = 0);
+    int Load(std::istream& s, std::ostream& out);
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }
     inline int Print() { return lua_Print(_l); }
@@ -89,9 +90,12 @@ namespace magnesium {
       lua_call(_l, N, 1);
       return LuaStack<R, LS<R>::value>::Pop(_l);
     }
+    void _writeError(int r, const char* name);
+
     static const char* _luaStreamReader(lua_State *L, void *data, size_t *size);
     static int lua_Print(lua_State *L);
-
+    static int _print(lua_State *L, std::ostream& out);
+      
     lua_State* _l;
   };
 }

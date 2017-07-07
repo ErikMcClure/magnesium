@@ -38,7 +38,7 @@
     <ProjectGuid>{B1BDC943-51DC-451A-AE1F-1EC3FB5AFA37}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Magnesium</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
     <VcpkgAutoLink>false</VcpkgAutoLink>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -126,46 +126,47 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)32_d</TargetName>
-    <OutDir>$(SolutionDir)bin32\</OutDir>
+    <TargetName>$(ProjectName)32_l_d</TargetName>
+    <OutDir>$(ProjectDir)..\bin32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)32_s_d</TargetName>
-    <OutDir>$(SolutionDir)bin32\</OutDir>
+    <TargetName>$(ProjectName)32_d</TargetName>
+    <OutDir>$(ProjectDir)..\bin32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <TargetName>$(ProjectName)_d</TargetName>
+    <OutDir>$(ProjectDir)..\bin\</OutDir>
+    <TargetName>$(ProjectName)_l_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <TargetName>$(ProjectName)_s_d</TargetName>
+    <OutDir>$(ProjectDir)..\bin\</OutDir>
+    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)32</TargetName>
-    <OutDir>$(SolutionDir)bin32\</OutDir>
+    <TargetName>$(ProjectName)32_l</TargetName>
+    <OutDir>$(ProjectDir)..\bin32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)32_s</TargetName>
-    <OutDir>$(SolutionDir)bin32\</OutDir>
+    <TargetName>$(ProjectName)32</TargetName>
+    <OutDir>$(ProjectDir)..\bin32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>$(ProjectDir)..\bin\</OutDir>
+    <TargetName>$(ProjectName)_l</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <TargetName>$(ProjectName)_s</TargetName>
+    <OutDir>$(ProjectDir)..\bin\</OutDir>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <ClCompile>
@@ -378,6 +379,9 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClCompile>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <Lib>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MachineX86</TargetMachine>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug DLL|true'">
     <PostBuildEvent>
@@ -405,10 +409,14 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClCompile>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <Lib>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MachineX86</TargetMachine>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mgBox2D.cpp" />
     <ClCompile Include="mgComponent.cpp" />
+    <ClCompile Include="mgConsole.cpp" />
     <ClCompile Include="mgControlMap.cpp" />
     <ClCompile Include="mgEngine.cpp" />
     <ClCompile Include="mgEntity.cpp" />
@@ -425,6 +433,7 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClInclude Include="..\include\magnesium\Magnesium.h" />
     <ClInclude Include="..\include\magnesium\mgBox2D.h" />
     <ClInclude Include="..\include\magnesium\mgComponent.h" />
+    <ClInclude Include="..\include\magnesium\mgConsole.h" />
     <ClInclude Include="..\include\magnesium\mgControlMap.h" />
     <ClInclude Include="..\include\magnesium\mgEngine.h" />
     <ClInclude Include="..\include\magnesium\mgEntity.h" />

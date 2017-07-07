@@ -21,15 +21,54 @@ void LuaSystem::Process()
 {
 }
 
+void LuaSystem::_writeError(int r, const char* name)
+{
+  if(!r)
+    return;
+  if(r == LUA_ERRSYNTAX)
+  {
+    if(name)
+      MGLOG(2, "Syntax error in ", name, ": ", lua_tostring(_l, -1));
+    else
+      MGLOG(2, "Syntax error: ", lua_tostring(_l, -1));
+    lua_pop(_l, 1);
+  }
+  else if(name)
+    MGLOG(2, "Error loading lua chunk (", name, "): ", r);
+  else
+    MGLOG(2, "Error loading lua chunk: ", r);
+}
 int LuaSystem::Load(std::istream& s, const char* name)
 {
   int r = lua_load(_l, &_luaStreamReader, &s, name);
-  if(!name)
-    return lua_pcall(_l, 0, LUA_MULTRET, 0);
-  else
-    lua_setfield(_l, LUA_GLOBALSINDEX, name);
+
+  if(!r)
+  {
+    if(!name)
+      r = lua_pcall(_l, 0, LUA_MULTRET, 0);
+    else
+      lua_setfield(_l, LUA_GLOBALSINDEX, name);
+  }
+
+  _writeError(r, name);
   return r;
 }
+
+int LuaSystem::Load(std::istream& s, std::ostream& out)
+{
+  int r = lua_load(_l, &_luaStreamReader, &s, 0);
+
+  if(!r)
+  {
+    r = lua_pcall(_l, 0, LUA_MULTRET, 0);
+    if(!r)
+      _print(_l, out);
+  }
+
+  _writeError(r, 0);
+  return r;
+}
+
 
 const char* LuaSystem::_luaStreamReader(lua_State *L, void *data, size_t *size)
 {
@@ -39,11 +78,12 @@ const char* LuaSystem::_luaStreamReader(lua_State *L, void *data, size_t *size)
   return buf;
 }
 
-int LuaSystem::lua_Print(lua_State *L) {
+int LuaSystem::_print(lua_State *L, std::ostream& out) {
   int n = lua_gettop(L);  /* number of arguments */
+  if(!n)
+    return 0;
   int i;
   lua_getglobal(L, "tostring");
-  std::ostream& out = mgEngine::Instance()->GetLog().GetStream();
   for(i = 1; i <= n; i++)
   {
     const char *s;
@@ -60,4 +100,8 @@ int LuaSystem::lua_Print(lua_State *L) {
   }
   out << std::endl;
   return 0;
+}
+
+int LuaSystem::lua_Print(lua_State *L) {
+  return _print(L, mgEngine::Instance()->GetLog().GetStream());
 }
