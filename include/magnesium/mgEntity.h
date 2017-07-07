@@ -54,7 +54,7 @@ namespace magnesium {
     void SetParent(mgEntity* parent);
     inline int Order() const { return _order; }
     void SetOrder(int order);
-    virtual const char* GetDebugName() const { return 0; }
+    virtual const char* GetName() const { return 0; }
 
     size_t id;
     size_t childhint; // Bitfield of scenegraph components our children might have

@@ -2,6 +2,7 @@
 
 #include "mgLua.h"
 #include "mgEngine.h"
+#include "mgPlaneshader.h"
 
 using namespace magnesium;
 
@@ -69,7 +70,6 @@ int LuaSystem::Load(std::istream& s, std::ostream& out)
   return r;
 }
 
-
 const char* LuaSystem::_luaStreamReader(lua_State *L, void *data, size_t *size)
 {
   static char buf[CHUNKSIZE];
@@ -104,4 +104,25 @@ int LuaSystem::_print(lua_State *L, std::ostream& out) {
 
 int LuaSystem::lua_Print(lua_State *L) {
   return _print(L, mgEngine::Instance()->GetLog().GetStream());
+}
+
+int LuaSystem::lua_GetEntityComponent(lua_State *L)
+{
+  // Return a pointer to the components, how big a component is, and how many of them are there
+
+  return 0;
+}
+
+struct _FG_ROOT* lua_GetGUI()
+{
+  if(planeshader::psEngine::Instance())
+    return &planeshader::psEngine::Instance()->GetGUI();
+}
+int lua_RegisterSystem(void(*process)(), int priority, const char* name)
+{
+  return -1;
+}
+mgSystemBase::mgMessageResult lua_MessageSystem(const char* name, ptrdiff_t m, void* p)
+{
+  return mgEngine::Instance()->GetSystem(name)->Message(m, p);
 }

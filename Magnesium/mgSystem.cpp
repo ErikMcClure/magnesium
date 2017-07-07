@@ -50,6 +50,14 @@ mgSystemBase::mgMessageResult mgSystemManager::MessageSystem(SystemID id, ptrdif
   mgSystemBase* system = _systemhash.Get(id);
   return (!system) ? mgSystemBase::mgMessageResult{ 0 } : system->Message(m, p);
 }
+mgSystemBase* mgSystemManager::GetSystem(SystemID id) const
+{
+  return _systemhash[id];
+} 
+mgSystemBase* mgSystemManager::GetSystem(const char* name) const
+{
+  return _systemname[name];
+}
 
 void mgSystemManager::Process()
 {

@@ -32,6 +32,7 @@ namespace magnesium {
     LiquidFunSystem(const LFINIT& init, int priority = 0);
     ~LiquidFunSystem();
     virtual void Process() override;
+    virtual const char* GetName() const override { return "LiquidFun"; }
     inline uint32_t GetParticleIters() const { return _particle_iters; }
     inline void SetParticleIters(uint32_t particleiters) { _particle_iters = particleiters; }
 

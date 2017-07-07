@@ -129,6 +129,7 @@ namespace magnesium {
     virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
     virtual void BeginContact(b2Contact* contact) override;
     virtual void EndContact(b2Contact* contact) override;
+    virtual const char* GetName() const override { return "Box2D"; }
     inline b2World* GetWorld() { return _world; }
     inline double GetHertz() const { return _init.hertz; }
     void SetHertz(double hertz);
