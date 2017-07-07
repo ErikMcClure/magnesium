@@ -18,6 +18,7 @@ namespace magnesium {
     LogicSystem();
     ~LogicSystem();
     virtual void Process() override;
+    virtual const char* GetName() const override { return "Logic"; }
 
     static void Iterator(mgSystemBase*, mgEntity& entity);
     std::function<void()> process;

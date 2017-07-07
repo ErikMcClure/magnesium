@@ -23,6 +23,7 @@ namespace magnesium {
     mgSystemBase(int priority = 0);
     virtual ~mgSystemBase();
     virtual void Process() = 0;
+    virtual const char* GetName() const { return 0; }
     virtual mgMessageResult Message(ptrdiff_t m, void* p) { return mgMessageResult{ 0 }; }
 
     typedef void(*ITERATOR)(mgSystemBase*, mgEntity&);
@@ -121,6 +122,10 @@ namespace magnesium {
     bool RemoveSystem(SystemID id);
     bool RemoveSystem(mgSystemBase* system);
     template<class T>
+    inline T* GetSystem() const { return static_cast<T*>(GetSystem(GetSystemID<T>())); }
+    mgSystemBase* GetSystem(SystemID id) const;
+    mgSystemBase* GetSystem(const char* name) const;
+    template<class T>
     inline mgSystemBase::mgMessageResult MessageSystem(ptrdiff_t m, void* p) { return MessageSystem(GetSystemID<T>(), m, p); }
     mgSystemBase::mgMessageResult MessageSystem(SystemID id, ptrdiff_t m, void* p);
     void Process();
@@ -135,6 +140,7 @@ namespace magnesium {
 
     bss::Map<mgSystemBase*, SystemID, &SortSystem> _systems;
     bss::Hash<SystemID, mgSystemBase*> _systemhash;
+    bss::Hash<const char*, mgSystemBase*> _systemname;
   };
 }
 

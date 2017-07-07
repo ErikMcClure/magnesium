@@ -39,3 +39,17 @@ mgComponentStoreBase* mgComponentStoreBase::GetStore(ComponentID id)
 
 void* mgComponentStoreBase::dllrealloc(void* p, size_t sz) { return realloc(p, sz); }
 void mgComponentStoreBase::dllfree(void* p) { free(p); }
+
+Hash<const char*, ComponentID> mgComponentIDNameHash;
+
+ComponentID GetComponentID(const char* name)
+{
+  khiter_t i = mgComponentIDNameHash.Iterator(name);
+  if(mgComponentIDNameHash.ExistsIter(i))
+    return mgComponentIDNameHash.GetValue(i);
+  return (ComponentID)~0;
+}
+void RegisterComponentID(ComponentID id, const char* name)
+{
+  mgComponentIDNameHash.Insert(name, id);
+}

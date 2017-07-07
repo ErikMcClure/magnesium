@@ -39,6 +39,7 @@ namespace magnesium {
     PlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0);
     ~PlaneshaderSystem();
     virtual void Process() override;
+    virtual const char* GetName() const override { return "Planeshader"; }
 
   protected:
     virtual void _process(mgEntity& root, const planeshader::psParent& prev);

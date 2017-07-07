@@ -176,6 +176,11 @@ namespace magnesium {
     float rotation;
     float pivot[2];
   };
+
+  MG_DLLEXPORT ComponentID GetComponentID(const char* name);
+  MG_DLLEXPORT void RegisterComponentID(ComponentID id, const char* name);
+  template<class T>
+  inline void RegisterComponentID(const char* name) { RegisterComponentID(T::ID(), name); }
 }
 
 #endif

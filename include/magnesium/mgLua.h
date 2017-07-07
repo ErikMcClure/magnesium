@@ -74,6 +74,7 @@ namespace magnesium {
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }
     inline int Print() { return lua_Print(_l); }
+    virtual const char* GetName() const override { return "Lua"; }
 
     static const int CHUNKSIZE = (1 << 16);
 
@@ -95,7 +96,8 @@ namespace magnesium {
     static const char* _luaStreamReader(lua_State *L, void *data, size_t *size);
     static int lua_Print(lua_State *L);
     static int _print(lua_State *L, std::ostream& out);
-      
+    static int lua_GetEntityComponent(lua_State *L);
+
     lua_State* _l;
   };
 }
@@ -104,9 +106,7 @@ extern "C" {
   struct _FG_ROOT;
 
   struct _FG_ROOT* lua_GetGUI();
-  void* lua_GetEntityComponent(magnesium::mgEntity* entity, const char* name);
   int lua_RegisterSystem(void(*process)(), int priority, const char* name);
-  void* lua_GetComponentStore(const char* name);
-
+  magnesium::mgSystemBase::mgMessageResult lua_MessageSystem(const char* name, ptrdiff_t m, void* p);
 }
 #endif

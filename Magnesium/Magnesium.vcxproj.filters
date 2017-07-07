@@ -107,9 +107,6 @@
     <ClInclude Include="..\include\magnesium\mgLua.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\magnesium\mg_lua_c.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\magnesium\mgConsole.h">
       <Filter>include</Filter>
     </ClInclude>

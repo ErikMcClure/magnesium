@@ -446,7 +446,6 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClInclude Include="..\include\magnesium\mgSystem.h" />
     <ClInclude Include="..\include\magnesium\mgTinyOAL.h" />
     <ClInclude Include="..\include\magnesium\mg_dec.h" />
-    <ClInclude Include="..\include\magnesium\mg_lua_c.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Magnesium.rc" />
