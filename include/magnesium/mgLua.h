@@ -71,6 +71,7 @@ namespace magnesium {
     virtual void Process() override;
     int Load(std::istream& s, const char* name = 0);
     int Load(std::istream& s, std::ostream& out);
+    int Require(const char* name); // Equivelent to calling require("name") in Lua
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }
     inline int Print() { return lua_Print(_l); }
@@ -92,6 +93,7 @@ namespace magnesium {
       return LuaStack<R, LS<R>::value>::Pop(_l);
     }
     void _writeError(int r, const char* name);
+    const char* _getError();
 
     static const char* _luaStreamReader(lua_State *L, void *data, size_t *size);
     static int lua_Print(lua_State *L);

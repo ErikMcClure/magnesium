@@ -104,6 +104,8 @@ void mgConsole::_recalcLines()
 }
 void mgConsole::_writeConsole()
 {
+  if(!_lines.Length())
+    return;
   assert(_offset < _lines.Length());
   if(_console->message != 0)
   {

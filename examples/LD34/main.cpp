@@ -271,7 +271,8 @@ int main(int argc, char** argv)
   };
   fgElement_AddLambdaListener(input, FG_ACTION, inputaction);
   psDebugDraw psdd;
-  //ps[0].Insert(&psdd);
+  psdd.SetAlpha(0.5);
+  ps[0].Insert(&psdd);
   psbox2d.SetDebugDraw(&psdd);
 
   maxcam.left = -ps.GetDriver()->GetBackBuffer()->GetDim().x*0.375; // 3/8
