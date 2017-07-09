@@ -71,6 +71,8 @@ namespace magnesium {
     virtual void Process() override;
     int Load(std::istream& s, const char* name = 0);
     int Load(std::istream& s, std::ostream& out);
+    int Load(const char* script, std::ostream& out);
+    int Load(const char* script);
     int Require(const char* name); // Equivelent to calling require("name") in Lua
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }

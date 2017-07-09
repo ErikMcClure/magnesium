@@ -65,19 +65,11 @@ void mgConsole::Clear()
   _offset = 0;
 }
 
-#include <vector>
-
 int mgConsole::sync()
 {
   size_t old = _len;
   _len = (size_t)(pptr() - pbase());
   size_t lines = _lines.Length();
-
-  std::vector<const char*> testing;
-  for(auto l : _lines)
-  {
-    testing.push_back(pbase() + l);
-  }
 
   for(size_t i = old; i < _len; ++i)
   {
