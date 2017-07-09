@@ -3,6 +3,7 @@
 #include "mgLua.h"
 #include "mgEngine.h"
 #include "mgPlaneshader.h"
+#include <sstream>
 
 using namespace magnesium;
 
@@ -40,14 +41,14 @@ void LuaSystem::_writeError(int r, const char* name)
       MGLOG(2, "Syntax error: ", _getError());
     lua_pop(_l, 1);
   }
-  //else if(r == LUA_ERRRUN)
-  //{
-  //  if(name)
-  //    MGLOG(2, "Runtime error in ", name, ": ", _getError());
-  //  else
-  //    MGLOG(2, "Runtime error: ", _getError());
-  //  lua_pop(_l, 1);
-  //}
+  else if(r == LUA_ERRRUN)
+  {
+    if(name)
+      MGLOG(2, "Runtime error in ", name, ": ", _getError());
+    else
+      MGLOG(2, "Runtime error: ", _getError());
+    lua_pop(_l, 1);
+  }
   else if(!lua_isnil(_l, -1))
   {
     if(name)
@@ -91,10 +92,22 @@ int LuaSystem::Load(std::istream& s, std::ostream& out)
   _writeError(r, 0);
   return r;
 }
+int LuaSystem::Load(const char* script, std::ostream& out)
+{
+  std::istringstream ss(script);
+  return Load(ss, out);
+}
+int LuaSystem::Load(const char* script)
+{
+  std::istringstream ss(script);
+  return Load(ss, 0);
+}
+
 int LuaSystem::Require(const char *name) {
   lua_getglobal(_l, "require");
   lua_pushstring(_l, name);
   int r = lua_pcall(_l, 1, 1, 0);
+  lua_pop(_l, 1);
   _writeError(r, name);
   return r;
 }
