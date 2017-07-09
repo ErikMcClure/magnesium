@@ -22,6 +22,12 @@ void LuaSystem::Process()
 {
 }
 
+const char* LuaSystem::_getError()
+{
+  const char* m = lua_tostring(_l, -1);
+  return !m ? "[NULL]" : m;
+}
+
 void LuaSystem::_writeError(int r, const char* name)
 {
   if(!r)
@@ -29,9 +35,25 @@ void LuaSystem::_writeError(int r, const char* name)
   if(r == LUA_ERRSYNTAX)
   {
     if(name)
-      MGLOG(2, "Syntax error in ", name, ": ", lua_tostring(_l, -1));
+      MGLOG(2, "Syntax error in ", name, ": ", _getError());
     else
-      MGLOG(2, "Syntax error: ", lua_tostring(_l, -1));
+      MGLOG(2, "Syntax error: ", _getError());
+    lua_pop(_l, 1);
+  }
+  //else if(r == LUA_ERRRUN)
+  //{
+  //  if(name)
+  //    MGLOG(2, "Runtime error in ", name, ": ", _getError());
+  //  else
+  //    MGLOG(2, "Runtime error: ", _getError());
+  //  lua_pop(_l, 1);
+  //}
+  else if(!lua_isnil(_l, -1))
+  {
+    if(name)
+      MGLOG(2, "Error ", r, " loading (", name, "): ", _getError());
+    else
+      MGLOG(2, "Error ", r, ": ", _getError());
     lua_pop(_l, 1);
   }
   else if(name)
@@ -69,7 +91,13 @@ int LuaSystem::Load(std::istream& s, std::ostream& out)
   _writeError(r, 0);
   return r;
 }
-
+int LuaSystem::Require(const char *name) {
+  lua_getglobal(_l, "require");
+  lua_pushstring(_l, name);
+  int r = lua_pcall(_l, 1, 1, 0);
+  _writeError(r, name);
+  return r;
+}
 const char* LuaSystem::_luaStreamReader(lua_State *L, void *data, size_t *size)
 {
   static char buf[CHUNKSIZE];
@@ -115,8 +143,7 @@ int LuaSystem::lua_GetEntityComponent(lua_State *L)
 
 struct _FG_ROOT* lua_GetGUI()
 {
-  if(planeshader::psEngine::Instance())
-    return &planeshader::psEngine::Instance()->GetGUI();
+  return planeshader::psEngine::Instance() ? &planeshader::psEngine::Instance()->GetGUI() : nullptr;
 }
 int lua_RegisterSystem(void(*process)(), int priority, const char* name)
 {
