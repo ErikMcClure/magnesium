@@ -111,6 +111,19 @@ int LuaSystem::Require(const char *name) {
   _writeError(r, name);
   return r;
 }
+int LuaSystem::AppendPath(const char* path)
+{
+  lua_getglobal(_l, "package");
+  lua_getfield(_l, -1, "path"); // get field "path" from table at top of stack (-1)
+  std::string npath = path;
+  npath.append(";");
+  npath.append(lua_tostring(_l, -1)); // grab path string from top of stack
+  lua_pop(_l, 1);
+  lua_pushstring(_l, npath.c_str());
+  lua_setfield(_l, -2, "path"); // set the field "path" in table at -2 with value at top of stack
+  lua_pop(_l, 1); // get rid of package table from top of stack
+  return 0;
+}
 const char* LuaSystem::_luaStreamReader(lua_State *L, void *data, size_t *size)
 {
   static char buf[CHUNKSIZE];

@@ -59,7 +59,6 @@ void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& col
 void psDebugDraw::_render(const psParent& parent)
 {
   Matrix<float, 4, 4> m;
-  parent.GetTransform(m.v);
   Matrix<float, 4, 4>::AffineScaling(Box2DSystem::Instance()->F_PPM, Box2DSystem::Instance()->F_PPM, 1.0f, m);
   _driver->PushTransform(m.v);
 
@@ -70,7 +69,9 @@ void psDebugDraw::_render(const psParent& parent)
     if(!buf.vcount) // circle
     {
       psVec p = _drawverts[buf.vindex];
-      psRenderCircle::DrawCircle(0, 0, psRectRotateZ(p.x - buf.radius - 1, p.y - buf.radius - 1, p.x + buf.radius + 1, p.y + buf.radius + 1, 0), psRect(0, PI_DOUBLEf, 0, PI_DOUBLEf), 0, buf.color, buf.outline, 1.0f, _m.v);
+      psRenderCircle::DrawCircle(_driver->library.CIRCLE, 0,
+        psRectRotateZ(p.x - buf.radius - 1, p.y - buf.radius - 1, p.x + buf.radius + 1, p.y + buf.radius + 1, 0),
+        psRect(0, PI_DOUBLEf, 0, PI_DOUBLEf), 0, buf.color, buf.outline, 1.0f);
     }
     if(buf.vcount == -2) // line
     {
