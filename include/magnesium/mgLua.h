@@ -78,7 +78,9 @@ namespace magnesium {
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }
     inline int Print() { return lua_Print(_l); }
+    inline int Print(std::ostream& out) { return _print(_l, out); }
     inline lua_State* GetState() { return _l; }
+    void WriteError(int r, const char* name);
     virtual const char* GetName() const override { return "Lua"; }
 
     static const int CHUNKSIZE = (1 << 16);
@@ -96,8 +98,8 @@ namespace magnesium {
       lua_call(_l, N, 1);
       return LuaStack<R, LS<R>::value>::Pop(_l);
     }
-    void _writeError(int r, const char* name);
     const char* _getError();
+    void _popError();
 
     static const char* _luaStreamReader(lua_State *L, void *data, size_t *size);
     static int lua_Print(lua_State *L);

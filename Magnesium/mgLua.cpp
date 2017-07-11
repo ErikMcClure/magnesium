@@ -29,7 +29,13 @@ const char* LuaSystem::_getError()
   return !m ? "[NULL]" : m;
 }
 
-void LuaSystem::_writeError(int r, const char* name)
+void LuaSystem::_popError()
+{
+  if(lua_gettop(_l) > 0)
+    lua_pop(_l, 1);
+}
+
+void LuaSystem::WriteError(int r, const char* name)
 {
   if(!r)
     return;
@@ -39,7 +45,7 @@ void LuaSystem::_writeError(int r, const char* name)
       MGLOG(2, "Syntax error in ", name, ": ", _getError());
     else
       MGLOG(2, "Syntax error: ", _getError());
-    lua_pop(_l, 1);
+    _popError();
   }
   else if(r == LUA_ERRRUN)
   {
@@ -47,7 +53,7 @@ void LuaSystem::_writeError(int r, const char* name)
       MGLOG(2, "Runtime error in ", name, ": ", _getError());
     else
       MGLOG(2, "Runtime error: ", _getError());
-    lua_pop(_l, 1);
+    _popError();
   }
   else if(!lua_isnil(_l, -1))
   {
@@ -55,7 +61,7 @@ void LuaSystem::_writeError(int r, const char* name)
       MGLOG(2, "Error ", r, " loading (", name, "): ", _getError());
     else
       MGLOG(2, "Error ", r, ": ", _getError());
-    lua_pop(_l, 1);
+    _popError();
   }
   else if(name)
     MGLOG(2, "Error loading lua chunk (", name, "): ", r);
@@ -74,7 +80,7 @@ int LuaSystem::Load(std::istream& s, const char* name)
       lua_setfield(_l, LUA_GLOBALSINDEX, name);
   }
 
-  _writeError(r, name);
+  WriteError(r, name);
   return r;
 }
 
@@ -89,7 +95,7 @@ int LuaSystem::Load(std::istream& s, std::ostream& out)
       _print(_l, out);
   }
 
-  _writeError(r, 0);
+  WriteError(r, 0);
   return r;
 }
 int LuaSystem::Load(const char* script, std::ostream& out)
@@ -108,7 +114,7 @@ int LuaSystem::Require(const char *name) {
   lua_pushstring(_l, name);
   int r = lua_pcall(_l, 1, 1, 0);
   lua_pop(_l, 1);
-  _writeError(r, name);
+  WriteError(r, name);
   return r;
 }
 int LuaSystem::AppendPath(const char* path)

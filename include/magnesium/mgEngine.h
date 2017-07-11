@@ -23,6 +23,8 @@ namespace magnesium {
     inline double GetTimewarp() const { return _timewarp; }
     inline void SetTimewarp(double timewarp) { _timewarp = timewarp; }
     inline bss::Logger& GetLog() { return _log; }
+    BSS_FORCEINLINE void Process() { mgSystemManager::Process(); }
+    void Process(uint64_t delta);
 
     inline int PrintLog(const char* file, uint32_t line, uint8_t level, const char* format, ...)
     {
@@ -45,6 +47,7 @@ namespace magnesium {
   protected:
     static mgEngine* _instance;
     double _timewarp;
+    uint64_t _override;
     bss::Logger _log;
   };
 }
