@@ -209,6 +209,7 @@ void Box2DSystem::Reload()
   _world->SetDestructionListener(this);
   _world->SetContactListener(this);
   _world->SetAutoClearForces(false);
+
   if(_debugdraw != 0)
     _world->SetDebugDraw(_debugdraw);
 }

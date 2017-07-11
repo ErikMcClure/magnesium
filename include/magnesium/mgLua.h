@@ -74,9 +74,11 @@ namespace magnesium {
     int Load(const char* script, std::ostream& out);
     int Load(const char* script);
     int Require(const char* name); // Equivelent to calling require("name") in Lua
+    int AppendPath(const char* path); // Same as running: path .. ';' .. package.path
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }
     inline int Print() { return lua_Print(_l); }
+    inline lua_State* GetState() { return _l; }
     virtual const char* GetName() const override { return "Lua"; }
 
     static const int CHUNKSIZE = (1 << 16);
