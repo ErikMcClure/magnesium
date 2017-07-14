@@ -95,6 +95,26 @@ namespace magnesium {
     const size_t _required;
   };
 
+  template<typename SYS, typename COMP, typename... Args>
+  struct SimpleIterator
+  {
+    // Efficient, type-specific iteration generator function
+    template<void(SYS::*F)(COMP&, Args...)>
+    BSS_FORCEINLINE static void Gen(SYS* self, Args... args)
+    {
+      auto& store = COMP::Store();
+      store.curIteration = 0;
+
+      for(COMP& c : store)
+      {
+        ++store.curIteration;
+        (self->*F)(c, args...);
+      }
+
+      store.FlushBuffer(); // Delete all the entities whose deletion was postponed because we had already iterated over them.
+    }
+  };
+
   template<typename ComponentIterator>
   class BSS_COMPILER_DLLEXPORT mgSystem : public mgSystemSimple
   {

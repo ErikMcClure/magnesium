@@ -10,16 +10,16 @@ using namespace bss;
 mgEntity mgEntity::root(false);
 mgEntity mgEntity::NIL(true);
 
-mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), id(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0)
+mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), id(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0), _name(0)
 {
 }
-mgEntity::mgEntity(mgEntity* parent, int order) : TRB_NodeBase<mgEntity>(&NIL), id(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0)
+mgEntity::mgEntity(mgEntity* parent, int order) : TRB_NodeBase<mgEntity>(&NIL), id(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0), _name(0)
 {
   _parent = !parent ? &root : parent;
   _parent->_addchild(this);
 }
 mgEntity::mgEntity(mgEntity&& mov) : TRB_NodeBase<mgEntity>(&NIL), id(mov.id), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)),
-childhint(mov.childhint), _parent(mov._parent), _order(mov._order), _children(mov._children), _first(mov._first), _last(mov._last)
+childhint(mov.childhint), _parent(mov._parent), _order(mov._order), _children(mov._children), _first(mov._first), _last(mov._last), _name(mov._name)
 {
   if(_parent)
   {

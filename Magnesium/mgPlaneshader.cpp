@@ -21,7 +21,6 @@ void PlaneshaderSystem::Process()
   // Iterate over entire scene graph, rendering everything
   _process(mgEntity::SceneGraph(), psParent::Zero);
 
-  GetGUI().Render(0);
   End();
   mgEngine::Instance()->UpdateDelta();
   FlushMessages();

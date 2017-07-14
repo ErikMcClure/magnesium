@@ -10,11 +10,11 @@ LogicSystem::~LogicSystem() {}
 
 void LogicSystem::Process()
 {
-  mgSystemSimple::Iterate<&LogicSystem::Iterator>(this);
+  SimpleIterator<LogicSystem, mgLogicComponent>::Gen<&LogicSystem::Iterator>(this);
 }
 
-void LogicSystem::Iterator(mgSystemBase*, mgEntity& entity)
+void LogicSystem::Iterator(mgLogicComponent& logic)
 {
-  auto& f = entity.Get<mgLogicComponent>()->onlogic;
-  if (f) f(entity);
+  if(logic.onlogic)
+    (*logic.onlogic)(*logic.entity);
 }

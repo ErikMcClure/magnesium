@@ -68,13 +68,13 @@ namespace magnesium {
   };
 
   template<typename T, bss::ARRAY_TYPE ArrayType>
-  class mgComponentStore : protected mgComponentStoreBase
+  class mgComponentStore : public mgComponentStoreBase
   {
   public:
     mgComponentStore() : mgComponentStoreBase(T::ID()) {}
     ~mgComponentStore() { Clear(); }
     template<typename D> // D is usually T, but sometimes it's a special constructor that contains additional information for the component
-    size_t Add(mgEntity* p)
+    inline size_t Add(mgEntity* p)
     {
       static_assert(sizeof(D) == sizeof(T), "Illegal alternative constructor");
       static_assert(std::is_base_of<T, D>::value, "Must be derived from T");
@@ -84,13 +84,17 @@ namespace magnesium {
       p->ComponentListInsert(_id, T::GraphID(), index);
       return index;
     }
-    T* Get(size_t index = 0) { return (index < _store.Length()) ? _store.begin() + index : nullptr; }
+    inline T* Get(size_t index = 0) { return (index < _store.Length()) ? _store.begin() + index : nullptr; }
+    BSS_FORCEINLINE const T* begin() const noexcept { return _store.begin(); }
+    BSS_FORCEINLINE const T* end() const noexcept { return _store.end(); }
+    BSS_FORCEINLINE T* begin() noexcept { return _store.begin(); }
+    BSS_FORCEINLINE T* end() noexcept { return _store.end(); }
     virtual mgEntity** GetEntity(size_t index) override { return (index < _store.Length()) ? &_store[index].entity : nullptr; }
     virtual EntityIterator GetEntities() const override // By getting the address of the entity, this will work no matter what the inheritance structure of T is
     {
       return EntityIterator(const_cast<mgEntity**>(&_store.begin()->entity), _store.Length(), sizeof(T));
     }
-    bool Remove(size_t index)
+    inline bool Remove(size_t index)
     {
       if(index >= _store.Length()) return false;
       mgEntity* e = _store[index].entity;
@@ -104,7 +108,7 @@ namespace magnesium {
         RemoveInternal(_id, index);
       _buf.Clear();
     }
-    void Clear() { while(RemoveInternal(_id, 0)); } // Remove all components by simply removing the root component until there are none left. This only takes O(n) time because the replacement operation is O(1)
+    inline void Clear() { while(RemoveInternal(_id, 0)); } // Remove all components by simply removing the root component until there are none left. This only takes O(n) time because the replacement operation is O(1)
 
   protected:
     virtual bool RemoveInternal(ComponentID id, size_t index) override

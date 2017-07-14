@@ -7,136 +7,203 @@
 using namespace magnesium;
 using namespace bss;
 
-mgControlMap::mgControlMap() : _curbindid((uint16_t)-1), _curbindtype(0), _curbindcancel(DEFAULT_CANCEL)
+mgControlMap::mgControlMap() : _curbind((ControlID)~0), _cancel(DEFAULT_CANCEL)
 {
-  memset(_keys, 0xFF, sizeof(uint16_t) * 256);
+  memset(_bindings.keys, 0xFF, sizeof(ControlID) * 256);
 }
 mgControlMap::~mgControlMap()
 {
 }
-size_t mgControlMap::Message(const FG_Msg* msg)
+size_t mgControlMap::Message(const FG_Msg& msg)
 {
-  if(_curbindid != (uint16_t)-1) // if we are trying to bind a key, divert into alternate codepath and return 0 to eat the message
+  if(_curbind != (ControlID)~0) // if we are trying to bind a key, divert into alternate codepath and return 0 to eat the message
   {
-    switch(msg->type)
+    switch(msg.type)
     {
     case FG_KEYUP:
-    case FG_KEYDOWN:
-      break;
     case FG_MOUSEUP:
-    case FG_MOUSEDOWN:
-    break;
     case FG_MOUSEMOVE:
-      break;
     case FG_JOYBUTTONUP:
+      return 0;
+    case FG_KEYDOWN:
+      _bindings.keys[msg.keycode] = _curbind;
+      break;
+    case FG_MOUSEDOWN:
+      switch(msg.button)
+      {
+      case FG_MOUSELBUTTON: _bindings.keys[FG_KEY_LBUTTON] = _curbind; break;
+      case FG_MOUSERBUTTON: _bindings.keys[FG_KEY_RBUTTON] = _curbind; break;
+      case FG_MOUSEMBUTTON: _bindings.keys[FG_KEY_MBUTTON] = _curbind; break;
+      case FG_MOUSEXBUTTON1: _bindings.keys[FG_KEY_XBUTTON1] = _curbind; break;
+      case FG_MOUSEXBUTTON2: _bindings.keys[FG_KEY_XBUTTON2] = _curbind; break;
+      }
+      break;
     case FG_JOYBUTTONDOWN:
+      _bindings.joybuttonmap.Insert(msg.joybutton, _curbind);
       break;
     case FG_JOYAXIS:
+      _bindings.joyaxismap.Insert(msg.joyaxis, _curbind);
       break;
     }
 
-    _curbindid = (uint16_t)-1;
-    return 0;
+    _curbind = (ControlID)~0;
+    return 1;
   }
 
-  switch(msg->type)
+  switch(msg.type)
   {
   case FG_KEYUP:
   case FG_KEYDOWN:
-    if(_keys[msg->keycode] != (uint16_t)-1)
-      _processbutton(_keys[msg->keycode], msg->type == FG_KEYDOWN);
+    if(_bindings.keys[msg.keycode] != (ControlID)~0)
+      _processbutton(_bindings.keys[msg.keycode], msg.type == FG_KEYDOWN);
     break;
   case FG_MOUSEUP:
   case FG_MOUSEDOWN:
   {
-    uint8_t code = bss::bssLog2_p2(msg->button);
+    uint8_t code = bss::bssLog2_p2(msg.button);
     if(code >= 3) ++code; // the last three buttons are interrupted by the FG_CANCEL key
-    if(_keys[code] != (uint16_t)-1)
-      _processbutton(_keys[code], msg->type == FG_MOUSEDOWN);
+    if(_bindings.keys[code] != (ControlID)~0)
+      _processbutton(_bindings.keys[code], msg.type == FG_MOUSEDOWN);
   }
     break;
   case FG_MOUSEMOVE:
   {
-    uint16_t xindex = _joyaxismap[MOUSEX_AXIS];
-    uint16_t yindex = _joyaxismap[MOUSEY_AXIS];
-    if(xindex != (uint16_t)-1)
-      _processaxis(xindex, msg->x);
-    if(yindex != (uint16_t)-1)
-      _processaxis(yindex, msg->y);
+    ControlID xindex = _bindings.joyaxismap[MOUSEX_AXIS];
+    ControlID yindex = _bindings.joyaxismap[MOUSEY_AXIS];
+    if(xindex != (ControlID)~0)
+      _processaxis(xindex, msg.x);
+    if(yindex != (ControlID)~0)
+      _processaxis(yindex, msg.y);
   }
     break;
   case FG_JOYBUTTONUP:
   case FG_JOYBUTTONDOWN:
   {
-    uint16_t index = _joybuttonmap[msg->joybutton];
-    if(index != (uint16_t)-1)
-      _processbutton(index, msg->type == FG_MOUSEDOWN);
+    ControlID index = _bindings.joybuttonmap[msg.joybutton];
+    if(index != (ControlID)~0)
+      _processbutton(index, msg.type == FG_MOUSEDOWN);
   }
     break;
   case FG_JOYAXIS:
-    uint16_t index = _joyaxismap[msg->joyaxis];
-    if(index != (uint16_t)-1)
-      _processaxis(index, msg->joyvalue);
+    ControlID index = _bindings.joyaxismap[msg.joyaxis];
+    if(index != (ControlID)~0)
+      _processaxis(index, msg.joyvalue);
     break;
   }
 
   return 1;
 }
-void mgControlMap::BindAxis(size_t id, uint8_t cancelkeycode) { _bind(id, cancelkeycode, 1); } // TODO: binding an axis can use the same positive/negative flag to specify if it's absolute or relative.
-void mgControlMap::BindAxisButton(size_t id, bool positive, uint8_t cancelkeycode) { _bind(id, cancelkeycode, 1 | (positive ? 2 : 0)); }
-void mgControlMap::BindButton(size_t id, uint8_t cancelkeycode) { _bind(id, cancelkeycode, 0); }
-float mgControlMap::GetAxis(size_t id) const
+const mgControlMap::Control* mgControlMap::GetControl(ControlID id) const
 {
-  uint16_t index = _idmap[id];
-  return ((index != (uint16_t)-1) && ((index & 0x8000) != 0)) ? _axismap[index].value : 0.0f;
+  id &= (~CONTROL_NEGATIVE);
+  if(id >= _controlmap.Length())
+    return nullptr;
+  return (_controlmap[id].type == CONTROL_INVALID) ? nullptr : (_controlmap.begin() + id);
 }
-bool mgControlMap::GetButton(size_t id) const
+
+bool mgControlMap::AddAxis(ControlID id, float button)
 {
-  uint16_t index = _idmap[id];
-  return ((index != (uint16_t)-1) && ((index & 0x8000) == 0)) ? _buttonmap[index].down : false;
+  Control c = { CONTROL_AXIS, button, 0.0f, 0.0f };
+  return _addcontrol(id, c);
 }
-bool mgControlMap::AddAxis(size_t id, std::function<void(float)> f, float button)
+bool mgControlMap::AddButton(ControlID id,  float threshold)
 {
-  if(_idmap.Exists(id))
+  Control c = { CONTROL_BUTTON, threshold, 0.0f, 0.0f };
+  return _addcontrol(id, c);
+}
+void mgControlMap::BindKey(ControlID id, uint8_t key, bool positive)
+{
+  assert(!(id&CONTROL_NEGATIVE));
+  _bindings.keys[key] = id | (positive ? 0 : CONTROL_NEGATIVE);
+}
+void mgControlMap::BindAxis(ControlID id, short axis, bool positive)
+{
+  assert(!(id&CONTROL_NEGATIVE));
+  _bindings.joyaxismap.Insert(axis, id | (positive ? 0 : CONTROL_NEGATIVE));
+}
+void mgControlMap::BindButton(ControlID id, short joybutton, bool positive)
+{
+  assert(!(id&CONTROL_NEGATIVE));
+  _bindings.joybuttonmap.Insert(joybutton, id | (positive ? 0 : CONTROL_NEGATIVE));
+}
+
+void mgControlMap::_processbutton(ControlID id, bool down)
+{
+  bool negative = id&CONTROL_NEGATIVE;
+  id &= (~CONTROL_NEGATIVE);
+  if(id >= _controlmap.Length())
+    return;
+
+  Control& c = _controlmap[id];
+  if(c.type == CONTROL_INVALID)
+    return;
+
+  if(c.type&CONTROL_AXIS)
+  {
+    float value = negative ? -c.threshold : c.threshold;
+    if(down)
+    {
+      if((c.value == 0) || (c.value < 0) != negative)
+        c.prev = _assignaxis(id, c, value);
+    }
+    else
+    {
+      if((c.value != 0) && (c.value < 0) == negative)
+        _assignaxis(id, c, c.prev);
+      c.prev = 0;
+    }
+  }
+  else
+    _assignbutton(id, c, down);
+}
+void mgControlMap::_processaxis(ControlID id, float value)
+{
+  bool negative = id&CONTROL_NEGATIVE;
+  id &= (~CONTROL_NEGATIVE);
+  if(id >= _controlmap.Length())
+    return;
+
+  Control& c = _controlmap[id];
+  if(c.type == CONTROL_INVALID)
+    return;
+
+  c.prev = 0;
+  if(c.type&CONTROL_AXIS)
+    _assignaxis(id, c, negative ? -value : value);
+  else
+    _assignbutton(id, c, abs(value) > c.threshold);
+}
+float mgControlMap::_assignaxis(ControlID id, Control& c, float value)
+{
+  assert(!(id&CONTROL_NEGATIVE));
+  assert(c.type&CONTROL_AXIS);
+  float old = c.value;
+  c.value = value;
+  if(!_func.IsEmpty() && value != old)
+    _func(id, old);
+  return old;
+}
+void mgControlMap::_assignbutton(ControlID id, Control& c, bool down)
+{
+  assert(!(id&CONTROL_NEGATIVE));
+  assert(!(c.type&CONTROL_AXIS));
+  CONTROL_TYPE old = c.type;
+  c.type = down ? CONTROL_BUTTON_DOWN : CONTROL_BUTTON_UP;
+  if(!_func.IsEmpty() && c.type != old)
+    _func(id, 0.0f);
+}
+bool mgControlMap::_addcontrol(ControlID id, const Control& control)
+{
+  assert(!(id&CONTROL_NEGATIVE));
+  if(GetControl(id) != nullptr)
     return false;
-  uint16_t index = _axismap.Add(ControlAxis { f, 0.0f, button, id });
-  assert(index < 0x8000);
-  _idmap.Insert(id, index | 0x8000); // mark this as an axis
+  if(_controlmap.Length() <= id)
+  {
+    size_t old = _controlmap.Length();
+    _controlmap.SetLength(id + 1);
+    memset(_controlmap.begin() + old, ~0, _controlmap.Length() - old);
+  }
+  _controlmap[id] = control;
   return true;
 }
-bool mgControlMap::AddButton(size_t id, std::function<void(bool)> f, float threshold)
-{
-  if(_idmap.Exists(id))
-    return false;
-  uint16_t index = _buttonmap.Add(ControlButton { f, false, threshold, id });
-  assert(index < 0x8000);
-  _idmap.Insert(id, index);
-  return true;
-}
-void mgControlMap::SetKey(size_t id, uint8_t key, bool positive)
-{
 
-}
-void mgControlMap::SetAxis(size_t id, short axis)
-{
-
-}
-void mgControlMap::SetButton(size_t id, short joybutton, bool positive)
-{
-
-}
-void mgControlMap::_bind(size_t id, char type, uint8_t key)
-{
-  _curbindid = id;
-  _curbindcancel = key;
-  _curbindtype = type;
-}
-
-void mgControlMap::_processbutton(uint16_t id, bool down)
-{
-
-}
-void mgControlMap::_processaxis(uint16_t id, float value)
-{
-
-}
