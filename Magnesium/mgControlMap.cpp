@@ -81,7 +81,7 @@ size_t mgControlMap::Message(const FG_Msg& msg)
   {
     ControlID index = _bindings.joybuttonmap[msg.joybutton];
     if(index != (ControlID)~0)
-      _processbutton(index, msg.type == FG_MOUSEDOWN);
+      _processbutton(index, msg.type == FG_JOYBUTTONDOWN);
   }
     break;
   case FG_JOYAXIS:
