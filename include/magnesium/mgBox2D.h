@@ -34,7 +34,7 @@ namespace magnesium {
     std::function<void(b2CompoundFixture*, b2Contact*)> rsp;
   };
 
-  struct MG_DLLEXPORT b2PhysicsComponent : mgComponent<b2PhysicsComponent>
+  struct MG_DLLEXPORT b2PhysicsComponent : mgComponent<b2PhysicsComponent, true>
   {
     struct ContactPoint
     {

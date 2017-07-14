@@ -58,6 +58,7 @@ namespace magnesium {
     virtual void Process() override;
     virtual void _process(mgEntity& root, const planeshader::psParent& prev) override;
     virtual const char* GetName() const override { return "LiquidFun-PlaneShader"; }
+    bool GetParent(mgEntity& entity, planeshader::psParent& parent);
 
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
 

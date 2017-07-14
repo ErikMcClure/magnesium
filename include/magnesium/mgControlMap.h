@@ -7,66 +7,79 @@
 #include "mg_dec.h"
 #include "bss-util/DynArray.h"
 #include "bss-util/Hash.h"
-#include <functional>
+#include "bss-util/Delegate.h"
 
 struct _FG_MSG;
 
 namespace magnesium {
-  // A helper class for mapping controls to actions designed to work with featherGUI
+  // A helper class for mapping controls to actions designed to work with featherGUI. Control IDs are stored in an array, not a hash, so avoid using huge ID numbers.
   class MG_DLLEXPORT mgControlMap
   {
-    struct ControlAxis
+    enum CONTROL_TYPE : uint8_t
     {
-      std::function<void(float)> f;
-      float value;
-      float button; // Value used for button bound to the positive or negative axis.
-      size_t id;
+      CONTROL_BUTTON = 0,
+      CONTROL_BUTTON_UP = 0,
+      CONTROL_BUTTON_DOWN = 1,
+      CONTROL_AXIS = 2,
+      //CONTROL_AXIS_ABSOLUTE = 4,
+      CONTROL_INVALID = (uint8_t)~0,
     };
-    
-    struct ControlButton
+
+    struct Control
     {
-      std::function<void(bool)> f;
-      bool down;
-      float threshold; // an axis must exceed this threshold to activate the button. If positive, it must be more positive, if negative, it must be more negative.
-      size_t id;
+      CONTROL_TYPE type;
+      float threshold; // For buttons controls, the absolute value an axis must exceed to activate it. For axis controls, the value a button corresponds to.
+      float value; // For axis controls only, the current value.
+      float prev; // For axis controls only, the previous value before a button was pressed.
     };
 
   public:
+    typedef uint16_t ControlID;
+
+    struct Bindings
+    {
+      bss::Hash<short, ControlID> joybuttonmap;
+      bss::Hash<short, ControlID> joyaxismap;
+      ControlID keys[256];
+    };
+
     mgControlMap();
     ~mgControlMap();
-    size_t Message(const struct _FG_MSG* msg);
-    void BindAxis(size_t id, uint8_t cancelkeycode = DEFAULT_CANCEL);
-    void BindAxisButton(size_t id, bool positive, uint8_t cancelkeycode = DEFAULT_CANCEL);
-    void BindButton(size_t id, uint8_t cancelkeycode = DEFAULT_CANCEL);
-    float GetAxis(size_t id) const;
-    bool GetButton(size_t id) const;
-    bool AddAxis(size_t id, std::function<void(float)> f, float button);
-    bool AddButton(size_t id, std::function<void(bool)> f, float threshold);
-    void SetKey(size_t id, uint8_t key, bool positive = true);
-    void SetAxis(size_t id, short axis);
-    void SetButton(size_t id, short joybutton, bool positive = true);
+    size_t Message(const struct _FG_MSG& msg);
+    void Bind(ControlID id, bool positive);
+    BSS_FORCEINLINE float GetAxis(ControlID id) const { if(const Control* c = GetControl(id)) return c->value; return 0; }
+    BSS_FORCEINLINE bool GetButton(ControlID id) const { if(const Control* c = GetControl(id)) return (c->type&CONTROL_BUTTON_DOWN); return false; }
+    const Control* GetControl(ControlID id) const;
+    bool AddAxis(ControlID id, float button);
+    bool AddButton(ControlID id, float threshold);
+    void BindKey(ControlID id, uint8_t key, bool positive = true);
+    void BindAxis(ControlID id, short axis, bool positive = true);
+    void BindButton(ControlID id, short joybutton, bool positive = true);
+    inline void SetCancelKey(uint8_t cancel) { _cancel = cancel; }
+    inline void SetFunction(bss::Delegate<void, ControlID, float> f) { _func = f; }
+    inline const Bindings& GetBindings() const { return _bindings; }
+    inline void SetBindings(const Bindings& bindings) { _bindings = bindings; }
 
     static const uint8_t DEFAULT_CANCEL = 0x1B; // 0x1B is featherGUI's keycode for Escape
     static const short MOUSEX_AXIS = -3;
     static const short MOUSEY_AXIS = -2;
+    static const ControlID CONTROL_NEGATIVE = (1 << ((sizeof(ControlID) << 3) - 1));
 
-    inline bool operator[](size_t id) const { return GetButton(id); }
-    inline float operator()(size_t id) const { return GetAxis(id); }
+    inline bool operator[](ControlID id) const { return GetButton(id); }
+    inline float operator()(ControlID id) const { return GetAxis(id); }
 
   protected:
-    void _bind(size_t id, char type, uint8_t key);
-    void _processbutton(uint16_t id, bool down);
-    void _processaxis(uint16_t id, float value);
+    void _processbutton(ControlID id, bool down);
+    void _processaxis(ControlID id, float value);
+    bool _addcontrol(ControlID id, const Control& control);
+    float _assignaxis(ControlID id, Control& c, float value);
+    void _assignbutton(ControlID id, Control& c, bool down);
 
-    bss::DynArray<ControlAxis, uint16_t, bss::ARRAY_SAFE> _axismap;
-    bss::DynArray<ControlButton, uint16_t, bss::ARRAY_SAFE> _buttonmap;
-    bss::Hash<size_t, uint16_t> _idmap;
-    bss::Hash<short, uint16_t> _joybuttonmap;
-    bss::Hash<short, uint16_t> _joyaxismap;
-    uint16_t _keys[256];
-    size_t _curbindid;
-    char _curbindtype;
-    uint8_t _curbindcancel;
+    bss::DynArray<Control, size_t, bss::ARRAY_SIMPLE> _controlmap;
+    bss::Delegate<void, ControlID, float> _func;
+    Bindings _bindings;
+    ControlID _curbind;
+    uint8_t _cancel;
   };
 }
 

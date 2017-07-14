@@ -99,7 +99,7 @@ void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 }
 
 LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
-  PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2PhysicsComponent::ID()|psLocatableComponent::ID()) {}
+  PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2PhysicsComponent::GraphID()|psLocatableComponent::GraphID()) {}
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
 void LiquidFunPlaneshaderSystem::Process()
 {
@@ -121,4 +121,22 @@ void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
   }
 
   PlaneshaderSystem::_process(root, prev);
+}
+bool LiquidFunPlaneshaderSystem::GetParent(mgEntity& entity, planeshader::psParent& parent)
+{
+  if(auto b = entity.Get<b2PhysicsComponent>())
+  {
+    parent.position.x = b->GetPosition().x;
+    parent.position.y = b->GetPosition().y;
+    parent.rotation = b->GetRotation();
+    parent.pivot = toVec(b->GetBody()->GetLocalCenter()) * _ppm;
+
+    if(auto r = entity.Get<psLocatableComponent>())
+      parent.position.z = r->Get()->GetPosition().z;
+  }
+  else if(auto r = entity.Get<psLocatableComponent>())
+    parent = r->Get()->ToParent();
+  else
+    return false;
+  return true;
 }

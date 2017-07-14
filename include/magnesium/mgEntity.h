@@ -21,9 +21,9 @@ namespace magnesium {
     ~mgComponentRef() { --Counter(); }
     T* operator ->() { return ref; }
     const T* operator ->() const { return ref; }
-    T& operator *() { return ref; }
+    T& operator *() { return *ref; }
     bool operator !() const { return !ref; }
-    const T& operator *() const { return ref; }
+    const T& operator *() const { return *ref; }
     operator T*() { return ref; }
 
     static int& Counter() { static int count = 0; return count; }
@@ -43,18 +43,37 @@ namespace magnesium {
     void ComponentListRemove(ComponentID id, ComponentID graphid);
     size_t& ComponentListGet(ComponentID id);
     template<class T> // Gets a component of type T if it belongs to this entity, otherwise returns NULL
-    inline COMPONENT_REF(T::template TYPE) Get() { ComponentID index = _componentlist.Get(T::ID()); return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); }
+    inline COMPONENT_REF(T::template TYPE) Get() 
+    { 
+      ComponentID index = _componentlist.Get(T::ID()); 
+      return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); 
+    }
     template<class T> // Adds a component of type T to this entity if it doesn't already exist
-    inline COMPONENT_REF(T::template TYPE) Add() { if(_componentlist.Get(T::ID()) == (ComponentID)~0) T::Store().Add<T>(this); return Get<T::template TYPE>(); }
+    inline COMPONENT_REF(T::template TYPE) Add() 
+    { 
+      if(_componentlist.Get(T::ID()) == (ComponentID)~0)
+        T::Store().Add<T>(this); 
+      return Get<T::template TYPE>(); 
+    }
     template<class T> // Removes a component of type T from this entity
-    inline bool Remove() { ComponentID index = _componentlist.Get(T::ID()); if(index != (ComponentID)~0) return T::Store().Remove(_componentlist[index]); }
+    inline bool Remove() 
+    { 
+      ComponentID index = _componentlist.Get(T::ID()); 
+      if(index != (ComponentID)~0) 
+        return T::Store().Remove(_componentlist[index]);
+      return false;
+    }
     inline mgEntity* Parent() const { return _parent; }
     inline mgEntity* Children() const { return _first; }
     inline mgEntity* Next() const { return next; }
     void SetParent(mgEntity* parent);
     inline int Order() const { return _order; }
     void SetOrder(int order);
-    virtual const char* GetName() const { return 0; }
+    const char* GetName() const { return _name; }
+    void SetName(const char* name) { _name = name; }
+    inline bss::Slice<const std::pair<ComponentID, size_t>> GetComponents() const {
+      return bss::Slice<const std::pair<ComponentID, size_t>>(_componentlist.begin(), _componentlist.Length());
+    }
 
     size_t id;
     size_t childhint; // Bitfield of scenegraph components our children might have
@@ -63,7 +82,7 @@ namespace magnesium {
     static mgEntity& SceneGraph() { return root; }
     static inline char Comp(const mgEntity& l, const mgEntity& r) { char c = SGNCOMPARE(l._order, r._order); return !c ? SGNCOMPARE(&l, &r) : c; }
 
-  protected: 
+  protected:
     explicit mgEntity(bool isNIL);
     void _addchild(mgEntity* child);
     void _removechild(mgEntity* child);
@@ -75,6 +94,7 @@ namespace magnesium {
     mgEntity* _last;
     mgEntity* _children;
     int _order;
+    const char* _name;
 
     static mgEntity root;
     static mgEntity NIL;
