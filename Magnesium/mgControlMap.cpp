@@ -9,7 +9,6 @@ using namespace bss;
 
 mgControlMap::mgControlMap() : _curbind((ControlID)~0), _cancel(DEFAULT_CANCEL)
 {
-  memset(_bindings.keys, 0xFF, sizeof(ControlID) * 256);
 }
 mgControlMap::~mgControlMap()
 {

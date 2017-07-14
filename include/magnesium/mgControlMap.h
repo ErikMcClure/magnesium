@@ -38,6 +38,8 @@ namespace magnesium {
 
     struct Bindings
     {
+      Bindings() { memset(keys, 0xFF, sizeof(ControlID) * 256); }
+
       bss::Hash<short, ControlID> joybuttonmap;
       bss::Hash<short, ControlID> joyaxismap;
       ControlID keys[256];
