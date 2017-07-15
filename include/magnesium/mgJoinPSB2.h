@@ -31,7 +31,7 @@ namespace magnesium {
   private:
     void _drawpolygon(const b2Vec2* vertices, int32 vertexCount, planeshader::psColor& color, planeshader::psColor& outline);
     void _drawcircle(const b2Vec2& center, float32 radius, planeshader::psColor& color, planeshader::psColor& outline);
-    virtual void _render(const planeshader::psParent& parent) override;
+    virtual void _render(const planeshader::psTransform2D& parent) override;
 
     struct DrawBuf {
       uint32_t vindex;
@@ -47,6 +47,8 @@ namespace magnesium {
     float _alpha;
   };
 
+  struct MG_DLLEXPORT mgPosition : mgComponent<mgPosition, false, bss::ARRAY_SIMPLE, psLocatableBind<mgPosition>>, planeshader::psLocatable {};
+
   extern void Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos);
   extern void Entity_SetRotation(mgEntity* entity, float rotation);
 
@@ -56,16 +58,15 @@ namespace magnesium {
     LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0, SystemID box2DSystem = mgSystemManager::GetSystemID<LiquidFunSystem>());
     ~LiquidFunPlaneshaderSystem();
     virtual void Process() override;
-    virtual void _process(mgEntity& root, const planeshader::psParent& prev) override;
-    virtual const char* GetName() const override { return "LiquidFun-PlaneShader"; }
-    bool GetParent(mgEntity& entity, planeshader::psParent& parent);
+    virtual void _process(mgEntity& root, const planeshader::psTransform2D& prev) override;
+    virtual const char* GetName() const override { return "PlaneShader-LiquidFun"; }
+    bool GetTransform(mgEntity& entity, planeshader::psTransform2D& parent);
 
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
 
   protected:
     SystemID _physid;
     ComponentID _physrequired;
-    float _ppm;
   };
 }
 

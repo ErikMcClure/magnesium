@@ -15,7 +15,7 @@ b2CompoundFixture::~b2CompoundFixture() {}
 inline b2PhysicsComponent* b2CompoundFixture::GetParent()
 {
   if(root != 0 && root->GetBody() != 0)
-    return reinterpret_cast<b2PhysicsComponent*>(root->GetBody()->GetUserData());
+    return reinterpret_cast<mgEntity*>(root->GetBody()->GetUserData())->Get<b2PhysicsComponent>();
   return 0;
 }
 
@@ -38,7 +38,8 @@ void b2PhysicsComponent::Init(const b2BodyDef& def)
 { 
   _body = Box2DSystem::Instance()->GetWorld()->CreateBody(&def);
   _userdata = def.userData;
-  _body->SetUserData(this);
+  _body->SetUserData(entity);
+  UpdateOld();
 }
 b2CompoundFixture& b2PhysicsComponent::AddCompoundFixture(const b2FixtureDef& fd, bool append)
 { 
@@ -68,12 +69,20 @@ b2Vec2 b2PhysicsComponent::GetPosition() const
   p *= Box2DSystem::Instance()->F_PPM;
   return p;
 }
+b2Vec2 b2PhysicsComponent::GetOldPosition() const
+{
+  b2Vec2 p = _oldposition;
+  p *= Box2DSystem::Instance()->F_PPM;
+  return p;
+}
+
 void b2PhysicsComponent::SetTransform(const b2Vec2& pos, float rotation)
 {
   assert(_body);
   b2Vec2 p(pos);
   p *= Box2DSystem::Instance()->INV_PPM;
   _body->SetTransform(p, rotation);
+  UpdateOld();
 }
 
 b2PhysicsComponent& b2PhysicsComponent::operator =(b2PhysicsComponent&& right)
@@ -88,7 +97,7 @@ b2PhysicsComponent& b2PhysicsComponent::operator =(b2PhysicsComponent&& right)
 }
 
 Box2DSystem::Box2DSystem(const B2INIT& init, int priority) : mgSystem(priority), _totaldelta(0), _dt(0), _world(0), _init(init), _debugdraw(0),
-  _frozen(false), F_PPM(init.ppm), INV_PPM(1.0f/ init.ppm)
+  _frozen(false), F_PPM(init.ppm), INV_PPM(1.0f/ init.ppm), _ratio(1.0)
 {
   SetHertz(_init.hertz);
   _instance = this;
@@ -102,36 +111,84 @@ Box2DSystem::~Box2DSystem()
 }
 void Box2DSystem::Process()
 {
-  if(_frozen || !_world)
+  if(!_world)
     return;
 
-  double delta = _getphysdelta();
-  if(delta > 0.0) // This technique lets us do both variable and fixed-step updates.
+  double delta = _frozen ? 0.0 : (mgEngine::Instance()->GetDelta() / 1000.0);
+
+  if(_init.hertz == 0.0) // Variable technique
   {
-    if(_debugdraw) _debugdraw->Clear();
-    _world->Step(delta, _init.vel_iters, _init.pos_iters);
-    _world->ClearForces();
-    _world->DrawDebugData();
-    
-    // Process deletions
-    for(auto& pair : _deletions)
+    _totaldelta += bssmin(1.0, delta);
+
+    if(!bss::fSmall(_totaldelta))
     {
-      khiter_t iter = _collisionhash.Iterator(pair);
-      if(_collisionhash.ExistsIter(iter) && !_collisionhash.GetValue(iter))
-      {
-        b2CompoundFixture* a = (b2CompoundFixture*)pair.first;
-        b2CompoundFixture* b = (b2CompoundFixture*)pair.second;
-
-        if(a->rsp) a->rsp(b, nullptr);
-        if(b->rsp) b->rsp(a, nullptr);
-
-        _collisionhash.RemoveIter(iter);
-      }
+      if(_debugdraw)
+        _debugdraw->Clear();
+      _world->Step(_totaldelta, _init.vel_iters, _init.pos_iters);
+      _world->DrawDebugData();
+      _processDeletions();
+      _totaldelta = 0.0;
+      _ratio = 1.0;
     }
-    _deletions.Clear();
   }
+  else if(_init.hertz > 0.0) // Substep technique
+  {
+    const int MAX_STEPS = 5;
+    _totaldelta += delta;
+    int steps = static_cast<int>(std::floor(_totaldelta / _dt));
+
+    if(steps > 0)
+      _totaldelta -= steps * _dt;
+    assert(_totaldelta < _dt + FLT_EPSILON);
+    _ratio = _totaldelta / _dt;
+
+    if(steps > MAX_STEPS)
+      steps = MAX_STEPS;
+
+    if(_debugdraw)
+      _debugdraw->Clear();
+
+    for(int i = 0; i < steps; ++i)
+    {
+      if(i + 1 == steps)
+        _updateOld();
+
+      _world->Step(_dt, _init.vel_iters, _init.pos_iters);
+      _processDeletions();
+    }
+    _world->DrawDebugData();
+  }
+  
+  _world->ClearForces();
 }
 Box2DSystem* Box2DSystem::Instance() { return _instance; }
+
+void Box2DSystem::_processDeletions()
+{
+  for(auto& pair : _deletions)
+  {
+    khiter_t iter = _collisionhash.Iterator(pair);
+    if(_collisionhash.ExistsIter(iter) && !_collisionhash.GetValue(iter))
+    {
+      b2CompoundFixture* a = (b2CompoundFixture*)pair.first;
+      b2CompoundFixture* b = (b2CompoundFixture*)pair.second;
+
+      if(a->rsp) a->rsp(b, nullptr);
+      if(b->rsp) b->rsp(a, nullptr);
+
+      _collisionhash.RemoveIter(iter);
+    }
+  }
+  _deletions.Clear();
+}
+void Box2DSystem::_updateOld()
+{
+  for(b2Body * b = _world->GetBodyList(); b != NULL; b = b->GetNext())
+  {
+    if(b->GetUserData())
+      reinterpret_cast<mgEntity*>(b->GetUserData())->Get<b2PhysicsComponent>()->UpdateOld();
+  }
+}
 
 void Box2DSystem::SayGoodbye(b2Joint* joint) {}
 void Box2DSystem::SayGoodbye(b2Fixture* fixture) {}
@@ -221,37 +278,4 @@ void Box2DSystem::Unload()
     delete _world;
     _world = 0;
   }
-}
-
-double Box2DSystem::_getphysdelta()
-{
-  double delta = mgEngine::Instance()->GetDelta() / 1000.0;
-
-  if(_init.hertz == 0.0) // Variable technique
-    delta = bssmin(1.0, delta);
-  else if(_init.hertz < 0) // Variable ceiling technique
-  {
-    _totaldelta += bssmin(1.0, delta);
-    if(_totaldelta >= (_dt*2.0))
-    {
-      delta = _dt;
-      _totaldelta -= _dt;
-    }
-    else {
-      delta = _totaldelta;
-      _totaldelta = 0;
-    }
-  }
-  else // Constant technique
-  {
-    _totaldelta += bssmin(1.0, delta);
-    delta = 0.0;
-    if(_totaldelta > -_dt) // We use a negative value here to allow variations in frame deltas to even out over time
-    {
-      delta = _dt;
-      _totaldelta -= _dt;
-    }
-  }
-
-  return delta;
 }

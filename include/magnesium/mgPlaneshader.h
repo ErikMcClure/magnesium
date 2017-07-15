@@ -13,15 +13,20 @@
 #include "planeshader\psEngine.h"
 
 namespace magnesium {
-  typedef mgComponentInheritBase<planeshader::psRenderable, true> psRenderableComponent;
-  typedef mgComponentInheritBase<planeshader::psLocatable, true> psLocatableComponent;
-  typedef mgComponentInheritBase<planeshader::psSolid, true> psSolidComponent;
+  typedef mgComponentInherit<planeshader::psRenderable, true> psRenderableComponent;
+  typedef mgComponentInherit<planeshader::psLocatable, true> psLocatableComponent;
+  typedef mgComponentInherit<planeshader::psSolid, true> psSolidComponent;
+
+  template<class T> using psRenderableBind = mgComponentInheritBind<planeshader::psRenderable, T, true>;
+  template<class T> using psLocatableBind = mgComponentInheritBind<planeshader::psLocatable, T, true>;
+  template<class T> using psSolidBind = mgComponentInheritBind<planeshader::psSolid, T, true>;
 
   template<class T>
   struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss::ARRAY_SIMPLE,
-    mgComponentInheritInit<psGenericComponent<T>, planeshader::psRenderable, true>,
-    mgComponentInheritInit<psGenericComponent<T>, planeshader::psLocatable, true>,
-    mgComponentInheritInit<psGenericComponent<T>, planeshader::psSolid, true>> {
+    psRenderableBind<psGenericComponent<T>>,
+    psLocatableBind<psGenericComponent<T>>,
+    psSolidBind<psGenericComponent<T>>>
+  {
     explicit psGenericComponent(mgEntity* e = 0) : mgComponent(e) {}
   };
 
@@ -42,7 +47,7 @@ namespace magnesium {
     virtual const char* GetName() const override { return "Planeshader"; }
 
   protected:
-    virtual void _process(mgEntity& root, const planeshader::psParent& prev);
+    virtual void _process(mgEntity& root, const planeshader::psTransform2D& prev);
   };
 
   struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent, true>

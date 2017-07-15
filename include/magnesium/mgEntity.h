@@ -59,8 +59,11 @@ namespace magnesium {
     inline bool Remove() 
     { 
       ComponentID index = _componentlist.Get(T::ID()); 
-      if(index != (ComponentID)~0) 
+      if(index != (ComponentID)~0)
+      {
+        T::RemoveImplied(this);
         return T::Store().Remove(_componentlist[index]);
+      }
       return false;
     }
     inline mgEntity* Parent() const { return _parent; }
