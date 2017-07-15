@@ -54,8 +54,11 @@ namespace magnesium {
     // Sets the position or rotation, which wakes the body up and resets it's collisions
     inline void SetPosition(const b2Vec2& pos) { SetTransform(pos, _body->GetAngle()); }
     b2Vec2 GetPosition() const;
+    b2Vec2 GetOldPosition() const;
     inline void SetRotation(float rotation) { SetTransform(_body->GetPosition(), rotation); }
     inline float GetRotation() const { return _body->GetAngle(); }
+    inline float GetOldRotation() const { return _oldangle; }
+    inline void UpdateOld() { _oldposition = _body->GetPosition(); _oldangle = _body->GetAngle(); }
     void SetTransform(const b2Vec2& pos, float rotation);
     // Gets the root fixture for this body. Tends to be equal to the last compound fixture in the list 
     const b2Fixture* GetRootFixture() const { return _body->GetFixtureList(); }
@@ -85,6 +88,8 @@ namespace magnesium {
 
     b2Body* _body;
     void* _userdata;
+    b2Vec2 _oldposition;
+    float _oldangle;
     std::vector<std::unique_ptr<b2CompoundFixture>> _fixtures;
     std::function<void(b2PhysicsComponent*, ContactPoint&)> _rcp;
     //std::function<void(b2Fixture*, b2Contact*)> _rfp;
@@ -143,6 +148,7 @@ namespace magnesium {
     inline void SetDebugDraw(mgDebugDraw* debugdraw);
     inline bool GetFrozen() const { return _frozen; }
     inline void SetFrozen(bool freeze) { _frozen = freeze; }
+    inline double GetDeltaRatio() const { return _ratio; }
     virtual void Reload();
     void Unload();
 
@@ -151,7 +157,8 @@ namespace magnesium {
     const float INV_PPM;
 
   protected:
-    double _getphysdelta();
+    void _processDeletions();
+    void _updateOld();
     BSS_FORCEINLINE static std::pair<void*, void*> _makepair(void* a, void* b)
     {
       if(reinterpret_cast<size_t>(a) < reinterpret_cast<size_t>(b)) // Using < comparison operators on unrelated pointers is undefined behavior.
@@ -169,6 +176,7 @@ namespace magnesium {
     double _dt;
     bool _frozen;
     double _totaldelta;
+    double _ratio;
   };
 }
 

@@ -56,7 +56,7 @@ void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& col
   _drawbuf.Add(DrawBuf { _drawverts.Length(), 0, radius, color32, outline32 });
   _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(center));
 }
-void psDebugDraw::_render(const psParent& parent)
+void psDebugDraw::_render(const psTransform2D& parent)
 {
   Matrix<float, 4, 4> m;
   Matrix<float, 4, 4>::AffineScaling(Box2DSystem::Instance()->F_PPM, Box2DSystem::Instance()->F_PPM, 1.0f, m);
@@ -103,39 +103,38 @@ LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const planeshader::PSINIT
 LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
 void LiquidFunPlaneshaderSystem::Process()
 {
-  float _ppm = _manager->MessageSystem(_physid, 1, 0).f;
   PlaneshaderSystem::Process();
 }
-void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
+void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psTransform2D& prev)
 {
   if((root.graphcomponents&_physrequired) == _physrequired)
   {
     auto b = root.Get<b2PhysicsComponent>();
+    auto p = reinterpret_cast<b2PhysicsComponent*>(b->GetBody()->GetUserData());
     auto r = root.Get<psLocatableComponent>();
     assert(r);
     assert(b);
     psLocatable* loc = r->Get();
-    loc->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= _ppm);
-    loc->SetPosition(toVec(b->GetPosition()));
-    loc->SetRotation(b->GetRotation());
+
+    float ratio = Box2DSystem::Instance()->GetDeltaRatio();
+    loc->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= Box2DSystem::Instance()->F_PPM);
+    loc->SetPosition(lerp<psVec, float>(toVec(b->GetOldPosition()), toVec(b->GetPosition()), ratio));
+    loc->SetRotation(lerp<float, float>(b->GetOldRotation(), b->GetRotation(), ratio));
   }
 
   PlaneshaderSystem::_process(root, prev);
 }
-bool LiquidFunPlaneshaderSystem::GetParent(mgEntity& entity, planeshader::psParent& parent)
+bool LiquidFunPlaneshaderSystem::GetTransform(mgEntity& entity, planeshader::psTransform2D& parent)
 {
-  if(auto b = entity.Get<b2PhysicsComponent>())
+  if(auto r = entity.Get<psLocatableComponent>())
+    parent = r->Get()->ToTransform();
+  else if(auto b = entity.Get<b2PhysicsComponent>())
   {
     parent.position.x = b->GetPosition().x;
     parent.position.y = b->GetPosition().y;
     parent.rotation = b->GetRotation();
-    parent.pivot = toVec(b->GetBody()->GetLocalCenter()) * _ppm;
-
-    if(auto r = entity.Get<psLocatableComponent>())
-      parent.position.z = r->Get()->GetPosition().z;
+    parent.pivot = toVec(b->GetBody()->GetLocalCenter()) * Box2DSystem::Instance()->F_PPM;
   }
-  else if(auto r = entity.Get<psLocatableComponent>())
-    parent = r->Get()->ToParent();
   else
     return false;
   return true;

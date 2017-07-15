@@ -11,6 +11,10 @@ namespace magnesium {
   struct mgEntity_AddComponents { inline static void f(mgEntity* e) {} };
   template<typename Component, typename... Components>
   struct mgEntity_AddComponents<Component, Components...> { inline static void f(mgEntity* e) { e->Add<Component>(); mgEntity_AddComponents<Components...>::f(e); } };
+  template<typename... Components>
+  struct mgEntity_RemoveComponents { inline static void f(mgEntity* e) {} };
+  template<typename Component, typename... Components>
+  struct mgEntity_RemoveComponents<Component, Components...> { inline static void f(mgEntity* e) { e->Remove<Component>(); mgEntity_AddComponents<Components...>::f(e); } };
 
   template<typename... Components>
   struct mgEntityT : mgEntity { mgEntityT() : mgEntity() { mgEntity_AddComponents<Components...>::f(this); } virtual void DestroyThis() { delete this; } };
@@ -142,43 +146,35 @@ namespace magnesium {
   template<typename T, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE, typename... ImpliedComponents>
   struct mgComponent : mgComponentCounter
   {
+    typedef T TYPE;
+
     explicit mgComponent(mgEntity* e) : entity(e) { mgEntity_AddComponents<ImpliedComponents...>::f(e); }
     mgComponent(const mgComponent& copy) : entity(copy.entity) {}
     mgComponent(mgComponent&& copy) : entity(copy.entity) {}
+    mgComponent& operator=(const mgComponent& copy) { entity = copy.entity; return *this; }
+    mgComponent& operator=(mgComponent&& copy) { entity = copy.entity; return *this; }
+
+    mgEntity* entity;
+
     static ComponentID ID() { static ComponentID value = curID++; return value; }
     static ComponentID GraphID() { static ComponentID value = SCENEGRAPH ? ((curGraphID <<= 1) >> 1) : 0; return value; }
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
-    mgEntity* entity;
+    static void RemoveImplied(mgEntity* e) { mgEntity_RemoveComponents<ImpliedComponents...>::f(e); }
+  };
 
-    typedef T TYPE;
-    mgComponent& operator=(const mgComponent& copy) { entity = copy.entity; return *this; }
-    mgComponent& operator=(mgComponent&& copy) { entity = copy.entity; return *this; }
+  template<typename T, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE>
+  struct mgComponentInherit : mgComponent<mgComponentInherit<T,SCENEGRAPH,ArrayType>, SCENEGRAPH, ArrayType>
+  {
+    explicit mgComponentInherit(mgEntity* e, T* (*f)(mgEntity* e)) : mgComponent(e), func(f) {}
+    inline T* Get() { return (*func)(entity); }
+    T* (*func)(mgEntity* e);
   };
 
   template<typename T, typename D, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE>
-  struct mgComponentInherit : mgComponent<T, SCENEGRAPH, ArrayType>
+  struct mgComponentInheritBind : mgComponentInherit<T, SCENEGRAPH, ArrayType>
   {
-    explicit mgComponentInherit(mgEntity* e = 0, D* (*f)(mgEntity*) = 0) : mgComponent(e), func(f) {}
-    D* (*func)(mgEntity*);
-    D* Get() { return func(entity); }
-  };
-
-  template<class T, bool SCENEGRAPH>
-  struct MG_DLLEXPORT mgComponentInheritBase : mgComponentInherit<mgComponentInheritBase<T, SCENEGRAPH>, T, SCENEGRAPH> {
-    explicit mgComponentInheritBase(mgEntity* e = 0, T* (*f)(mgEntity*) = 0) : mgComponentInherit(e, f) {}
-  };
-  template<class D, class T, bool SCENEGRAPH> // Important: Remember that D should be the COMPONENT, not the object the component is representing!
-  struct MG_DLLEXPORT mgComponentInheritInit : mgComponentInheritBase<T, SCENEGRAPH> {
-    explicit mgComponentInheritInit(mgEntity* e = 0) : mgComponentInheritBase(e, &CastComponent) {}
-
-    static inline T* CastComponent(mgEntity* entity) { return static_cast<T*>(entity->Get<D>()); } // Doing a direct cast here is preferred to an indirect method like Get() so null pointers are handled
-  };
-
-  struct MG_DLLEXPORT mgPosition : mgComponent<mgPosition>
-  {
-    float position[3];
-    float rotation;
-    float pivot[2];
+    explicit mgComponentInheritBind(mgEntity* e = 0) : mgComponentInherit(e, &CastComponent) {}
+    static T* CastComponent(mgEntity* e) { return static_cast<T*>(e->Get<D>()); }
   };
 
   MG_DLLEXPORT ComponentID GetComponentID(const char* name);

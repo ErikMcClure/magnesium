@@ -19,7 +19,7 @@ void PlaneshaderSystem::Process()
   if(!Begin()) return;
 
   // Iterate over entire scene graph, rendering everything
-  _process(mgEntity::SceneGraph(), psParent::Zero);
+  _process(mgEntity::SceneGraph(), psTransform2D::Zero);
 
   End();
   mgEngine::Instance()->UpdateDelta();
@@ -27,10 +27,10 @@ void PlaneshaderSystem::Process()
   fgRoot_Update(fgSingleton(), mgEngine::Instance()->GetDelta()*0.001);
 }
 
-void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
+void PlaneshaderSystem::_process(mgEntity& root, const psTransform2D& prev)
 {
   mgEntity* cur = root.Children();
-  psParent parent = prev;
+  psTransform2D parent = prev;
 
   auto locatable = root.Get<psLocatableComponent>();
   auto solid = root.Get<psSolidComponent>();
@@ -68,7 +68,7 @@ void PlaneshaderSystem::_process(mgEntity& root, const psParent& prev)
     {
       pass = renderable->GetPass();
       if(!pass) pass = psPass::CurPass;
-      psParent resolved = pass->GetCamera()->Resolve(parent);
+      psTransform2D resolved = pass->GetCamera()->Resolve(parent);
       if(solid)
       {
         psVec pos = resolved.position.xy - resolved.pivot;
