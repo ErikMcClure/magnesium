@@ -84,9 +84,21 @@ size_t mgControlMap::Message(const FG_Msg& msg)
   }
     break;
   case FG_JOYAXIS:
+  {
     ControlID index = _bindings.joyaxismap[msg.joyaxis];
+    float value = msg.joyvalue;
+    if(_bindings.deadzone > 0.0f)
+    {
+      if(abs(value) < _bindings.deadzone)
+        value = 0.0f;
+      else if(value > 0.0f)
+        value = (value - _bindings.deadzone) / (1.0 - _bindings.deadzone);
+      else if(value < 0.0f)
+        value = (value + _bindings.deadzone) / (1.0 - _bindings.deadzone);
+    }
     if(index != (ControlID)~0)
-      _processaxis(index, msg.joyvalue);
+      _processaxis(index, value);
+  }
     break;
   }
 
