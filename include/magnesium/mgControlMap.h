@@ -38,11 +38,23 @@ namespace magnesium {
 
     struct Bindings
     {
-      Bindings() { memset(keys, 0xFF, sizeof(ControlID) * 256); }
+      Bindings() : deadzone(0.0f) { memset(keys, 0xFF, sizeof(ControlID) * 256); }
 
+      float deadzone;
       bss::Hash<short, ControlID> joybuttonmap;
       bss::Hash<short, ControlID> joyaxismap;
       ControlID keys[256];
+
+      template<typename Engine>
+      void Serialize(bss::Serializer<Engine>& e)
+      {
+        e.EvaluateType<Bindings>(
+          GenPair("deadzone", deadzone),
+          GenPair("buttonmap", joybuttonmap),
+          GenPair("axismap", joyaxismap),
+          GenPair("keymap", keys)
+          );
+      }
     };
 
     mgControlMap();
@@ -61,6 +73,8 @@ namespace magnesium {
     inline void SetFunction(bss::Delegate<void, ControlID, float> f) { _func = f; }
     inline const Bindings& GetBindings() const { return _bindings; }
     inline void SetBindings(const Bindings& bindings) { _bindings = bindings; }
+    inline float GetDeadzone() const { return _bindings.deadzone; }
+    inline void SetDeadzone(float deadzone) { assert(deadzone >= 0.0f); _bindings.deadzone = deadzone; }
 
     static const uint8_t DEFAULT_CANCEL = 0x1B; // 0x1B is featherGUI's keycode for Escape
     static const short MOUSEX_AXIS = -3;
