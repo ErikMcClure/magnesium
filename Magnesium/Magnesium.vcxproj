@@ -421,7 +421,6 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClCompile Include="mgEngine.cpp" />
     <ClCompile Include="mgEntity.cpp" />
     <ClCompile Include="mgJoinPSB2.cpp" />
-    <ClCompile Include="mgLiquidFun.cpp" />
     <ClCompile Include="mgLogic.cpp" />
     <ClCompile Include="mgLua.cpp" />
     <ClCompile Include="mgPlaneshader.cpp" />
@@ -438,7 +437,6 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClInclude Include="..\include\magnesium\mgEngine.h" />
     <ClInclude Include="..\include\magnesium\mgEntity.h" />
     <ClInclude Include="..\include\magnesium\mgJoinPSB2.h" />
-    <ClInclude Include="..\include\magnesium\mgLiquidFun.h" />
     <ClInclude Include="..\include\magnesium\mgLogic.h" />
     <ClInclude Include="..\include\magnesium\mgLua.h" />
     <ClInclude Include="..\include\magnesium\mgPlaneshader.h" />

@@ -9,17 +9,7 @@ using namespace magnesium;
 
 Box2DSystem* Box2DSystem::_instance = 0;
 
-b2CompoundFixture::b2CompoundFixture(b2Fixture* fixture) : userdata(fixture->GetUserData()), root(fixture), count(1) { fixture->SetUserData(this); }
-b2CompoundFixture::b2CompoundFixture(b2CompoundFixture&& mov) : root(mov.root), count(mov.count), userdata(mov.userdata) { mov.root = 0; mov.count = 0; mov.userdata = 0; }
-b2CompoundFixture::~b2CompoundFixture() {}
-inline b2PhysicsComponent* b2CompoundFixture::GetParent()
-{
-  if(root != 0 && root->GetBody() != 0)
-    return reinterpret_cast<mgEntity*>(root->GetBody()->GetUserData())->Get<b2PhysicsComponent>();
-  return 0;
-}
-
-b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _fixtures(std::move(mov._fixtures))
+b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body)
 { 
   mov._body = 0;
   mov._userdata = 0;
@@ -31,7 +21,6 @@ void b2PhysicsComponent::_destruct()
   if(_body)
     Box2DSystem::Instance()->GetWorld()->DestroyBody(_body);
   _body = 0;
-  _fixtures.clear();
 }
 
 void b2PhysicsComponent::Init(const b2BodyDef& def)
@@ -40,28 +29,6 @@ void b2PhysicsComponent::Init(const b2BodyDef& def)
   _userdata = def.userData;
   _body->SetUserData(entity);
   UpdateOld();
-}
-b2CompoundFixture& b2PhysicsComponent::AddCompoundFixture(const b2FixtureDef& fd, bool append)
-{ 
-  assert(_body);
-  b2Fixture* f = _body->CreateFixture(&fd);
-  if(!append || !_fixtures.size())
-    _fixtures.push_back(std::unique_ptr<b2CompoundFixture>(new b2CompoundFixture(f)));
-  else
-    f->SetUserData(_fixtures.back().get());
-
-  return *_fixtures.back();
-}
-b2CompoundFixture& b2PhysicsComponent::AddCompoundFixture(const b2Shape& shape, float density, bool append)
-{ 
-  assert(_body);
-  b2Fixture* f = _body->CreateFixture(&shape, density);
-  if(!append || !_fixtures.size())
-    _fixtures.push_back(std::unique_ptr<b2CompoundFixture>(new b2CompoundFixture(f)));
-  else
-    f->SetUserData(_fixtures.back().get());
-
-  return *_fixtures.back();
 }
 b2Vec2 b2PhysicsComponent::GetPosition() const
 {
@@ -90,7 +57,6 @@ b2PhysicsComponent& b2PhysicsComponent::operator =(b2PhysicsComponent&& right)
   _destruct();
   _body = right._body;
   _userdata = right._userdata;
-  _fixtures = std::move(right._fixtures);
   right._body = 0;
   right._userdata = 0;
   return *this;
@@ -124,9 +90,12 @@ void Box2DSystem::Process()
     {
       if(_debugdraw)
         _debugdraw->Clear();
+#ifdef b2_invalidParticleIndex
+      _world->Step(_totaldelta, _init.vel_iters, _init.pos_iters, _init.particle_iters);
+#else
       _world->Step(_totaldelta, _init.vel_iters, _init.pos_iters);
+#endif
       _world->DrawDebugData();
-      _processDeletions();
       _totaldelta = 0.0;
       _ratio = 1.0;
     }
@@ -148,13 +117,16 @@ void Box2DSystem::Process()
     if(_debugdraw)
       _debugdraw->Clear();
 
+    if(steps > 0)
+      _updateOld();
+
     for(int i = 0; i < steps; ++i)
     {
-      if(i + 1 == steps)
-        _updateOld();
-
+#ifdef b2_invalidParticleIndex
+      _world->Step(_dt, _init.vel_iters, _init.pos_iters, _init.particle_iters);
+#else
       _world->Step(_dt, _init.vel_iters, _init.pos_iters);
-      _processDeletions();
+#endif
     }
     _world->DrawDebugData();
   }
@@ -163,24 +135,6 @@ void Box2DSystem::Process()
 }
 Box2DSystem* Box2DSystem::Instance() { return _instance; }
 
-void Box2DSystem::_processDeletions()
-{
-  for(auto& pair : _deletions)
-  {
-    khiter_t iter = _collisionhash.Iterator(pair);
-    if(_collisionhash.ExistsIter(iter) && !_collisionhash.GetValue(iter))
-    {
-      b2CompoundFixture* a = (b2CompoundFixture*)pair.first;
-      b2CompoundFixture* b = (b2CompoundFixture*)pair.second;
-
-      if(a->rsp) a->rsp(b, nullptr);
-      if(b->rsp) b->rsp(a, nullptr);
-
-      _collisionhash.RemoveIter(iter);
-    }
-  }
-  _deletions.Clear();
-}
 void Box2DSystem::_updateOld()
 {
   for(b2Body * b = _world->GetBodyList(); b != NULL; b = b->GetNext())
@@ -190,52 +144,42 @@ void Box2DSystem::_updateOld()
   }
 }
 
-void Box2DSystem::SayGoodbye(b2Joint* joint) {}
-void Box2DSystem::SayGoodbye(b2Fixture* fixture) {}
 void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
 {
-  b2CompoundFixture* a = (b2CompoundFixture*)contact->GetFixtureA()->GetUserData();
-  b2CompoundFixture* b = (b2CompoundFixture*)contact->GetFixtureB()->GetUserData();
-  auto& af = a->GetParent()->GetCPResponse();
-  auto& bf = b->GetParent()->GetCPResponse();
-  if(af || bf)
+  if(contact->IsEnabled())
   {
-    b2PointState s1[b2_maxManifoldPoints];
-    b2PointState s2[b2_maxManifoldPoints];
-    b2GetPointStates(s1, s2, oldManifold, contact->GetManifold());
-  }
-}
-void Box2DSystem::BeginContact(b2Contact* contact)
-{
-  auto pair = _makepair(contact->GetFixtureA()->GetUserData(), contact->GetFixtureB()->GetUserData());
-
-  khiter_t iter = _collisionhash.Iterator(pair);
-  if(!_collisionhash.ExistsIter(iter)) // Note: It's important to NOT do a function call if the hash exists, even if it's set at 0, because this means a deletion has been canceled out.
-  {
-    b2CompoundFixture* a = (b2CompoundFixture*)pair.first;
-    b2CompoundFixture* b = (b2CompoundFixture*)pair.second;
-
-    if(a->rsp || b->rsp) // Only bother tracking this if there are actually callbacks to call
+    mgEntity* a = reinterpret_cast<mgEntity*>(contact->GetFixtureA()->GetBody()->GetUserData());
+    mgEntity* b = reinterpret_cast<mgEntity*>(contact->GetFixtureB()->GetBody()->GetUserData());
+    if(a || b)
     {
-      _collisionhash.Insert(pair, 1);
-      if(a->rsp) a->rsp(b, contact);
-      if(b->rsp) b->rsp(a, contact);
-    }
-  }
-  else
-    _collisionhash.SetValue(iter, _collisionhash.GetValue(iter) + 1);
-}
-void Box2DSystem::EndContact(b2Contact* contact)
-{
-  auto pair = _makepair(contact->GetFixtureA()->GetUserData(), contact->GetFixtureB()->GetUserData());
+      b2PhysicsComponent* ac = !a ? 0 : a->Get<b2PhysicsComponent>();
+      b2PhysicsComponent* bc = !b ? 0 : b->Get<b2PhysicsComponent>();
+      b2PhysicsComponent::CPResponse af = !ac ? 0 : ac->GetCPResponse();
+      b2PhysicsComponent::CPResponse bf = !bc ? 0 : bc->GetCPResponse();
+      if(af || bf)
+      {
+        b2PointState s1[b2_maxManifoldPoints];
+        b2PointState s2[b2_maxManifoldPoints];
+        b2GetPointStates(s1, s2, oldManifold, contact->GetManifold());
+        b2WorldManifold m;
+        contact->GetWorldManifold(&m);
 
-  khiter_t iter = _collisionhash.Iterator(pair);
-  if(_collisionhash.ExistsIter(iter)) // If it doesn't exist we must have ignored it
-  {
-    uint32_t c = _collisionhash.GetValue(iter) - 1;
-    _collisionhash.SetValue(iter, c);
-    if(!c)
-      _deletions.Add(pair);
+        for(int i = 0; i < b2_maxManifoldPoints; ++i)
+          if(s1[i] == b2_removeState)
+          {
+            if(af) af(*ac, b2PhysicsComponent::ContactPoint{ contact->GetFixtureA(), contact->GetFixtureB(), oldManifold->points[i].localPoint, m.normal, b2_removeState });
+            if(bf) bf(*bc, b2PhysicsComponent::ContactPoint{ contact->GetFixtureB(), contact->GetFixtureA(), oldManifold->points[i].localPoint, m.normal, b2_removeState });
+          }
+
+        for(int i = 0; i < b2_maxManifoldPoints; ++i)
+          if(s2[i] != b2_nullState)
+          {
+            assert(s2[i] != b2_removeState);
+            if(af) af(*ac, b2PhysicsComponent::ContactPoint{ contact->GetFixtureA(), contact->GetFixtureB(), m.points[i], m.normal, s2[i] });
+            if(bf) bf(*bc, b2PhysicsComponent::ContactPoint{ contact->GetFixtureB(), contact->GetFixtureA(), m.points[i], m.normal, s2[i] });
+          }
+      }
+    }
   }
 }
 

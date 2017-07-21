@@ -45,9 +45,13 @@ namespace magnesium {
     ~PlaneshaderSystem();
     virtual void Process() override;
     virtual const char* GetName() const override { return "Planeshader"; }
+    template<class F>
+    inline void SetPreprocess(F && f) { _f = std::forward<F>(f); }
 
   protected:
     virtual void _process(mgEntity& root, const planeshader::psTransform2D& prev);
+
+    std::function<void()> _f;
   };
 
   struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent, true>

@@ -33,9 +33,6 @@
     <ClCompile Include="mgTinyOAL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgLiquidFun.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mgJoinPSB2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -84,9 +81,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\magnesium\mgTinyOAL.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\magnesium\mgLiquidFun.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\magnesium\mgJoinPSB2.h">

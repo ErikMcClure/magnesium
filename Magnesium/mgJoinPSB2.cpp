@@ -22,8 +22,8 @@ void psDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color&
   psColor(color.r, color.g, color.b, _alpha).WriteFormat(_driver->GetBackBuffer()->GetFormat(), &color32);
 
   _drawbuf.Add(DrawBuf { _drawverts.Length(), -2, 0, color32, 0 });
-  _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(p1));
-  _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(p2));
+  _drawverts.Add(PlaneshaderBox2DSystem::toVec(p1));
+  _drawverts.Add(PlaneshaderBox2DSystem::toVec(p2));
 }
 void psDebugDraw::DrawTransform(const b2Transform& xf) {}
 void psDebugDraw::DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count)
@@ -42,7 +42,7 @@ void psDebugDraw::_drawpolygon(const b2Vec2* vertices, int32 vertexCount, psColo
 
   _drawbuf.Add(DrawBuf { _drawverts.Length(), vertexCount, 0, color32, outline32 });
   for(int32 i = 0; i < vertexCount; ++i)
-    _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(vertices[i]));
+    _drawverts.Add(PlaneshaderBox2DSystem::toVec(vertices[i]));
 }
 void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& color, psColor& outline)
 {
@@ -54,7 +54,7 @@ void psDebugDraw::_drawcircle(const b2Vec2& center, float32 radius, psColor& col
   outline.WriteFormat(_driver->GetBackBuffer()->GetFormat(), &outline32);
 
   _drawbuf.Add(DrawBuf { _drawverts.Length(), 0, radius, color32, outline32 });
-  _drawverts.Add(LiquidFunPlaneshaderSystem::toVec(center));
+  _drawverts.Add(PlaneshaderBox2DSystem::toVec(center));
 }
 void psDebugDraw::_render(const psTransform2D& parent)
 {
@@ -98,33 +98,28 @@ void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
   if(b) b->SetRotation(rotation);
 }
 
-LiquidFunPlaneshaderSystem::LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
+PlaneshaderBox2DSystem::PlaneshaderBox2DSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
   PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2PhysicsComponent::GraphID()|psLocatableComponent::GraphID()) {}
-LiquidFunPlaneshaderSystem::~LiquidFunPlaneshaderSystem() {}
-void LiquidFunPlaneshaderSystem::Process()
+PlaneshaderBox2DSystem::~PlaneshaderBox2DSystem() {}
+void PlaneshaderBox2DSystem::Process()
 {
+  SimpleIterator<PlaneshaderBox2DSystem, b2PhysicsComponent, float>::Gen<&PlaneshaderBox2DSystem::Iterator>(this, Box2DSystem::Instance()->GetDeltaRatio());
+
   PlaneshaderSystem::Process();
 }
-void LiquidFunPlaneshaderSystem::_process(mgEntity& root, const psTransform2D& prev)
+void PlaneshaderBox2DSystem::Iterator(b2PhysicsComponent& c, float ratio)
 {
-  if((root.graphcomponents&_physrequired) == _physrequired)
+  auto r = c.entity->Get<psLocatableComponent>();
+  if(r)
   {
-    auto b = root.Get<b2PhysicsComponent>();
-    auto p = reinterpret_cast<b2PhysicsComponent*>(b->GetBody()->GetUserData());
-    auto r = root.Get<psLocatableComponent>();
-    assert(r);
-    assert(b);
     psLocatable* loc = r->Get();
 
-    float ratio = Box2DSystem::Instance()->GetDeltaRatio();
-    loc->SetPivot(toVec(b->GetBody()->GetLocalCenter()) *= Box2DSystem::Instance()->F_PPM);
-    loc->SetPosition(lerp<psVec, float>(toVec(b->GetOldPosition()), toVec(b->GetPosition()), ratio));
-    loc->SetRotation(lerp<float, float>(b->GetOldRotation(), b->GetRotation(), ratio));
+    loc->SetPivot(toVec(c.GetBody()->GetLocalCenter()) *= Box2DSystem::Instance()->F_PPM);
+    loc->SetPosition(lerp<psVec, float>(toVec(c.GetOldPosition()), toVec(c.GetPosition()), ratio));
+    loc->SetRotation(lerp<float, float>(c.GetOldRotation(), c.GetRotation(), ratio));
   }
-
-  PlaneshaderSystem::_process(root, prev);
 }
-bool LiquidFunPlaneshaderSystem::GetTransform(mgEntity& entity, planeshader::psTransform2D& parent)
+bool PlaneshaderBox2DSystem::GetTransform(mgEntity& entity, planeshader::psTransform2D& parent)
 {
   if(auto r = entity.Get<psLocatableComponent>())
     parent = r->Get()->ToTransform();

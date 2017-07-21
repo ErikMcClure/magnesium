@@ -16,6 +16,7 @@ PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngin
 PlaneshaderSystem::~PlaneshaderSystem() {}
 void PlaneshaderSystem::Process()
 {
+  if(_f) _f();
   if(!Begin()) return;
 
   // Iterate over entire scene graph, rendering everything
