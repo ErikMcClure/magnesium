@@ -16,24 +16,7 @@ class b2Draw;
 class b2World;
 
 namespace magnesium {
-  struct b2PhysicsComponent;
-
-  // A compound fixture that has its own responses to Begin/End contact (contact points are handled in the body) 
-  struct MG_DLLEXPORT b2CompoundFixture
-  {
-    b2CompoundFixture(b2Fixture* fixture);
-    b2CompoundFixture(b2CompoundFixture&& mov);
-    ~b2CompoundFixture();
-    //b2Fixture* AddFixture(const b2FixtureDef& fd);
-    //b2Fixture* AddFixture(const b2Shape& shape, float density);
-    inline b2PhysicsComponent* GetParent();
-
-    void* userdata;
-    b2Fixture* root; // Fixtures in a SuperFixture are together in the master fixture list, so we only keep a pointer to the root.
-    unsigned int count; // Number of fixtures (if 0, root becomes invalid. If root is valid this must be at least 1)
-    std::function<void(b2CompoundFixture*, b2Contact*)> rsp;
-  };
-
+  // Holds a b2Body object that you can attach fixtures to.
   struct MG_DLLEXPORT b2PhysicsComponent : mgComponent<b2PhysicsComponent, true>
   {
     struct ContactPoint
@@ -42,8 +25,9 @@ namespace magnesium {
       b2Fixture* other;
       b2Vec2 point;
       b2Vec2 normal;
-      enum : char { STATE_CHANGE = -1, STATE_DESTROYED = 1, STATE_CREATED = 0 } state;
+      b2PointState state;
     };
+    typedef void(*CPResponse)(b2PhysicsComponent&, ContactPoint&);
 
     b2PhysicsComponent(mgEntity* e);
     b2PhysicsComponent(b2PhysicsComponent&& mov);
@@ -66,22 +50,11 @@ namespace magnesium {
     // Gets/Sets the physics object user data for storing application specific information (serves as replacement to b2Body userdata) 
     inline void SetUserData(void* userdata) { _userdata = userdata; }
     inline void* GetUserData() const { return _userdata; }
-    // Gets number of compound fixtures 
-    inline size_t NumFixtures() const { return _fixtures.size(); }
-    // Gets a compound fixture 
-    inline b2CompoundFixture& GetCompoundFixture(size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
-    inline const b2CompoundFixture& GetCompoundFixture(size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
-    // Creates a new compound fixture with a single fixture inside it
-    b2CompoundFixture& AddCompoundFixture(const b2FixtureDef& fd, bool append = true);
-    b2CompoundFixture& AddCompoundFixture(const b2Shape& shape, float density, bool append = true);
     // Gets/Sets the collision response 
-    const std::function<void(b2PhysicsComponent*, ContactPoint&)>& GetCPResponse() const { return _rcp; }
-    template<typename U> //void(b2PhysicsComponent*, ContactPoint&)
-    inline void SetCPResponse(U && rcp) { _rcp = std::forward<U>(rcp); }
+    CPResponse GetCPResponse() const { return _rcp; }
+    inline void SetCPResponse(CPResponse rcp) { _rcp = rcp; }
 
     b2PhysicsComponent& operator =(b2PhysicsComponent&& right);
-    inline const b2CompoundFixture& operator [](size_t i) const { assert(i < _fixtures.size()); return *_fixtures[i]; }
-    inline b2CompoundFixture& operator [](size_t i) { assert(i < _fixtures.size()); return *_fixtures[i]; }
 
   protected:
     void _destruct();
@@ -90,8 +63,7 @@ namespace magnesium {
     void* _userdata;
     b2Vec2 _oldposition;
     float _oldangle;
-    std::vector<std::unique_ptr<b2CompoundFixture>> _fixtures;
-    std::function<void(b2PhysicsComponent*, ContactPoint&)> _rcp;
+    CPResponse _rcp;
     //std::function<void(b2Fixture*, b2Contact*)> _rfp;
     //std::function<void(b2PhysicsComponent*, b2Contact*)> _rbp;
     //int _phystype;
@@ -110,6 +82,9 @@ namespace magnesium {
       float gravity[2];
       uint32_t pos_iters;
       uint32_t vel_iters;
+#ifdef b2_invalidParticleIndex
+      uint32_t particle_iters;
+#endif
       float hertz;
       float ppm;
 
@@ -129,11 +104,9 @@ namespace magnesium {
     Box2DSystem(const B2INIT& init, int priority = 0);
     ~Box2DSystem();
     virtual void Process() override;
-    virtual void SayGoodbye(b2Joint* joint) override;
-    virtual void SayGoodbye(b2Fixture* fixture) override;
     virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
-    virtual void BeginContact(b2Contact* contact) override;
-    virtual void EndContact(b2Contact* contact) override;
+    virtual void SayGoodbye(b2Joint* joint) override {}
+    virtual void SayGoodbye(b2Fixture* fixture) override {}
     virtual const char* GetName() const override { return "Box2D"; }
     inline b2World* GetWorld() { return _world; }
     inline double GetHertz() const { return _init.hertz; }
@@ -157,7 +130,6 @@ namespace magnesium {
     const float INV_PPM;
 
   protected:
-    void _processDeletions();
     void _updateOld();
     BSS_FORCEINLINE static std::pair<void*, void*> _makepair(void* a, void* b)
     {

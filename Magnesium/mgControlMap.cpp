@@ -104,6 +104,10 @@ size_t mgControlMap::Message(const FG_Msg& msg)
 
   return 1;
 }
+void mgControlMap::Bind(ControlID id, bool positive)
+{
+  _curbind = id | (positive ? 0 : CONTROL_NEGATIVE);
+}
 const mgControlMap::Control* mgControlMap::GetControl(ControlID id) const
 {
   id &= (~CONTROL_NEGATIVE);

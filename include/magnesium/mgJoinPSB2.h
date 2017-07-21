@@ -4,7 +4,7 @@
 #ifndef __JOIN_PS_B2_H__MG__
 #define __JOIN_PS_B2_H__MG__
 
-#include "mgLiquidFun.h"
+#include "mgBox2D.h"
 #include "mgPlaneshader.h"
 
 namespace magnesium {
@@ -52,15 +52,15 @@ namespace magnesium {
   extern void Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos);
   extern void Entity_SetRotation(mgEntity* entity, float rotation);
 
-  class MG_DLLEXPORT LiquidFunPlaneshaderSystem : public PlaneshaderSystem
+  class MG_DLLEXPORT PlaneshaderBox2DSystem : public PlaneshaderSystem
   {
   public:
-    LiquidFunPlaneshaderSystem(const planeshader::PSINIT& init, int priority = 0, SystemID box2DSystem = mgSystemManager::GetSystemID<LiquidFunSystem>());
-    ~LiquidFunPlaneshaderSystem();
+    PlaneshaderBox2DSystem(const planeshader::PSINIT& init, int priority = 0, SystemID box2DSystem = mgSystemManager::GetSystemID<Box2DSystem>());
+    ~PlaneshaderBox2DSystem();
     virtual void Process() override;
-    virtual void _process(mgEntity& root, const planeshader::psTransform2D& prev) override;
-    virtual const char* GetName() const override { return "PlaneShader-LiquidFun"; }
+    virtual const char* GetName() const override { return "PlaneShader-Box2D"; }
     bool GetTransform(mgEntity& entity, planeshader::psTransform2D& parent);
+    void Iterator(b2PhysicsComponent& c, float ratio);
 
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
 
