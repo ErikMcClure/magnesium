@@ -15,7 +15,7 @@ namespace magnesium {
   template<class T> // Integers
   struct LuaStack<T, 1>
   {
-    static inline void Push(lua_State *L, const T& i) { lua_pushinteger(L, i); }
+    static inline void Push(lua_State *L, T i) { lua_pushinteger(L, static_cast<lua_Integer>(i)); }
     static inline T Pop(lua_State *L) { T r = (T)lua_tointeger(L, -1); lua_pop(L, 1); return r; }
   };
   template<class T> // Pointers
@@ -31,12 +31,6 @@ namespace magnesium {
     static inline T Pop(lua_State *L) { T r = static_cast<T>(lua_touserdata(L, -1)); lua_pop(L, 1); return r; }
   };
   template<> // Strings
-  struct LuaStack<const char*, 0>
-  {
-    static inline void Push(lua_State *L, const char* s) { lua_pushstring(L, s); }
-    static inline const char* Pop(lua_State *L) { const char* r = lua_tostring(L, -1); lua_pop(L, 1); return r; }
-  };
-  template<> // Strings
   struct LuaStack<std::string, 0>
   {
     static inline void Push(lua_State *L, std::string s) { lua_pushlstring(L, s.c_str(), s.size()); }
@@ -49,11 +43,13 @@ namespace magnesium {
     static inline bss::Str Pop(lua_State *L) { size_t sz; const char* s = lua_tolstring(L, -1, &sz); bss::Str r(s, sz); lua_pop(L, 1); return r; }
   };
   template<> // Boolean
-  struct LuaStack<bool, 0>
+  struct LuaStack<bool, 1>
   {
     static inline void Push(lua_State *L, bool b) { lua_pushboolean(L, b); }
     static inline bool Pop(lua_State *L) { bool r = lua_toboolean(L, -1); lua_pop(L, 1); return r; }
   };
+  template<> // Void return type
+  struct LuaStack<void, 0> { static inline void Pop(lua_State *L) { } };
 
   // A system that initializes and registers the Lua scripting system
   class MG_DLLEXPORT LuaSystem : public mgSystemBase
@@ -76,7 +72,11 @@ namespace magnesium {
     int Require(const char* name); // Equivelent to calling require("name") in Lua
     int AppendPath(const char* path); // Same as running: path .. ';' .. package.path
     template<typename R, typename... Args>
-    inline R CallLua(const char* function, Args... args) { return _callLua<R, sizeof...(Args), Args...>(function, args...); }
+    inline R CallLua(const char* function, Args... args)
+    {
+      lua_getglobal(_l, function);
+      return _callLua<R, sizeof...(Args), Args...>(function, args...);
+    }
     inline int Print() { return lua_Print(_l); }
     inline int Print(std::ostream& out) { return _print(_l, out); }
     inline lua_State* GetState() { return _l; }
@@ -90,12 +90,13 @@ namespace magnesium {
     inline R _callLua(const char* function, Arg arg, Args... args)
     {
       LuaStack<Arg, LS<Arg>::value>::Push(_l, arg);
-      _callLua<R, N, Args...>(function, args...);
+      return _callLua<R, N, Args...>(function, args...);
     }
     template<typename R, int N>
     inline R _callLua(const char* function)
     {
-      lua_call(_l, N, 1);
+      assert(!FPUsingle());
+      lua_call(_l, N, std::is_void<R>::value ? 0 : 1);
       return LuaStack<R, LS<R>::value>::Pop(_l);
     }
     const char* _getError();

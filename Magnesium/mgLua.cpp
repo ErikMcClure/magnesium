@@ -71,7 +71,7 @@ void LuaSystem::WriteError(int r, const char* name)
 int LuaSystem::Load(std::istream& s, const char* name)
 {
   int r = lua_load(_l, &_luaStreamReader, &s, name);
-
+  
   if(!r)
   {
     if(!name)
@@ -185,3 +185,4 @@ mgSystemBase::mgMessageResult lua_MessageSystem(const char* name, ptrdiff_t m, v
 {
   return mgEngine::Instance()->GetSystem(name)->Message(m, p);
 }
+

@@ -111,7 +111,7 @@ void LoadMap(psTex* map, psTileset* tileset, mgEntity* object, psTex* key)
         groundBox.Set(polypoints, 3);
         break;
       }
-      object->Get<b2PhysicsComponent>()->AddCompoundFixture(groundBox, 0.0f);
+      object->Get<b2PhysicsComponent>()->GetBody()->CreateFixture(&groundBox, 0.0f);
     }
 
 }
@@ -137,7 +137,7 @@ void BuildImageBox(mgEntity* e, float x = 0, float y = 0)
   polypoints[2] = b2Vec2(0, dim.y);
   polypoints[3] = b2Vec2(dim.x, dim.y);
   box.Set(polypoints, 4);
-  phys->AddCompoundFixture(box, 0.0f);
+  phys->GetBody()->CreateFixture(&box, 0.0f);
 }
 
 bool IsOnFloor(mgEntity* e)
@@ -242,13 +242,13 @@ int main(int argc, char** argv)
 #ifdef BSS_DEBUG
   //b2init.hertz = 0;
 #endif
-  LiquidFunPlaneshaderSystem ps(init, -1);
+  PlaneshaderBox2DSystem ps(init, -1);
 
   fgTransform consoletf = { {0, 0, 0, 0, 0, 1.0f, 320, 0 }, 0, {0, 0, 0, 0 } };
   console.Load(ps.GetGUI().gui, 0, "console", FGELEMENT_BACKGROUND | FGELEMENT_IGNORE, &consoletf, 0);
 
   TinyOALSystem tinyoal;
-  LiquidFunSystem psbox2d(b2init, 0);
+  Box2DSystem psbox2d(b2init, 0);
   LogicSystem logic;
   LuaSystem lua;
 
