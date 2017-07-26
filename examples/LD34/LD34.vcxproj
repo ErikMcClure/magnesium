@@ -105,7 +105,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>magnesium32_d.lib;bss-util32_d.lib;planeshader32_d.lib;tinyoal32_d.lib;feathergui32_d.lib;liquidfun.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>magnesium32_d.lib;bss-util32_d.lib;planeshader32_d.lib;tinyoal32_d.lib;feathergui32_d.lib;Box2D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,7 +122,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>magnesium_d.lib;bss-util_d.lib;planeshader_d.lib;tinyoal_d.lib;feathergui_d.lib;liquidfun.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>magnesium_d.lib;bss-util_d.lib;planeshader_d.lib;tinyoal_d.lib;feathergui_d.lib;Box2D.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -147,7 +147,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>magnesium32.lib;bss-util32.lib;planeshader32.lib;tinyoal32.lib;feathergui32.lib;liquidfun.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>magnesium32.lib;bss-util32.lib;planeshader32.lib;tinyoal32.lib;feathergui32.lib;Box2D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -172,7 +172,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>magnesium.lib;bss-util.lib;planeshader.lib;tinyoal.lib;feathergui.lib;liquidfun.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>magnesium.lib;bss-util.lib;planeshader.lib;tinyoal.lib;feathergui.lib;Box2D.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

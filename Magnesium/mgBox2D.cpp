@@ -9,12 +9,12 @@ using namespace magnesium;
 
 Box2DSystem* Box2DSystem::_instance = 0;
 
-b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body)
+b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rcp(mov._rcp)
 { 
   mov._body = 0;
   mov._userdata = 0;
 }
-b2PhysicsComponent::b2PhysicsComponent(mgEntity* e) : mgComponent(e), _body(0), _userdata(0) {}
+b2PhysicsComponent::b2PhysicsComponent(mgEntity* e) : mgComponent(e), _body(0), _userdata(0), _rcp(0) {}
 b2PhysicsComponent::~b2PhysicsComponent() { _destruct(); }
 void b2PhysicsComponent::_destruct()
 {

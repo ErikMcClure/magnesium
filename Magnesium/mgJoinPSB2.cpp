@@ -26,10 +26,6 @@ void psDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color&
   _drawverts.Add(PlaneshaderBox2DSystem::toVec(p2));
 }
 void psDebugDraw::DrawTransform(const b2Transform& xf) {}
-void psDebugDraw::DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count)
-{
-
-}
 
 void psDebugDraw::_drawpolygon(const b2Vec2* vertices, int32 vertexCount, psColor& color, psColor& outline)
 {
@@ -70,8 +66,8 @@ void psDebugDraw::_render(const psTransform2D& parent)
     {
       psVec p = _drawverts[buf.vindex];
       psRenderCircle::DrawCircle(_driver->library.CIRCLE, 0,
-        psRectRotateZ(p.x - buf.radius - 1, p.y - buf.radius - 1, p.x + buf.radius + 1, p.y + buf.radius + 1, 0),
-        psRect(0, PI_DOUBLEf, 0, PI_DOUBLEf), 0, buf.color, buf.outline, 1.0f);
+        psRectRotateZ(p.x - buf.radius, p.y - buf.radius, p.x + buf.radius, p.y + buf.radius, 0),
+        psRect(0, PI_DOUBLEf, 0, PI_DOUBLEf), 0, buf.color, buf.outline, 0);
     }
     if(buf.vcount == -2) // line
     {

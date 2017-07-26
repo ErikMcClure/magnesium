@@ -145,6 +145,7 @@ namespace magnesium {
     inline T* GetSystem() const { return static_cast<T*>(GetSystem(GetSystemID<T>())); }
     mgSystemBase* GetSystem(SystemID id) const;
     mgSystemBase* GetSystem(const char* name) const;
+    inline bss::Slice<std::pair<mgSystemBase*, SystemID>> GetSystems() const { return _systems.GetSlice(); }
     template<class T>
     inline mgSystemBase::mgMessageResult MessageSystem(ptrdiff_t m, void* p) { return MessageSystem(GetSystemID<T>(), m, p); }
     mgSystemBase::mgMessageResult MessageSystem(SystemID id, ptrdiff_t m, void* p);
