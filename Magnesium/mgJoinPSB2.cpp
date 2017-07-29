@@ -110,7 +110,7 @@ void PlaneshaderBox2DSystem::Iterator(b2PhysicsComponent& c, float ratio)
   {
     psLocatable* loc = r->Get();
 
-    loc->SetPivot(toVec(c.GetBody()->GetLocalCenter()) *= Box2DSystem::Instance()->F_PPM);
+    //loc->SetPivot(toVec(c.GetBody()->GetLocalCenter()) *= Box2DSystem::Instance()->F_PPM);
     loc->SetPosition(lerp<psVec, float>(toVec(c.GetOldPosition()), toVec(c.GetPosition()), ratio));
     loc->SetRotation(lerp<float, float>(c.GetOldRotation(), c.GetRotation(), ratio));
   }
