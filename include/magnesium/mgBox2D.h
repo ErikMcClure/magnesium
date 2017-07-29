@@ -39,7 +39,7 @@ namespace magnesium {
     inline void SetPosition(const b2Vec2& pos) { SetTransform(pos, _body->GetAngle()); }
     b2Vec2 GetPosition() const;
     b2Vec2 GetOldPosition() const;
-    inline void SetRotation(float rotation) { SetTransform(_body->GetPosition(), rotation); }
+    inline void SetRotation(float rotation) { _body->SetTransform(_body->GetPosition(), rotation); }
     inline float GetRotation() const { return _body->GetAngle(); }
     inline float GetOldRotation() const { return _oldangle; }
     inline void UpdateOld() { _oldposition = _body->GetPosition(); _oldangle = _body->GetAngle(); }
