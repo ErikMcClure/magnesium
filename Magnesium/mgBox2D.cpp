@@ -9,41 +9,41 @@ using namespace magnesium;
 
 Box2DSystem* Box2DSystem::_instance = 0;
 
-b2PhysicsComponent::b2PhysicsComponent(b2PhysicsComponent&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rcp(mov._rcp)
+b2Component::b2Component(b2Component&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rcp(mov._rcp)
 { 
   mov._body = 0;
   mov._userdata = 0;
 }
-b2PhysicsComponent::b2PhysicsComponent(mgEntity* e) : mgComponent(e), _body(0), _userdata(0), _rcp(0) {}
-b2PhysicsComponent::~b2PhysicsComponent() { _destruct(); }
-void b2PhysicsComponent::_destruct()
+b2Component::b2Component(mgEntity* e) : mgComponent(e), _body(0), _userdata(0), _rcp(0) {}
+b2Component::~b2Component() { _destruct(); }
+void b2Component::_destruct()
 {
   if(_body)
     Box2DSystem::Instance()->GetWorld()->DestroyBody(_body);
   _body = 0;
 }
 
-void b2PhysicsComponent::Init(const b2BodyDef& def)
+void b2Component::Init(const b2BodyDef& def)
 { 
   _body = Box2DSystem::Instance()->GetWorld()->CreateBody(&def);
   _userdata = def.userData;
   _body->SetUserData(entity);
   UpdateOld();
 }
-b2Vec2 b2PhysicsComponent::GetPosition() const
+b2Vec2 b2Component::GetPosition() const
 {
   b2Vec2 p = _body->GetPosition();
   p *= Box2DSystem::Instance()->F_PPM;
   return p;
 }
-b2Vec2 b2PhysicsComponent::GetOldPosition() const
+b2Vec2 b2Component::GetOldPosition() const
 {
   b2Vec2 p = _oldposition;
   p *= Box2DSystem::Instance()->F_PPM;
   return p;
 }
 
-void b2PhysicsComponent::SetTransform(const b2Vec2& pos, float rotation)
+void b2Component::SetTransform(const b2Vec2& pos, float rotation)
 {
   assert(_body);
   b2Vec2 p(pos);
@@ -52,7 +52,7 @@ void b2PhysicsComponent::SetTransform(const b2Vec2& pos, float rotation)
   UpdateOld();
 }
 
-b2PhysicsComponent& b2PhysicsComponent::operator =(b2PhysicsComponent&& right)
+b2Component& b2Component::operator =(b2Component&& right)
 { 
   _destruct();
   _body = right._body;
@@ -71,7 +71,7 @@ Box2DSystem::Box2DSystem(const B2INIT& init, int priority) : mgSystem(priority),
 }
 Box2DSystem::~Box2DSystem()
 {
-  b2PhysicsComponent::Store().Clear(); // Clear all components out BEFORE we delete the world, otherwise things get mad.
+  b2Component::Store().Clear(); // Clear all components out BEFORE we delete the world, otherwise things get mad.
   _instance = 0;
   Unload();
 }
@@ -140,7 +140,7 @@ void Box2DSystem::_updateOld()
   for(b2Body * b = _world->GetBodyList(); b != NULL; b = b->GetNext())
   {
     if(b->GetUserData())
-      reinterpret_cast<mgEntity*>(b->GetUserData())->Get<b2PhysicsComponent>()->UpdateOld();
+      reinterpret_cast<mgEntity*>(b->GetUserData())->Get<b2Component>()->UpdateOld();
   }
 }
 
@@ -152,10 +152,10 @@ void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
     mgEntity* b = reinterpret_cast<mgEntity*>(contact->GetFixtureB()->GetBody()->GetUserData());
     if(a || b)
     {
-      b2PhysicsComponent* ac = !a ? 0 : a->Get<b2PhysicsComponent>();
-      b2PhysicsComponent* bc = !b ? 0 : b->Get<b2PhysicsComponent>();
-      b2PhysicsComponent::CPResponse af = !ac ? 0 : ac->GetCPResponse();
-      b2PhysicsComponent::CPResponse bf = !bc ? 0 : bc->GetCPResponse();
+      b2Component* ac = !a ? 0 : a->Get<b2Component>();
+      b2Component* bc = !b ? 0 : b->Get<b2Component>();
+      b2Component::CPResponse af = !ac ? 0 : ac->GetCPResponse();
+      b2Component::CPResponse bf = !bc ? 0 : bc->GetCPResponse();
       if(af || bf)
       {
         b2PointState s1[b2_maxManifoldPoints];
@@ -167,16 +167,16 @@ void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
         for(int i = 0; i < b2_maxManifoldPoints; ++i)
           if(s1[i] == b2_removeState)
           {
-            if(af) af(*ac, b2PhysicsComponent::ContactPoint{ contact->GetFixtureA(), contact->GetFixtureB(), oldManifold->points[i].localPoint, m.normal, b2_removeState });
-            if(bf) bf(*bc, b2PhysicsComponent::ContactPoint{ contact->GetFixtureB(), contact->GetFixtureA(), oldManifold->points[i].localPoint, m.normal, b2_removeState });
+            if(af) af(*ac, b2Component::ContactPoint{ contact->GetFixtureA(), contact->GetFixtureB(), oldManifold->points[i].localPoint, m.normal, b2_removeState });
+            if(bf) bf(*bc, b2Component::ContactPoint{ contact->GetFixtureB(), contact->GetFixtureA(), oldManifold->points[i].localPoint, m.normal, b2_removeState });
           }
 
         for(int i = 0; i < b2_maxManifoldPoints; ++i)
           if(s2[i] != b2_nullState)
           {
             assert(s2[i] != b2_removeState);
-            if(af) af(*ac, b2PhysicsComponent::ContactPoint{ contact->GetFixtureA(), contact->GetFixtureB(), m.points[i], m.normal, s2[i] });
-            if(bf) bf(*bc, b2PhysicsComponent::ContactPoint{ contact->GetFixtureB(), contact->GetFixtureA(), m.points[i], m.normal, s2[i] });
+            if(af) af(*ac, b2Component::ContactPoint{ contact->GetFixtureA(), contact->GetFixtureB(), m.points[i], m.normal, s2[i] });
+            if(bf) bf(*bc, b2Component::ContactPoint{ contact->GetFixtureB(), contact->GetFixtureA(), m.points[i], m.normal, s2[i] });
           }
       }
     }

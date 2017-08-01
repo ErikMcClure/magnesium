@@ -22,6 +22,8 @@ namespace magnesium {
     void UpdateDelta();
     inline double GetTimewarp() const { return _timewarp; }
     inline void SetTimewarp(double timewarp) { _timewarp = timewarp; }
+    inline mgEntity& SceneGraph() { return _root; }
+
     inline bss::Logger& GetLog() { return _log; }
     BSS_FORCEINLINE void Process() { mgSystemManager::Process(); }
     void Process(uint64_t delta);
@@ -49,6 +51,7 @@ namespace magnesium {
     double _timewarp;
     uint64_t _override;
     bss::Logger _log;
+    mgEntity _root;
   };
 }
 

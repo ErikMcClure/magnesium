@@ -27,6 +27,9 @@ mgSystemManager::~mgSystemManager()
 void mgSystemManager::AddSystem(mgSystemBase* system, SystemID id)
 {
   _systems.Insert(system, id);
+  _systemhash.Insert(id, system);
+  if(const char* name = system->GetName())
+    _systemname.Insert(name, system);
   system->_manager = this;
 }
 bool mgSystemManager::RemoveSystem(SystemID id)

@@ -82,7 +82,6 @@ namespace magnesium {
     size_t childhint; // Bitfield of scenegraph components our children might have
     size_t graphcomponents;
 
-    static mgEntity& SceneGraph() { return root; }
     static inline char Comp(const mgEntity& l, const mgEntity& r) { char c = SGNCOMPARE(l._order, r._order); return !c ? SGNCOMPARE(&l, &r) : c; }
 
   protected:
@@ -90,6 +89,7 @@ namespace magnesium {
     void _addchild(mgEntity* child);
     void _removechild(mgEntity* child);
     void _propagateIDs();
+    mgEntity* _getRoot();
 
     bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
     mgEntity* _parent;
@@ -99,7 +99,7 @@ namespace magnesium {
     int _order;
     const char* _name;
 
-    static mgEntity root;
+    friend class mgEngine;
     static mgEntity NIL;
   };
 }

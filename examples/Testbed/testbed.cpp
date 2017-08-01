@@ -6,11 +6,10 @@
 * Copyright ©2016 Black Sphere Studios
 */
 
-#include "Magnesium.h"
-#include "mgPlaneshader.h"
-#include "mgTinyOAL.h"
-#include "mgJoinPSB2.h"
-#include "Box2D/Box2D.h"
+#include "magnesium/mgEngine.h"
+#include "magnesium/mgPlaneshader.h"
+#include "magnesium/mgTinyOAL.h"
+#include "magnesium/mgJoinPSB2.h"
 #include "planeshader/psPass.h"
 
 using namespace bss;
@@ -126,8 +125,8 @@ int main(int argc, char** argv)
   // Call the body factory which allocates memory for the ground body
   // from a pool and creates the ground box shape (also from a pool).
   // The body is also added to the world.
-  mgEntityT<b2PhysicsComponent> groundBody;
-  groundBody.Get<b2PhysicsComponent>()->Init(groundBodyDef);
+  mgEntityT<b2Component> groundBody;
+  groundBody.Get<b2Component>()->Init(groundBodyDef);
 
   // Define the ground box shape.
   b2PolygonShape groundBox;
@@ -136,15 +135,15 @@ int main(int argc, char** argv)
   groundBox.SetAsBox(50.0f, 2.0f);
   
   // Add the ground fixture to the ground body.
-  groundBody.Get<b2PhysicsComponent>()->AddCompoundFixture(groundBox, 0.0f);
+  groundBody.Get<b2Component>()->AddCompoundFixture(groundBox, 0.0f);
 
   // Define the dynamic body. We set its position and call the body factory.
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
   bodyDef.position.Set(4.0f, 0.0f);
   bodyDef.angularVelocity = 0.3f;
-  mgEntityT<psImageComponent, b2PhysicsComponent> mbody;
-  mbody.Get<b2PhysicsComponent>()->Init(bodyDef);
+  mgEntityT<psImageComponent, b2Component> mbody;
+  mbody.Get<b2Component>()->Init(bodyDef);
 
   // Define another box shape for our dynamic body.
   b2PolygonShape dynamicBox;
@@ -161,13 +160,13 @@ int main(int argc, char** argv)
   fixtureDef.friction = 0.3f;
 
   // Add the shape to the body.
-  auto& fixref = mbody.Get<b2PhysicsComponent>()->AddCompoundFixture(fixtureDef);
+  auto& fixref = mbody.Get<b2Component>()->AddCompoundFixture(fixtureDef);
   mbody.Get<psImageComponent>()->SetTexture(psTex::Create("../media/blendtest.png"));
   mbody.Get<psImageComponent>()->SetPass();
 
-  mgEntityT<psImageComponent, b2PhysicsComponent> test;
+  mgEntityT<psImageComponent, b2Component> test;
   b2BodyDef bd;
-  test.Get<b2PhysicsComponent>()->Init(bd);
+  test.Get<b2Component>()->Init(bd);
   mgEntityT<psImageComponent> test2;
   mgEntityT<psImageComponent> test3;
 
