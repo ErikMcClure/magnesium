@@ -81,29 +81,29 @@ void psDebugDraw::_render(const psTransform2D& parent)
 
 void magnesium::Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos)
 {
-  auto b = entity->Get<b2PhysicsComponent>();
+  auto b = entity->Get<b2Component>();
   auto r = entity->Get<psLocatableComponent>();
   if(r) r->Get()->SetPosition(pos);
   if(b) b->SetPosition(b2Vec2(pos.x, pos.y));
 }
 void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
 {
-  auto b = entity->Get<b2PhysicsComponent>();
+  auto b = entity->Get<b2Component>();
   auto r = entity->Get<psLocatableComponent>();
   if(r) r->Get()->SetRotation(rotation);
   if(b) b->SetRotation(rotation);
 }
 
 PlaneshaderBox2DSystem::PlaneshaderBox2DSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
-  PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2PhysicsComponent::GraphID()|psLocatableComponent::GraphID()) {}
+  PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2Component::GraphID()|psLocatableComponent::GraphID()) {}
 PlaneshaderBox2DSystem::~PlaneshaderBox2DSystem() {}
 void PlaneshaderBox2DSystem::Process()
 {
-  SimpleIterator<PlaneshaderBox2DSystem, b2PhysicsComponent, float>::Gen<&PlaneshaderBox2DSystem::Iterator>(this, Box2DSystem::Instance()->GetDeltaRatio());
+  SimpleIterator<PlaneshaderBox2DSystem, b2Component, float>::Gen<&PlaneshaderBox2DSystem::Iterator>(this, Box2DSystem::Instance()->GetDeltaRatio());
 
   PlaneshaderSystem::Process();
 }
-void PlaneshaderBox2DSystem::Iterator(b2PhysicsComponent& c, float ratio)
+void PlaneshaderBox2DSystem::Iterator(b2Component& c, float ratio)
 {
   auto r = c.entity->Get<psLocatableComponent>();
   if(r)
@@ -119,7 +119,7 @@ bool PlaneshaderBox2DSystem::GetTransform(mgEntity& entity, planeshader::psTrans
 {
   if(auto r = entity.Get<psLocatableComponent>())
     parent = r->Get()->ToTransform();
-  else if(auto b = entity.Get<b2PhysicsComponent>())
+  else if(auto b = entity.Get<b2Component>())
   {
     parent.position.x = b->GetPosition().x;
     parent.position.y = b->GetPosition().y;

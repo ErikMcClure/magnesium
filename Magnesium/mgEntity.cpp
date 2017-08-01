@@ -7,7 +7,6 @@
 using namespace magnesium;
 using namespace bss;
 
-mgEntity mgEntity::root(false);
 mgEntity mgEntity::NIL(true);
 
 mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), id(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0), _name(0)
@@ -15,7 +14,7 @@ mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), id(0), gr
 }
 mgEntity::mgEntity(mgEntity* parent, int order) : TRB_NodeBase<mgEntity>(&NIL), id(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0), _name(0)
 {
-  _parent = !parent ? &root : parent;
+  _parent = !parent ? _getRoot() : parent;
   _parent->_addchild(this);
 }
 mgEntity::mgEntity(mgEntity&& mov) : TRB_NodeBase<mgEntity>(&NIL), id(mov.id), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)),
@@ -48,7 +47,9 @@ mgEntity::~mgEntity()
   while(cur)
   {
     int r;
-    if((r = cur->Drop()) > 0)
+    mgEntity* hold = cur;
+    cur = cur->next;
+    if((r = hold->Drop()) > 0)
     {
       MGLOGF(1, "Released child {0} but had {1} references remaining", cur, r);
       assert(false); // Ideally this should never happen
@@ -57,12 +58,18 @@ mgEntity::~mgEntity()
       else
         MGLOGF(1, "Child {0} leaked because there was no parent to fall back to!", cur);
     }
-    cur = cur->next;
   }
   for(const auto& pair : _componentlist)
     mgComponentStoreBase::RemoveComponent(pair.first, pair.second);
   if(_parent)
     _parent->_removechild(this);
+}
+
+mgEntity* mgEntity::_getRoot()
+{
+  if(mgEngine::Instance())
+    return &mgEngine::Instance()->SceneGraph();
+  return 0;
 }
 
 void mgEntity::SetParent(mgEntity* parent)
@@ -71,9 +78,9 @@ void mgEntity::SetParent(mgEntity* parent)
     return;
   if(_parent)
     _parent->_removechild(this);
-  if(this != &root)
+  if(this != _getRoot())
   {
-    _parent = !parent ? &root : parent;
+    _parent = !parent ? _getRoot() : parent;
     _parent->_addchild(this);
     _propagateIDs();
   }

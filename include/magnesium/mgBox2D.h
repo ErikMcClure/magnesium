@@ -17,7 +17,7 @@ class b2World;
 
 namespace magnesium {
   // Holds a b2Body object that you can attach fixtures to.
-  struct MG_DLLEXPORT b2PhysicsComponent : mgComponent<b2PhysicsComponent, true>
+  struct MG_DLLEXPORT b2Component : mgComponent<b2Component, true>
   {
     struct ContactPoint
     {
@@ -27,11 +27,11 @@ namespace magnesium {
       b2Vec2 normal;
       b2PointState state;
     };
-    typedef void(*CPResponse)(b2PhysicsComponent&, ContactPoint&);
+    typedef void(*CPResponse)(b2Component&, ContactPoint&);
 
-    b2PhysicsComponent(mgEntity* e);
-    b2PhysicsComponent(b2PhysicsComponent&& mov);
-    ~b2PhysicsComponent();
+    b2Component(mgEntity* e);
+    b2Component(b2Component&& mov);
+    ~b2Component();
     void Init(const b2BodyDef& def);
     // Gets the b2Body* pointer 
     inline b2Body* GetBody() const { return _body; }
@@ -54,7 +54,7 @@ namespace magnesium {
     CPResponse GetCPResponse() const { return _rcp; }
     inline void SetCPResponse(CPResponse rcp) { _rcp = rcp; }
 
-    b2PhysicsComponent& operator =(b2PhysicsComponent&& right);
+    b2Component& operator =(b2Component&& right);
 
   protected:
     void _destruct();
@@ -65,7 +65,7 @@ namespace magnesium {
     float _oldangle;
     CPResponse _rcp;
     //std::function<void(b2Fixture*, b2Contact*)> _rfp;
-    //std::function<void(b2PhysicsComponent*, b2Contact*)> _rbp;
+    //std::function<void(b2Component*, b2Contact*)> _rbp;
     //int _phystype;
   };
 

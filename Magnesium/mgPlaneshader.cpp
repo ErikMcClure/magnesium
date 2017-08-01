@@ -20,7 +20,7 @@ void PlaneshaderSystem::Process()
   if(!Begin()) return;
 
   // Iterate over entire scene graph, rendering everything
-  _process(mgEntity::SceneGraph(), psTransform2D::Zero);
+  _process(mgEngine::Instance()->SceneGraph(), psTransform2D::Zero);
 
   End();
   mgEngine::Instance()->UpdateDelta();

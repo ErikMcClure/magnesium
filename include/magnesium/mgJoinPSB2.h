@@ -18,9 +18,9 @@ namespace magnesium {
     psDebugDraw(uint32 flags = b2Draw::e_shapeBit + b2Draw::e_jointBit);
     virtual void Clear() override;
     inline virtual void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) override { _drawpolygon(vertices, vertexCount, planeshader::psColor(0U), planeshader::psColor(color.r, color.g, color.b, _alpha)); }
-    inline virtual void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) override { _drawpolygon(vertices, vertexCount, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
+    inline virtual void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color, void*) override { _drawpolygon(vertices, vertexCount, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
     inline virtual void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) override { _drawcircle(center, radius, planeshader::psColor(0U), planeshader::psColor(color.r, color.g, color.b, _alpha)); }
-    inline virtual void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) override { _drawcircle(center, radius, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
+    inline virtual void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color, void*) override { _drawcircle(center, radius, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
     inline virtual void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) override { _drawcircle(p, size, planeshader::psColor(color.r, color.g, color.b, _alpha), planeshader::psColor(0U)); }
 #ifdef b2_invalidParticleIndex
     virtual void DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count) override {}
@@ -31,7 +31,7 @@ namespace magnesium {
     inline void SetAlpha(float alpha) { _alpha = alpha; }
     virtual psRenderable* Clone() const { return 0; }
 
-  private:
+  protected:
     void _drawpolygon(const b2Vec2* vertices, int32 vertexCount, planeshader::psColor& color, planeshader::psColor& outline);
     void _drawcircle(const b2Vec2& center, float32 radius, planeshader::psColor& color, planeshader::psColor& outline);
     virtual void _render(const planeshader::psTransform2D& parent) override;
@@ -63,7 +63,7 @@ namespace magnesium {
     virtual void Process() override;
     virtual const char* GetName() const override { return "PlaneShader-Box2D"; }
     bool GetTransform(mgEntity& entity, planeshader::psTransform2D& parent);
-    void Iterator(b2PhysicsComponent& c, float ratio);
+    void Iterator(b2Component& c, float ratio);
 
     inline static planeshader::psVec toVec(b2Vec2 v) { return planeshader::psVec(v.x, v.y); }
 

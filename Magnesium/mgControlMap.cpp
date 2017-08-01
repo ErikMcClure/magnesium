@@ -59,7 +59,7 @@ size_t mgControlMap::Message(const FG_Msg& msg)
   case FG_MOUSEUP:
   case FG_MOUSEDOWN:
   {
-    uint8_t code = bss::bssLog2_p2(msg.button);
+    uint8_t code = bss::bssLog2_p2(msg.button) + FG_KEY_LBUTTON;
     if(code >= 3) ++code; // the last three buttons are interrupted by the FG_CANCEL key
     if(_bindings.keys[code] != (ControlID)~0)
       _processbutton(_bindings.keys[code], msg.type == FG_MOUSEDOWN);

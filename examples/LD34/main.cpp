@@ -65,7 +65,7 @@ void LoadMap(psTex* map, psTileset* tileset, mgEntity* object, psTex* key)
   // Define the ground body.
   b2BodyDef groundBodyDef;
   groundBodyDef.position.Set(0.0f, 0.0f);
-  object->Get<b2PhysicsComponent>()->Init(groundBodyDef);
+  object->Get<b2Component>()->Init(groundBodyDef);
 
   // Define the ground box shape.
   b2PolygonShape groundBox;
@@ -111,14 +111,14 @@ void LoadMap(psTex* map, psTileset* tileset, mgEntity* object, psTex* key)
         groundBox.Set(polypoints, 3);
         break;
       }
-      object->Get<b2PhysicsComponent>()->GetBody()->CreateFixture(&groundBox, 0.0f);
+      object->Get<b2Component>()->GetBody()->CreateFixture(&groundBox, 0.0f);
     }
 
 }
 
 void BuildImageBox(mgEntity* e, float x = 0, float y = 0)
 {
-  auto phys = e->Get<b2PhysicsComponent>();
+  auto phys = e->Get<b2Component>();
   auto img = e->Get<psImageComponent>();
 
   if(!phys->GetBody())
@@ -142,7 +142,7 @@ void BuildImageBox(mgEntity* e, float x = 0, float y = 0)
 
 bool IsOnFloor(mgEntity* e)
 {
-  auto phys = e->Get<b2PhysicsComponent>();
+  auto phys = e->Get<b2Component>();
   b2ContactEdge* c = phys->GetBody()->GetContactList();
   b2WorldManifold m;
 
@@ -174,7 +174,7 @@ struct HealthComponent : mgComponent<HealthComponent>
   void(*onmodify)(mgEntity*, HealthComponent*, int);
 };
 
-class Player : public mgEntityT<psImageComponent, b2PhysicsComponent, mgLogicComponent, HealthComponent>
+class Player : public mgEntityT<psImageComponent, b2Component, mgLogicComponent, HealthComponent>
 {
 public:
   Player(psTex* img, int maxhealth)
@@ -184,7 +184,7 @@ public:
     playerimg->SetPass();
 
     BuildImageBox(this, 3, 15);
-    Get<b2PhysicsComponent>()->GetRootFixture()->SetFriction(0);
+    Get<b2Component>()->GetRootFixture()->SetFriction(0);
 
     auto health = Get<HealthComponent>();
     health->health = maxhealth;
@@ -197,7 +197,7 @@ public:
       e->Get<psImageComponent>()->SetPass(0);
   }
   COMPONENT_REF(HealthComponent) Health() { return Get<HealthComponent>(); }
-  COMPONENT_REF(b2PhysicsComponent) Physics() { return Get<b2PhysicsComponent>(); }
+  COMPONENT_REF(b2Component) Physics() { return Get<b2Component>(); }
   COMPONENT_REF(mgLogicComponent) Logic() { return Get<mgLogicComponent>(); }
 };
 
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
   ps[0].SetClearColor(0xFF111122);
   //ps[0].SetDPI(psVeciu(psGUIManager::BASE_DPI * 4));
 
-  mgEntityT<psTilesetComponent, b2PhysicsComponent> map;
+  mgEntityT<psTilesetComponent, b2Component> map;
   auto tsmap = map.Get<psTilesetComponent>();
   tsmap->SetTexture(LoadPointImg("../media/LD34/tile1.png"));
   tsmap->AutoGenDefs(psVec(16, 16));
@@ -336,7 +336,7 @@ int main(int argc, char** argv)
   player->Get<mgLogicComponent>()->onlogic = [](mgEntity& e) {
     float secdelta = mgEngine::Instance()->GetDeltaNS() / 1000000000.0f;
     float maxspeed = 8.0f;
-    b2PhysicsComponent* phys = e.Get<b2PhysicsComponent>();
+    b2Component* phys = e.Get<b2Component>();
     if(dirkeys[10])
       phys->GetBody()->ApplyForceToCenter(b2Vec2(mgclamp(-maxspeed - phys->GetBody()->GetLinearVelocity().x, -maxspeed, 0), 0), true);
     if(dirkeys[11])
