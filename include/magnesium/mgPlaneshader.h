@@ -22,12 +22,14 @@ namespace magnesium {
   template<class T> using psSolidBind = mgComponentInheritBind<planeshader::psSolid, T, true>;
 
   template<class T>
-  struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss::ARRAY_SIMPLE,
+  struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss::ARRAY_SAFE,
     psRenderableBind<psGenericComponent<T>>,
     psLocatableBind<psGenericComponent<T>>,
     psSolidBind<psGenericComponent<T>>>
   {
     explicit psGenericComponent(mgEntity* e = 0) : mgComponent(e) {}
+    psGenericComponent(psGenericComponent&& mov) : T(std::move(mov)), mgComponent(std::move(mov)) {}
+    psGenericComponent& operator=(psGenericComponent&& mov) { T::operator=(std::move(mov)); mgComponent::operator=(std::move(mov)); return *this; }
   };
 
   typedef psGenericComponent<planeshader::psImage> psImageComponent;

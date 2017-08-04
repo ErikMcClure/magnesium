@@ -17,7 +17,7 @@ class b2World;
 
 namespace magnesium {
   // Holds a b2Body object that you can attach fixtures to.
-  struct MG_DLLEXPORT b2Component : mgComponent<b2Component, true>
+  struct MG_DLLEXPORT b2Component : mgComponent<b2Component, true, bss::ARRAY_CONSTRUCT>
   {
     struct ContactPoint
     {
@@ -29,9 +29,9 @@ namespace magnesium {
     };
     typedef void(*CPResponse)(b2Component&, ContactPoint&);
 
-    b2Component(mgEntity* e);
+    explicit b2Component(mgEntity* e = 0);
     b2Component(b2Component&& mov);
-    ~b2Component();
+    virtual ~b2Component();
     void Init(const b2BodyDef& def);
     // Gets the b2Body* pointer 
     inline b2Body* GetBody() const { return _body; }
