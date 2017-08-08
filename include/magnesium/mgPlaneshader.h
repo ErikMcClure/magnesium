@@ -25,9 +25,9 @@ namespace magnesium {
   {
     explicit psLocatableBind(mgEntity* e = 0) : psLocatableComponent(e, &CastComponent) 
     {
-      Event<EVENT_SETPOSITION>::Register<psLocatableBind>(e, &psLocatableBind::_setPosition);
-      Event<EVENT_SETPOSITION_INTERPOLATE>::Register<psLocatableBind>(e, &psLocatableBind::_setPosition);
-      Event<EVENT_SETROTATION>::Register<psLocatableBind>(e, &psLocatableBind::_setRotation);
+      Event<EVENT_SETPOSITION>::RegisterRaw<psLocatableBind>(e, &psLocatableBind::_setPosition);
+      Event<EVENT_SETPOSITION_INTERPOLATE>::RegisterRaw<psLocatableBind>(e, &psLocatableBind::_setPosition);
+      Event<EVENT_SETROTATION>::RegisterRaw<psLocatableBind>(e, &psLocatableBind::_setRotation);
     }
     static planeshader::psLocatable* CastComponent(mgEntity* e) { return static_cast<planeshader::psLocatable*>(e->Get<T>()); }
     static void _setPosition(mgComponentCounter* c, float x, float y) { static_cast<psLocatableComponent*>(c)->Get()->SetPosition(x, y); }

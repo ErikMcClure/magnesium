@@ -63,8 +63,6 @@ namespace magnesium {
   protected:
     void _destruct();
     void _setInterpolation();
-    inline static void _setPosition(mgComponentCounter* c, float x, float y) { static_cast<b2Component*>(c)->SetPosition(x, y); }
-    inline static void _setRotation(mgComponentCounter* c, float r) { static_cast<b2Component*>(c)->SetRotation(r); }
 
     b2Body* _body;
     void* _userdata;
