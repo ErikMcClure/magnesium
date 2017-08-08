@@ -377,7 +377,6 @@ int main(int argc, char** argv)
   fgLayout_LoadFileXML(&layout, "../media/console.xml");
   fgSingleton()->gui->LayoutLoad(&layout);
 
-
   engine.ResetDelta();
   engine.ResetTime();
   while(!ps.GetQuit())

@@ -11,6 +11,9 @@
 
 namespace magnesium {
   typedef unsigned short ComponentID;
+  typedef int EventID;
+
+  struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
 
 #ifdef BSS_DEBUG
   template<class T> // This is a debug tracking class that ensures you never add or remove a component
@@ -89,9 +92,26 @@ namespace magnesium {
     void _addchild(mgEntity* child);
     void _removechild(mgEntity* child);
     void _propagateIDs();
+    void _registerEvent(EventID event, ComponentID id, void(*f)());
+    template<typename R, typename... Args>
+    inline R _sendEvent(EventID ID, Args... args)
+    {
+      auto pair = _eventlist.GetValue(_eventlist.Iterator(ID));
+      if(!pair)
+        return R();
+      assert(_componentlist.Get(pair->first) != (ComponentID)~0);
+      size_t index = _componentlist.GetData(pair->first);
+      mgComponentCounter* base = mgComponentStoreBase::GetComponent(pair->first, index);
+      assert(base != 0);
+      R(*f)(mgComponentCounter*, Args...) = reinterpret_cast<R(*)(mgComponentCounter*, Args...)>(pair->second);
+      assert(f != 0);
+      return f(base, args...);
+    }
+
     mgEntity* _getRoot();
 
     bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
+    bss::Hash<EventID, std::pair<ComponentID, void(*)()>> _eventlist;
     mgEntity* _parent;
     mgEntity* _first;
     mgEntity* _last;
@@ -100,8 +120,33 @@ namespace magnesium {
     const char* _name;
 
     friend class mgEngine;
+    template<EventID ID, typename R, typename... Args>
+    friend struct EventDef;
     static mgEntity NIL;
   };
+
+  template<int I>
+  struct Event;
+
+  template<EventID ID, typename R, typename... Args>
+  struct EventDef
+  {
+    BSS_FORCEINLINE static R Send(mgEntity* e, Args... args) { return e->_sendEvent<R, Args...>(ID, args...); }
+    template<typename T>
+    BSS_FORCEINLINE static void Register(mgEntity* e, R(*f)(mgComponentCounter*, Args...)) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(f)); }
+  };
+
+  enum EVENT_TYPE
+  {
+    EVENT_NONE = 0,
+    EVENT_SETPOSITION,
+    EVENT_SETPOSITION_INTERPOLATE,
+    EVENT_SETROTATION,
+  };
+
+  template<> struct Event<EVENT_SETPOSITION> : EventDef<EVENT_SETPOSITION, void, float, float> {};
+  template<> struct Event<EVENT_SETPOSITION_INTERPOLATE> : EventDef<EVENT_SETPOSITION_INTERPOLATE, void, float, float> {};
+  template<> struct Event<EVENT_SETROTATION> : EventDef<EVENT_SETROTATION, void, float> {};
 }
 
 #endif

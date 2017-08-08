@@ -20,11 +20,14 @@ namespace magnesium {
       float f;
     };
 
-    mgSystemBase(int priority = 0);
+    explicit mgSystemBase(int priority = 0);
+    mgSystemBase(mgSystemBase&& mov);
     virtual ~mgSystemBase();
     virtual void Process() = 0;
     virtual const char* GetName() const { return 0; }
     virtual mgMessageResult Message(ptrdiff_t m, void* p) { return mgMessageResult{ 0 }; }
+
+    mgSystemBase& operator=(mgSystemBase&& mov);
 
     typedef void(*ITERATOR)(mgSystemBase*, mgEntity&);
 
@@ -35,11 +38,37 @@ namespace magnesium {
     mgSystemManager* _manager;
   };
 
+  // This state is usually used for scripts, because it stores an arbitrary system processing state and doesn't use a hardcoded type ID
+  class MG_DLLEXPORT mgSystemState : public mgSystemBase
+  {
+  public:
+    mgSystemState() : _id(0), _name(0), _process(0), _message(0) {}
+    explicit mgSystemState(void(*process)(), const char* name, SystemID id, int priority = 0, mgMessageResult(*message)(ptrdiff_t m, void* p) = DefaultMessageResult);
+    mgSystemState(mgSystemState&& mov);
+    virtual const char* GetName() const override { return _name; }
+    virtual mgMessageResult Message(ptrdiff_t m, void* p) override { return _message(m, p); }
+    virtual void Process() { _process(); }
+    SystemID ID() const { return _id; }
+
+    mgSystemState& operator=(mgSystemState&& mov);
+
+    static inline mgMessageResult DefaultMessageResult(ptrdiff_t m, void* p) { return mgMessageResult{ 0 }; }
+
+  protected:
+    void(*_process)();
+    mgMessageResult(*_message)(ptrdiff_t m, void* p);
+    const char* _name;
+    const SystemID _id;
+  };
+
   // Iterates over the given component store
   class MG_DLLEXPORT mgSystemSimple : public mgSystemBase
   {
   public:
-    mgSystemSimple(ComponentID iterator, int priority = 0);
+    explicit mgSystemSimple(ComponentID iterator, int priority = 0);
+    mgSystemSimple(mgSystemSimple&& mov);
+
+    mgSystemSimple& operator=(mgSystemSimple&& mov);
 
     template<ITERATOR F> // This allows generating your own iterator without using virtual function calls
     static void Iterate(mgSystemSimple* self) 
@@ -68,7 +97,10 @@ namespace magnesium {
   class MG_DLLEXPORT mgSystemComplex : public mgSystemBase
   {
   public:
-    mgSystemComplex(size_t required, int priority = 0);
+    explicit mgSystemComplex(size_t required, int priority = 0);
+    mgSystemComplex(mgSystemComplex&& mov);
+
+    mgSystemComplex& operator=(mgSystemComplex&& mov);
 
     template<ITERATOR F> // This allows generating your own iterator without using virtual function calls
     static void Iterate(mgSystemComplex* self, mgEntity& root)
@@ -119,14 +151,20 @@ namespace magnesium {
   class BSS_COMPILER_DLLEXPORT mgSystem : public mgSystemSimple
   {
   public:
-    mgSystem(int priority = 0) : mgSystemSimple(ComponentIterator::ID(), priority) {}
+    explicit mgSystem(int priority = 0) : mgSystemSimple(ComponentIterator::ID(), priority) {}
+    mgSystem(mgSystem&& mov) : mgSystemSimple(std::move(mov)) {}
+
+    mgSystem& operator=(mgSystem&& mov) { mgSystemSimple::operator=(std::move(mov)); return *this; }
   };
 
   template<>
   class BSS_COMPILER_DLLEXPORT mgSystem<void> : public mgSystemBase
   {
   public:
-    mgSystem(int priority = 0) : mgSystemBase(priority) {}
+    explicit mgSystem(int priority = 0) : mgSystemBase(priority) {}
+    mgSystem(mgSystem&& mov) : mgSystemBase(std::move(mov)) {}
+
+    mgSystem& operator=(mgSystem&& mov) { mgSystemBase::operator=(std::move(mov)); return *this; }
   };
 
   class MG_DLLEXPORT mgSystemManager
@@ -137,10 +175,11 @@ namespace magnesium {
     template<class T>
     inline void AddSystem(T* system) { AddSystem(system, GetSystemID<T>()); }
     void AddSystem(mgSystemBase* system, SystemID id);
+    inline void AddSystemState(mgSystemState* system) { AddSystem(system, system->ID()); }
     template<class T>
     inline bool RemoveSystem() { return RemoveSystem(GetSystemID<T>()); }
     bool RemoveSystem(SystemID id);
-    bool RemoveSystem(mgSystemBase* system);
+    SystemID RemoveSystem(mgSystemBase* system);
     template<class T>
     inline T* GetSystem() const { return static_cast<T*>(GetSystem(GetSystemID<T>())); }
     mgSystemBase* GetSystem(SystemID id) const;
@@ -155,6 +194,7 @@ namespace magnesium {
 
     template<class T>
     static SystemID GetSystemID() { static SystemID value = sysid++; return value; }
+    static SystemID GenerateSystemID() { return sysid++; }
 
   protected:
     static SystemID sysid;

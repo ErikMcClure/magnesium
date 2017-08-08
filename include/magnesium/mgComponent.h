@@ -55,10 +55,12 @@ namespace magnesium {
     virtual bool RemoveInternal(ComponentID id, size_t index) = 0; // we have to pass a component's own ID to it's remove function because this gets called from inside the DLL, which does not have access to the correct static instances
     virtual EntityIterator GetEntities() const = 0;
     virtual mgEntity** GetEntity(size_t index) = 0;
+    virtual mgComponentCounter* GetBase(size_t index) = 0;
     virtual void FlushBuffer() = 0;
 
     static mgComponentStoreBase* GetStore(ComponentID id);
     static bool RemoveComponent(ComponentID id, size_t index);
+    static mgComponentCounter* GetComponent(ComponentID id, size_t index);
     static void* dllrealloc(void* p, size_t sz);
     static void dllfree(void* p);
 
@@ -94,6 +96,7 @@ namespace magnesium {
     BSS_FORCEINLINE T* begin() noexcept { return _store.begin(); }
     BSS_FORCEINLINE T* end() noexcept { return _store.end(); }
     virtual mgEntity** GetEntity(size_t index) override { return (index < _store.Length()) ? &_store[index].entity : nullptr; }
+    virtual mgComponentCounter* GetBase(size_t index) override { return (index < _store.Length()) ? &_store[index] : nullptr; }
     virtual EntityIterator GetEntities() const override // By getting the address of the entity, this will work no matter what the inheritance structure of T is
     {
       return EntityIterator(const_cast<mgEntity**>(&_store.begin()->entity), _store.Length(), sizeof(T));
@@ -140,8 +143,6 @@ namespace magnesium {
     bss::DynArray<T, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<T>> _store;
     bss::DynArray<size_t, size_t, bss::ARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumAllocPolicy<size_t>> _buf; // Buffered deletes
   };
-
-  struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
 
   template<typename T, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE, typename... ImpliedComponents>
   struct mgComponent : mgComponentCounter

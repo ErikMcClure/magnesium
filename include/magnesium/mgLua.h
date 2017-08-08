@@ -71,6 +71,7 @@ namespace magnesium {
     int Load(const char* script);
     int Require(const char* name); // Equivelent to calling require("name") in Lua
     int AppendPath(const char* path); // Same as running: path .. ';' .. package.path
+    SystemID RegisterSystem(void(*process)(), int priority, const char* name);
     template<typename R, typename... Args>
     inline R CallLua(const char* function, Args... args)
     {
@@ -108,6 +109,7 @@ namespace magnesium {
     static int lua_GetEntityComponent(lua_State *L);
 
     lua_State* _l;
+    bss::DynArray<mgSystemState, size_t, bss::ARRAY_SAFE> _systems;
   };
 }
 

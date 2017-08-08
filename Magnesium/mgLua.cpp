@@ -172,6 +172,12 @@ int LuaSystem::lua_GetEntityComponent(lua_State *L)
 
   return 0;
 }
+SystemID LuaSystem::RegisterSystem(void(*process)(), int priority, const char* name)
+{
+  size_t i = _systems.AddConstruct(process, name, mgSystemManager::GenerateSystemID(), priority);
+  _manager->AddSystemState(&_systems[i]);
+  return _systems[i].ID();
+}
 
 struct _FG_ROOT* lua_GetGUI()
 {
@@ -179,6 +185,8 @@ struct _FG_ROOT* lua_GetGUI()
 }
 int lua_RegisterSystem(void(*process)(), int priority, const char* name)
 {
+  if(LuaSystem* l = mgEngine::Instance()->GetSystem<LuaSystem>())
+    return l->RegisterSystem(process, priority, name);
   return -1;
 }
 mgSystemBase::mgMessageResult lua_MessageSystem(const char* name, ptrdiff_t m, void* p)

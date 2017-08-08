@@ -9,12 +9,20 @@ using namespace magnesium;
 
 Box2DSystem* Box2DSystem::_instance = 0;
 
-b2Component::b2Component(b2Component&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rcp(mov._rcp)
+b2Component::b2Component(b2Component&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rp(mov._rp), _rc(mov._rc)
 { 
   mov._body = 0;
   mov._userdata = 0;
 }
-b2Component::b2Component(mgEntity* e) : mgComponent(e), _body(0), _userdata(0), _rcp(0) {}
+b2Component::b2Component(mgEntity* e) : mgComponent(e), _body(0), _userdata(0), _rp(0), _rc(0)
+{
+  if(e)
+  {
+    Event<EVENT_SETPOSITION>::Register<b2Component>(e, &b2Component::_setPosition);
+    Event<EVENT_SETROTATION>::Register<b2Component>(e, &b2Component::_setRotation);
+  }
+}
+
 b2Component::~b2Component() { _destruct(); }
 void b2Component::_destruct()
 {
@@ -23,11 +31,20 @@ void b2Component::_destruct()
   _body = 0;
 }
 
+void b2Component::_setInterpolation()
+{
+  b2Vec2 p = _body->GetPosition();
+  p *= Box2DSystem::Instance()->F_PPM;
+  Event<EVENT_SETPOSITION_INTERPOLATE>::Send(entity, p.x, p.y);
+    /*if(auto loc = entity->Get<psLocatableComponent>())
+    loc->Get()->SetPosition(PlaneshaderBox2DSystem::toVec());*/
+}
 void b2Component::Init(const b2BodyDef& def)
 { 
   _body = Box2DSystem::Instance()->GetWorld()->CreateBody(&def);
   _userdata = def.userData;
   _body->SetUserData(entity);
+  _setInterpolation();
   UpdateOld();
 }
 b2Vec2 b2Component::GetPosition() const
@@ -49,6 +66,7 @@ void b2Component::SetTransform(const b2Vec2& pos, float rotation)
   b2Vec2 p(pos);
   p *= Box2DSystem::Instance()->INV_PPM;
   _body->SetTransform(p, rotation);
+  _setInterpolation();
   UpdateOld();
 }
 
@@ -154,8 +172,8 @@ void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
     {
       b2Component* ac = !a ? 0 : a->Get<b2Component>();
       b2Component* bc = !b ? 0 : b->Get<b2Component>();
-      b2Component::CPResponse af = !ac ? 0 : ac->GetCPResponse();
-      b2Component::CPResponse bf = !bc ? 0 : bc->GetCPResponse();
+      b2Component::PointResponse af = !ac ? 0 : ac->GetPointResponse();
+      b2Component::PointResponse bf = !bc ? 0 : bc->GetPointResponse();
       if(af || bf)
       {
         b2PointState s1[b2_maxManifoldPoints];
@@ -181,6 +199,30 @@ void Box2DSystem::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
       }
     }
   }
+}
+void Box2DSystem::ProcessContact(mgEntity& entity, b2Contact* contact, b2Fixture* other, bool begin)
+{
+  if(b2Component* c = entity.Get<b2Component>())
+    if(b2Component::ContactResponse cr = c->GetContactResponse())
+      cr(*c, contact, other, begin);
+}
+void Box2DSystem::BeginContact(b2Contact* contact)
+{
+  mgEntity* a = reinterpret_cast<mgEntity*>(contact->GetFixtureA()->GetBody()->GetUserData());
+  mgEntity* b = reinterpret_cast<mgEntity*>(contact->GetFixtureB()->GetBody()->GetUserData());
+  if(a)
+    ProcessContact(*a, contact, contact->GetFixtureB(), true);
+  if(b)
+    ProcessContact(*b, contact, contact->GetFixtureA(), true);
+}
+void Box2DSystem::EndContact(b2Contact* contact)
+{
+  mgEntity* a = reinterpret_cast<mgEntity*>(contact->GetFixtureA()->GetBody()->GetUserData());
+  mgEntity* b = reinterpret_cast<mgEntity*>(contact->GetFixtureB()->GetBody()->GetUserData());
+  if(a)
+    ProcessContact(*a, contact, contact->GetFixtureB(), false);
+  if(b)
+    ProcessContact(*b, contact, contact->GetFixtureA(), false);
 }
 
 void Box2DSystem::SetHertz(double hertz)
