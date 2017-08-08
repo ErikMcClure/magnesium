@@ -79,21 +79,6 @@ void psDebugDraw::_render(const psTransform2D& parent)
   _driver->PopTransform();
 }
 
-void magnesium::Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos)
-{
-  auto b = entity->Get<b2Component>();
-  auto r = entity->Get<psLocatableComponent>();
-  if(r) r->Get()->SetPosition(pos);
-  if(b) b->SetPosition(b2Vec2(pos.x, pos.y));
-}
-void magnesium::Entity_SetRotation(mgEntity* entity, float rotation)
-{
-  auto b = entity->Get<b2Component>();
-  auto r = entity->Get<psLocatableComponent>();
-  if(r) r->Get()->SetRotation(rotation);
-  if(b) b->SetRotation(rotation);
-}
-
 PlaneshaderBox2DSystem::PlaneshaderBox2DSystem(const planeshader::PSINIT& init, int priority, SystemID id) :
   PlaneshaderSystem(init, priority), _physid(id), _physrequired(b2Component::GraphID()|psLocatableComponent::GraphID()) {}
 PlaneshaderBox2DSystem::~PlaneshaderBox2DSystem() {}

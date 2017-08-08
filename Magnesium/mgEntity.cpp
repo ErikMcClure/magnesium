@@ -136,3 +136,7 @@ void mgEntity::_removechild(mgEntity* child)
   if(!_first)
     childhint = 0;
 }
+void mgEntity::_registerEvent(EventID event, ComponentID id, void(*f)())
+{
+  _eventlist.Insert(event, std::pair<ComponentID, void(*)()>(id, f));
+}

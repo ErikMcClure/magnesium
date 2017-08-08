@@ -14,12 +14,25 @@
 
 namespace magnesium {
   typedef mgComponentInherit<planeshader::psRenderable, true> psRenderableComponent;
-  typedef mgComponentInherit<planeshader::psLocatable, true> psLocatableComponent;
   typedef mgComponentInherit<planeshader::psSolid, true> psSolidComponent;
+  typedef mgComponentInherit<planeshader::psLocatable, true> psLocatableComponent;
 
   template<class T> using psRenderableBind = mgComponentInheritBind<planeshader::psRenderable, T, true>;
-  template<class T> using psLocatableBind = mgComponentInheritBind<planeshader::psLocatable, T, true>;
   template<class T> using psSolidBind = mgComponentInheritBind<planeshader::psSolid, T, true>;
+
+  template<typename T>
+  struct psLocatableBind : psLocatableComponent
+  {
+    explicit psLocatableBind(mgEntity* e = 0) : psLocatableComponent(e, &CastComponent) 
+    {
+      Event<EVENT_SETPOSITION>::Register<psLocatableBind>(e, &psLocatableBind::_setPosition);
+      Event<EVENT_SETPOSITION_INTERPOLATE>::Register<psLocatableBind>(e, &psLocatableBind::_setPosition);
+      Event<EVENT_SETROTATION>::Register<psLocatableBind>(e, &psLocatableBind::_setRotation);
+    }
+    static planeshader::psLocatable* CastComponent(mgEntity* e) { return static_cast<planeshader::psLocatable*>(e->Get<T>()); }
+    static void _setPosition(mgComponentCounter* c, float x, float y) { static_cast<psLocatableComponent*>(c)->Get()->SetPosition(x, y); }
+    static void _setRotation(mgComponentCounter* c, float r) { static_cast<psLocatableComponent*>(c)->Get()->SetRotation(r); }
+  };
 
   template<class T>
   struct MG_DLLEXPORT psGenericComponent : T, mgComponent<psGenericComponent<T>, false, bss::ARRAY_SAFE,

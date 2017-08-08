@@ -50,10 +50,17 @@ namespace magnesium {
     float _alpha;
   };
 
-  struct MG_DLLEXPORT mgPosition : mgComponent<mgPosition, false, bss::ARRAY_SIMPLE, psLocatableBind<mgPosition>>, planeshader::psLocatable {};
+  struct MG_DLLEXPORT mgPosition : mgComponent<mgPosition, false, bss::ARRAY_SIMPLE, psLocatableBind<mgPosition>>, planeshader::psLocatable {
+    explicit mgPosition(mgEntity* e = 0) : mgComponent(e), psLocatable(planeshader::psVec3D{ 0,0,0 }) 
+    { 
+      Event<EVENT_SETPOSITION>::Register<mgPosition>(e, &mgPosition::_setPosition);
+      Event<EVENT_SETPOSITION_INTERPOLATE>::Register<mgPosition>(e, &mgPosition::_setPosition);
+      Event<EVENT_SETROTATION>::Register<mgPosition>(e, &mgPosition::_setRotation);
 
-  extern void Entity_SetPosition(mgEntity* entity, planeshader::psVec3D pos);
-  extern void Entity_SetRotation(mgEntity* entity, float rotation);
+    }
+    static void _setPosition(mgComponentCounter* c, float x, float y) { static_cast<mgPosition*>(c)->SetPosition(x, y); }
+    static void _setRotation(mgComponentCounter* c, float r) { static_cast<mgPosition*>(c)->SetRotation(r); }
+  };
 
   class MG_DLLEXPORT PlaneshaderBox2DSystem : public PlaneshaderSystem
   {

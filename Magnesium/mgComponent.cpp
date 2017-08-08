@@ -32,6 +32,13 @@ bool mgComponentStoreBase::RemoveComponent(ComponentID id, size_t index)
   return _stores[id]->RemoveInternal(id, index);
 }
 
+mgComponentCounter* mgComponentStoreBase::GetComponent(ComponentID id, size_t index)
+{
+  if(id >= _stores.Length() || !_stores[id])
+    return nullptr;
+  return _stores[id]->GetBase(index); // This virtual call can be eliminated if a copy of the base array pointer is maintained in the base component
+}
+
 mgComponentStoreBase* mgComponentStoreBase::GetStore(ComponentID id)
 {
   return (id >= _stores.Length()) ? 0 : _stores[id];

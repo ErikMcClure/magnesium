@@ -27,7 +27,8 @@ namespace magnesium {
       b2Vec2 normal;
       b2PointState state;
     };
-    typedef void(*CPResponse)(b2Component&, ContactPoint&);
+    typedef void(*PointResponse)(b2Component&, const ContactPoint&);
+    typedef void(*ContactResponse)(b2Component&, b2Contact*, b2Fixture*, bool);
 
     explicit b2Component(mgEntity* e = 0);
     b2Component(b2Component&& mov);
@@ -37,6 +38,7 @@ namespace magnesium {
     inline b2Body* GetBody() const { return _body; }
     // Sets the position or rotation, which wakes the body up and resets it's collisions
     inline void SetPosition(const b2Vec2& pos) { SetTransform(pos, _body->GetAngle()); }
+    inline void SetPosition(float x, float y) { SetTransform(b2Vec2{ x,y }, _body->GetAngle()); }
     b2Vec2 GetPosition() const;
     b2Vec2 GetOldPosition() const;
     inline void SetRotation(float rotation) { _body->SetTransform(_body->GetPosition(), rotation); }
@@ -51,19 +53,25 @@ namespace magnesium {
     inline void SetUserData(void* userdata) { _userdata = userdata; }
     inline void* GetUserData() const { return _userdata; }
     // Gets/Sets the collision response 
-    CPResponse GetCPResponse() const { return _rcp; }
-    inline void SetCPResponse(CPResponse rcp) { _rcp = rcp; }
+    PointResponse GetPointResponse() const { return _rp; }
+    inline void SetPointResponse(PointResponse rp) { _rp = rp; }
+    ContactResponse GetContactResponse() const { return _rc; }
+    inline void SetContactResponse(ContactResponse rc) { _rc = rc; }
 
     b2Component& operator =(b2Component&& right);
 
   protected:
     void _destruct();
+    void _setInterpolation();
+    inline static void _setPosition(mgComponentCounter* c, float x, float y) { static_cast<b2Component*>(c)->SetPosition(x, y); }
+    inline static void _setRotation(mgComponentCounter* c, float r) { static_cast<b2Component*>(c)->SetRotation(r); }
 
     b2Body* _body;
     void* _userdata;
     b2Vec2 _oldposition;
     float _oldangle;
-    CPResponse _rcp;
+    PointResponse _rp;
+    ContactResponse _rc;
     //std::function<void(b2Fixture*, b2Contact*)> _rfp;
     //std::function<void(b2Component*, b2Contact*)> _rbp;
     //int _phystype;
@@ -105,6 +113,8 @@ namespace magnesium {
     ~Box2DSystem();
     virtual void Process() override;
     virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
+    virtual void BeginContact(b2Contact* contact) override;
+    virtual void EndContact(b2Contact* contact) override;
     virtual void SayGoodbye(b2Joint* joint) override {}
     virtual void SayGoodbye(b2Fixture* fixture) override {}
     virtual const char* GetName() const override { return "Box2D"; }
@@ -137,6 +147,7 @@ namespace magnesium {
         return std::pair<void*, void*>(a, b);
       return std::pair<void*, void*>(b, a);
     }
+    inline static void ProcessContact(mgEntity& entity, b2Contact* contact, b2Fixture* other, bool begin);
 
     static Box2DSystem* _instance;
 
