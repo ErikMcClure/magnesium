@@ -18,8 +18,8 @@ b2Component::b2Component(mgEntity* e) : mgComponent(e), _body(0), _userdata(0), 
 {
   if(e)
   {
-    Event<EVENT_SETPOSITION>::Register<b2Component>(e, &b2Component::_setPosition);
-    Event<EVENT_SETROTATION>::Register<b2Component>(e, &b2Component::_setRotation);
+    Event<EVENT_SETPOSITION>::Register<b2Component, &b2Component::SetPosition>(e);
+    Event<EVENT_SETROTATION>::Register<b2Component, &b2Component::SetRotation>(e);
   }
 }
 
@@ -27,7 +27,7 @@ b2Component::~b2Component() { _destruct(); }
 void b2Component::_destruct()
 {
   if(_body)
-    Box2DSystem::Instance()->GetWorld()->DestroyBody(_body);
+    _body->GetWorld()->DestroyBody(_body);
   _body = 0;
 }
 

@@ -133,7 +133,13 @@ namespace magnesium {
   {
     BSS_FORCEINLINE static R Send(mgEntity* e, Args... args) { return e->_sendEvent<R, Args...>(ID, args...); }
     template<typename T>
-    BSS_FORCEINLINE static void Register(mgEntity* e, R(*f)(mgComponentCounter*, Args...)) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(f)); }
+    BSS_FORCEINLINE static void RegisterRaw(mgEntity* e, R(*f)(mgComponentCounter*, Args...)) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(f)); }
+    template<typename T, R(T::*F)(Args...)>
+    BSS_FORCEINLINE static void Register(mgEntity* e) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(&stub<T,F>)); }
+
+  protected:
+    template<typename T, R(T::*F)(Args...)>
+    inline static R stub(mgComponentCounter* p, Args... args) { return (static_cast<T*>(p)->*F)(args...); }
   };
 
   enum EVENT_TYPE
