@@ -106,7 +106,16 @@ void mgSystemManager::Process()
   {
     mgRefCounter::GrabAll();
     s.first->Process();
+    RunDeferred();
     mgRefCounter::DropAll();
+  }
+}
+void mgSystemManager::RunDeferred()
+{
+  while(_defer.size() > 0)
+  {
+    _defer.back()();
+    _defer.pop_back();
   }
 }
 

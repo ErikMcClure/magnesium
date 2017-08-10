@@ -93,9 +93,12 @@ namespace magnesium {
     void _removechild(mgEntity* child);
     void _propagateIDs();
     void _registerEvent(EventID event, ComponentID id, void(*f)());
+    void _registerHook(EventID event, void(mgEntity::*f)());
     template<typename R, typename... Args>
     inline R _sendEvent(EventID ID, Args... args)
     {
+      if(void(mgEntity::*hook)() = _hooklist.Get(ID))
+        (this->*reinterpret_cast<R(mgEntity::*)(Args...)>(hook))(args...);
       auto pair = _eventlist.GetValue(_eventlist.Iterator(ID));
       if(!pair)
         return R();
@@ -112,6 +115,7 @@ namespace magnesium {
 
     bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
     bss::Hash<EventID, std::pair<ComponentID, void(*)()>> _eventlist;
+    bss::Hash<EventID, void(mgEntity::*)()> _hooklist;
     mgEntity* _parent;
     mgEntity* _first;
     mgEntity* _last;
@@ -136,6 +140,8 @@ namespace magnesium {
     BSS_FORCEINLINE static void RegisterRaw(mgEntity* e, R(*f)(mgComponentCounter*, Args...)) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(f)); }
     template<typename T, R(T::*F)(Args...)>
     BSS_FORCEINLINE static void Register(mgEntity* e) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(&stub<T,F>)); }
+    template<void(mgEntity::*F)(Args...)>
+    BSS_FORCEINLINE static void Hook(mgEntity* e) { e->_registerHook(ID, reinterpret_cast<void(mgEntity::*)()>(F)); }
 
   protected:
     template<typename T, R(T::*F)(Args...)>
