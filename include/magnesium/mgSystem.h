@@ -49,7 +49,6 @@ namespace magnesium {
     virtual mgMessageResult Message(ptrdiff_t m, void* p) override { return _message(m, p); }
     virtual void Process() { _process(); }
     SystemID ID() const { return _id; }
-
     mgSystemState& operator=(mgSystemState&& mov);
 
     static inline mgMessageResult DefaultMessageResult(ptrdiff_t m, void* p) { return mgMessageResult{ 0 }; }
@@ -189,6 +188,9 @@ namespace magnesium {
     inline mgSystemBase::mgMessageResult MessageSystem(ptrdiff_t m, void* p) { return MessageSystem(GetSystemID<T>(), m, p); }
     mgSystemBase::mgMessageResult MessageSystem(SystemID id, ptrdiff_t m, void* p);
     void Process();
+    template<typename F>
+    inline void Defer(F && f) { _defer.push_back(std::forward<F>(f)); }
+    void RunDeferred();
 
     inline static char SortSystem(mgSystemBase* const& l, mgSystemBase* const& r) { char ret = SGNCOMPARE(l->_priority, r->_priority); return !ret ? SGNCOMPARE(l, r) : ret; }
 
@@ -202,6 +204,7 @@ namespace magnesium {
     bss::Map<mgSystemBase*, SystemID, &SortSystem> _systems;
     bss::Hash<SystemID, mgSystemBase*> _systemhash;
     bss::Hash<const char*, mgSystemBase*> _systemname;
+    std::vector<std::function<void()>> _defer;
   };
 }
 

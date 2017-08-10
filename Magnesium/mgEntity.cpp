@@ -140,3 +140,7 @@ void mgEntity::_registerEvent(EventID event, ComponentID id, void(*f)())
 {
   _eventlist.Insert(event, std::pair<ComponentID, void(*)()>(id, f));
 }
+void mgEntity::_registerHook(EventID event, void(mgEntity::*f)())
+{
+  _hooklist.Insert(event, f);
+}
