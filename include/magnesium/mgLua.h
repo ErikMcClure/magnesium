@@ -28,7 +28,7 @@ namespace magnesium {
   struct LuaStack<T, 3>
   {
     static inline void Push(lua_State *L, T n) { lua_pushnumber(L, static_cast<lua_Number>(n)); }
-    static inline T Pop(lua_State *L) { T r = static_cast<T>(lua_touserdata(L, -1)); lua_pop(L, 1); return r; }
+    static inline T Pop(lua_State *L) { T r = static_cast<T>(lua_tonumber(L, -1)); lua_pop(L, 1); return r; }
   };
   template<> // Strings
   struct LuaStack<std::string, 0>
@@ -85,6 +85,23 @@ namespace magnesium {
     virtual const char* GetName() const override { return "Lua"; }
 
     static const int CHUNKSIZE = (1 << 16);
+    static mgMessageResult MessageSystem(const char* name, ptrdiff_t m, void* p);
+    static mgComponentCounter* GetEntityComponent(mgEntity* e, const char* component);
+
+    struct Process {
+      template<EventID ID, typename R, typename... Args>
+      BSS_FORCEINLINE static void F(lua_State* L, mgEntity* e)
+      {
+        LuaStack<R, LS<R>::value>::Push(L, Event<ID>::Send(e, (LuaStack<Args, LS<Args>::value>::Pop(L))...));
+      }
+    };
+    struct ProcessVoid {
+      template<EventID ID, typename R, typename... Args>
+      BSS_FORCEINLINE static void F(lua_State* L, mgEntity* e)
+      {
+        Event<ID>::Send(e, (LuaStack<Args, LS<Args>::value>::Pop(L))...);
+      }
+    };
 
   protected:
     template<typename R, int N, typename Arg, typename... Args>
@@ -106,18 +123,10 @@ namespace magnesium {
     static const char* _luaStreamReader(lua_State *L, void *data, size_t *size);
     static int lua_Print(lua_State *L);
     static int _print(lua_State *L, std::ostream& out);
-    static int lua_GetEntityComponent(lua_State *L);
 
     lua_State* _l;
     bss::DynArray<mgSystemState, size_t, bss::ARRAY_SAFE> _systems;
   };
 }
 
-extern "C" {
-  struct _FG_ROOT;
-
-  struct _FG_ROOT* lua_GetGUI();
-  int lua_RegisterSystem(void(*process)(), int priority, const char* name);
-  magnesium::mgSystemBase::mgMessageResult lua_MessageSystem(const char* name, ptrdiff_t m, void* p);
-}
 #endif

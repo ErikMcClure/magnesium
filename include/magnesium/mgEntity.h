@@ -13,8 +13,6 @@ namespace magnesium {
   typedef unsigned short ComponentID;
   typedef int EventID;
 
-  struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
-
 #ifdef BSS_DEBUG
   template<class T> // This is a debug tracking class that ensures you never add or remove a component
   struct mgComponentRef // while you have an active reference to it, because the pointer gets invalidated
@@ -36,6 +34,8 @@ namespace magnesium {
 #else
 #define COMPONENT_REF(T) T*
 #endif
+  
+  struct MG_DLLEXPORT mgComponentCounter { protected: static ComponentID curID; static ComponentID curGraphID; };
 
   struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss::internal::TRB_NodeBase<mgEntity>
   {
@@ -45,6 +45,7 @@ namespace magnesium {
     void ComponentListInsert(ComponentID id, ComponentID graphid, size_t);
     void ComponentListRemove(ComponentID id, ComponentID graphid);
     size_t& ComponentListGet(ComponentID id);
+    mgComponentCounter* GetByID(ComponentID id);
     template<class T> // Gets a component of type T if it belongs to this entity, otherwise returns NULL
     inline COMPONENT_REF(T::template TYPE) Get() 
     { 
@@ -142,6 +143,8 @@ namespace magnesium {
     BSS_FORCEINLINE static void Register(mgEntity* e) { e->_registerEvent(ID, T::ID(), reinterpret_cast<void(*)()>(&stub<T,F>)); }
     template<void(mgEntity::*F)(Args...)>
     BSS_FORCEINLINE static void Hook(mgEntity* e) { e->_registerHook(ID, reinterpret_cast<void(mgEntity::*)()>(F)); }
+    template<typename T, typename... Inner>
+    BSS_FORCEINLINE static void Transfer(Inner... inner) { T::F<ID, R, Args...>(inner...); }
 
   protected:
     template<typename T, R(T::*F)(Args...)>

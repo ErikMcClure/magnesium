@@ -5,6 +5,8 @@
 
 using namespace magnesium;
 
+static_assert(!std::is_polymorphic<mgLogicComponent>::value, "Components shouldn't have a vtable");
+
 LogicSystem::LogicSystem() {}
 LogicSystem::~LogicSystem() {}
 

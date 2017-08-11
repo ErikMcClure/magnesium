@@ -9,6 +9,8 @@ using namespace magnesium;
 using namespace planeshader;
 using namespace bss;
 
+static_assert(!std::is_polymorphic<mgPosition>::value, "Components shouldn't have a vtable");
+
 psDebugDraw::psDebugDraw(psDebugDraw&& mov) : _alpha(mov._alpha), psRenderable(std::move(mov)) { SetFlags(static_cast<b2Draw&>(mov).GetFlags()); }
 psDebugDraw::psDebugDraw(uint32 flags) : _alpha(1.0) { SetFlags(flags); }
 void psDebugDraw::Clear()

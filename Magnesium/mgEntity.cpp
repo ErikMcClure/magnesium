@@ -113,6 +113,11 @@ size_t& mgEntity::ComponentListGet(ComponentID id)
 {
   return _componentlist[_componentlist.Get(id)];
 }
+mgComponentCounter* mgEntity::GetByID(ComponentID id)
+{
+  ComponentID index = _componentlist.Get(id);
+  return index == (ComponentID)~0 ? nullptr : mgComponentStoreBase::GetComponent(id, _componentlist[index]);
+}
 
 void mgEntity::_propagateIDs()
 {
