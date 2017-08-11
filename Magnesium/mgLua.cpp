@@ -166,31 +166,19 @@ int LuaSystem::lua_Print(lua_State *L) {
   return _print(L, mgEngine::Instance()->GetLog().GetStream());
 }
 
-int LuaSystem::lua_GetEntityComponent(lua_State *L)
-{
-  // Return a pointer to the components, how big a component is, and how many of them are there
-
-  return 0;
-}
 SystemID LuaSystem::RegisterSystem(void(*process)(), int priority, const char* name)
 {
   size_t i = _systems.AddConstruct(process, name, mgSystemManager::GenerateSystemID(), priority);
   _manager->AddSystemState(&_systems[i]);
   return _systems[i].ID();
 }
-
-struct _FG_ROOT* lua_GetGUI()
+mgSystemBase::mgMessageResult LuaSystem::MessageSystem(const char* name, ptrdiff_t m, void* p)
 {
-  return planeshader::psEngine::Instance() ? &planeshader::psEngine::Instance()->GetGUI() : nullptr;
+  if(mgSystemBase* sys = mgEngine::Instance()->GetSystem(name))
+    return sys->Message(m, p);
+  return mgMessageResult{ 0 };
 }
-int lua_RegisterSystem(void(*process)(), int priority, const char* name)
+mgComponentCounter* LuaSystem::GetEntityComponent(mgEntity* e, const char* component)
 {
-  if(LuaSystem* l = mgEngine::Instance()->GetSystem<LuaSystem>())
-    return l->RegisterSystem(process, priority, name);
-  return -1;
+  return !e ? nullptr : e->GetByID(GetComponentID(component));
 }
-mgSystemBase::mgMessageResult lua_MessageSystem(const char* name, ptrdiff_t m, void* p)
-{
-  return mgEngine::Instance()->GetSystem(name)->Message(m, p);
-}
-

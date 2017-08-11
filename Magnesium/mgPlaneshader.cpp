@@ -9,6 +9,10 @@
 using namespace magnesium;
 using namespace planeshader;
 
+static_assert(!std::is_polymorphic<psRenderableComponent>::value, "Components shouldn't have a vtable");
+static_assert(!std::is_polymorphic<psLocatableComponent>::value, "Components shouldn't have a vtable");
+static_assert(!std::is_polymorphic<psSolidComponent>::value, "Components shouldn't have a vtable");
+
 PlaneshaderSystem::PlaneshaderSystem(const PSINIT& init, int priority) : psEngine(init, &mgEngine::Instance()->GetLog().GetStream()), mgSystemComplex(psRenderableComponent::GraphID(), priority)
 {
   FlushMessages();

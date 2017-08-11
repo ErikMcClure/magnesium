@@ -32,7 +32,7 @@ namespace magnesium {
 
     explicit b2Component(mgEntity* e = 0);
     b2Component(b2Component&& mov);
-    virtual ~b2Component();
+    ~b2Component();
     void Init(const b2BodyDef& def);
     // Gets the b2Body* pointer 
     inline b2Body* GetBody() const { return _body; }

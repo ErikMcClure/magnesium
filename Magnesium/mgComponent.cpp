@@ -10,6 +10,8 @@ ComponentID mgComponentCounter::curID = 0;
 ComponentID mgComponentCounter::curGraphID = 1;
 DynArray<mgComponentStoreBase*> mgComponentStoreBase::_stores;
 
+static_assert(!std::is_polymorphic<mgComponentCounter>::value, "Components shouldn't have a vtable");
+
 mgComponentStoreBase::mgComponentStoreBase(ComponentID id) : _id(id), curIteration(0)
 {
   if(_stores.Length() <= _id)
@@ -49,14 +51,14 @@ void mgComponentStoreBase::dllfree(void* p) { free(p); }
 
 Hash<const char*, ComponentID> mgComponentIDNameHash;
 
-ComponentID GetComponentID(const char* name)
+ComponentID magnesium::GetComponentID(const char* name)
 {
   khiter_t i = mgComponentIDNameHash.Iterator(name);
   if(mgComponentIDNameHash.ExistsIter(i))
     return mgComponentIDNameHash.GetValue(i);
   return (ComponentID)~0;
 }
-void RegisterComponentID(ComponentID id, const char* name)
+void magnesium::RegisterComponentID(ComponentID id, const char* name)
 {
   mgComponentIDNameHash.Insert(name, id);
 }
