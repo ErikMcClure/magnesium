@@ -375,9 +375,11 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     </PostBuildEvent>
     <ClCompile>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpplatest</LanguageStandard>
     </ClCompile>
     <ClCompile>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MachineX86</TargetMachine>
@@ -405,9 +407,11 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     </PostBuildEvent>
     <ClCompile>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpplatest</LanguageStandard>
     </ClCompile>
     <ClCompile>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MachineX86</TargetMachine>
