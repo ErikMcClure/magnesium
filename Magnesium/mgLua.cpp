@@ -113,7 +113,8 @@ int LuaSystem::Require(const char *name) {
   lua_getglobal(_l, "require");
   lua_pushstring(_l, name);
   int r = lua_pcall(_l, 1, 1, 0);
-  lua_pop(_l, 1);
+  if(!r)
+    lua_pop(_l, 1);
   WriteError(r, name);
   return r;
 }
