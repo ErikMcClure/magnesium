@@ -5,8 +5,8 @@
 #define __ENGINE_H__MG__
 
 #include "mgSystem.h"
-#include "bss-util\HighPrecisionTimer.h"
-#include "bss-util\Logger.h"
+#include "bss-util/HighPrecisionTimer.h"
+#include "bss-util/Logger.h"
 
 #define MGLOG(level,...) mgEngine::Instance()->Log(__FILE__,__LINE__,(level),__VA_ARGS__)
 #define MGLOGF(level,format,...) mgEngine::Instance()->LogFormat(__FILE__,__LINE__,(level),format,__VA_ARGS__)
@@ -23,7 +23,6 @@ namespace magnesium {
     inline double GetTimewarp() const { return _timewarp; }
     inline void SetTimewarp(double timewarp) { _timewarp = timewarp; }
     inline mgEntity& SceneGraph() { return _root; }
-
     inline bss::Logger& GetLog() { return _log; }
     BSS_FORCEINLINE void Process() { mgSystemManager::Process(); }
     void Process(uint64_t delta);

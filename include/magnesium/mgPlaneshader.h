@@ -5,12 +5,14 @@
 #define __PLANESHADER_H__MG__
 
 #include "mgSystem.h"
+#include "mgTimeline.h"
 #include "planeshader\psImage.h"
 #include "planeshader\psTileset.h"
 #include "planeshader\psText.h"
 #include "planeshader\psVector.h"
 #include "planeshader\psRenderGeometry.h"
 #include "planeshader\psEngine.h"
+#include "planeshader\psLayer.h"
 
 namespace magnesium {
   typedef mgComponentInherit<planeshader::psRenderable, true> psRenderableComponent;
@@ -21,7 +23,7 @@ namespace magnesium {
   template<class T> using psSolidBind = mgComponentInheritBind<planeshader::psSolid, T, true>;
 
   template<typename T>
-  struct psLocatableBind : psLocatableComponent
+  struct MG_DLLEXPORT psLocatableBind : psLocatableComponent
   {
     explicit psLocatableBind(mgEntity* e = 0) : psLocatableComponent(e, &CastComponent) 
     {
@@ -51,6 +53,44 @@ namespace magnesium {
   typedef psGenericComponent<planeshader::psRenderCircle> psRenderCircleComponent;
   typedef psGenericComponent<planeshader::psRoundRect> psRoundRectComponent;
 
+  struct MG_DLLEXPORT psLayerComponent : planeshader::psLayer, mgComponent<psLayerComponent, false, bss::ARRAY_SAFE, psRenderableBind<psLayerComponent>>
+  {
+    explicit psLayerComponent(mgEntity* e = 0) : mgComponent(e) {}
+    psLayerComponent(psLayerComponent&& mov) : planeshader::psLayer(std::move(mov)), mgComponent(std::move(mov)) {}
+    psLayerComponent& operator=(psLayerComponent&& mov) { planeshader::psLayer::operator=(std::move(mov)); mgComponent::operator=(std::move(mov)); return *this; }
+  };
+
+  template<typename T, typename... Args>
+  class MG_DLLEXPORT psEffectComponent : public mgEffect<T, Args...>, public planeshader::psRenderable, public mgComponent<psEffectComponent<T, Args...>, false, bss::ARRAY_SAFE, psRenderableBind<psEffectComponent<T, Args...>>>
+  {
+  public:
+    psEffectComponent(psEffectComponent&& mov) : mgEffect<T, Args...>(std::move(mov)), planeshader::psRenderable(std::move(mov)), mgComponent(std::move(mov)) {}
+    psEffectComponent(const psEffectComponent& copy) = default;
+    explicit psEffectComponent(mgEntity* e = 0) : mgComponent(e) {}
+    template<typename U, typename... X>
+    BSS_FORCEINLINE void Add(size_t id, X... args)
+    {
+      _instances.AddConstruct<U>(U(args...));
+      Bind<U>(&_instances.Back().Get<U>(), id);
+    }
+
+    psEffectComponent& operator=(const psEffectComponent& copy) = default;
+    psEffectComponent& operator=(psEffectComponent&& mov)
+    {
+      mgEffect<T, Args...>::operator=(std::move(mov));
+      planeshader::psRenderable::operator=(std::move(mov));
+      mgComponent::operator=(std::move(mov));
+    }
+
+  protected:
+    virtual void _render(const planeshader::psTransform2D& parent) override
+    {
+      for(auto& v : _instances)
+        if(!v.convert<planeshader::psRenderable>().Cull(parent))
+          v.convert<planeshader::psRenderable>()._render(parent);
+    }
+  };
+
   class MG_DLLEXPORT PlaneshaderSystem : public planeshader::psEngine, public mgSystemComplex
   {
     typedef void(*PROCESSFN)(mgEntity&, const planeshader::psRectRotateZ&, void(*)(mgEntity&, const planeshader::psRectRotateZ&, void*));
@@ -67,12 +107,6 @@ namespace magnesium {
     virtual void _process(mgEntity& root, const planeshader::psTransform2D& prev);
 
     std::function<void()> _f;
-  };
-
-  struct MG_DLLEXPORT psGUIComponent : mgComponent<psGUIComponent, true>
-  {
-    explicit psGUIComponent(mgEntity* e = 0) : mgComponent(e) {}
-    fgElement element;
   };
 }
 
