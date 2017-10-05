@@ -438,8 +438,10 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClInclude Include="..\include\magnesium\mgPlaneshader.h" />
     <ClInclude Include="..\include\magnesium\mgRefCounter.h" />
     <ClInclude Include="..\include\magnesium\mgSystem.h" />
+    <ClInclude Include="..\include\Magnesium\mgTimeline.h" />
     <ClInclude Include="..\include\magnesium\mgTinyOAL.h" />
     <ClInclude Include="..\include\magnesium\mg_dec.h" />
+    <ClInclude Include="SCML.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Magnesium.rc" />

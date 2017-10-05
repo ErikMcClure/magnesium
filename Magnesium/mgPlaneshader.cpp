@@ -3,7 +3,7 @@
 
 #include "mgPlaneshader.h"
 #include "mgEngine.h"
-#include "planeshader/psPass.h"
+#include "planeshader/psLayer.h"
 #include "planeshader/psCamera.h"
 
 using namespace magnesium;
@@ -38,24 +38,16 @@ void PlaneshaderSystem::_process(mgEntity& root, const psTransform2D& prev)
   psTransform2D parent = prev;
 
   auto locatable = root.Get<psLocatableComponent>();
-  auto solid = root.Get<psSolidComponent>();
-  bool cull = false;
-  psPass* pass = 0;
+  auto layer = root.Get<psLayerComponent>();
   
   if(locatable)
   {
     psLocatable* loc = locatable->Get();
     parent = prev.Push(loc->GetPosition(), loc->GetRotation(), loc->GetPivot());
-
-    if(solid)
-    {
-      psSolid* s = solid->Get();
-      pass = s->GetPass();
-      if(!pass) pass = psPass::CurPass;
-      if(pass != 0)
-        cull = pass->GetCamera()->Cull(s, &prev);
-    }
   }
+
+  if(layer)
+    layer->Push(parent);
 
   if((root.childhint&_required) == _required && cur != 0)
   {
@@ -65,30 +57,10 @@ void PlaneshaderSystem::_process(mgEntity& root, const psTransform2D& prev)
       cur = cur->Next();
     }
   }
-  if((root.graphcomponents&_required) == _required)
+  if(!layer && (root.graphcomponents&_required) == _required) // Do not render layers, as they will be rendered when we call Pop()
   {
     psRenderable* renderable = root.Get<psRenderableComponent>()->Get();
-    auto gui = root.Get<psGUIComponent>();
-    if(gui)
-    {
-      pass = renderable->GetPass();
-      if(!pass) pass = psPass::CurPass;
-      psTransform2D resolved = pass->GetCamera()->Resolve(parent);
-      if(solid)
-      {
-        psVec pos = resolved.position.xy - resolved.pivot;
-        psVec dim = solid->Get()->GetDim();
-        fgTransform t = { {pos.x, 0, pos.y, 0, pos.x + dim.x, 0, pos.y + dim.y, 0}, resolved.rotation, { resolved.pivot.x, 0, resolved.pivot.y, 0} };
-        gui->element.SetTransform(t);
-      }
-      else
-      {
-        fgTransform t = { { resolved.position.x, 0, resolved.position.y, 0, resolved.position.x, 0, resolved.position.y, 0 }, resolved.rotation,{ resolved.pivot.x, 0, resolved.pivot.y, 0 } };
-        gui->element.SetTransform(t);
-      }
-    }
-    if(!cull)
-      renderable->Render(&prev);
+    renderable->Render(prev);
   }
   if((root.childhint&_required) == _required && cur != 0)
   {
@@ -98,4 +70,7 @@ void PlaneshaderSystem::_process(mgEntity& root, const psTransform2D& prev)
       cur = cur->Next();
     }
   }
+
+  if(layer)
+    layer->Pop();
 }

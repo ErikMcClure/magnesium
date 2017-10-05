@@ -8,16 +8,17 @@ using namespace magnesium;
 using namespace bss;
 
 mgEntity mgEntity::NIL(true);
+bss::LocklessBlockAlloc<mgEntity> mgEntity::EntityAlloc;
 
-mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), id(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0), _name(0)
+mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), entityId(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0), _name(0)
 {
 }
-mgEntity::mgEntity(mgEntity* parent, int order) : TRB_NodeBase<mgEntity>(&NIL), id(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0), _name(0)
+mgEntity::mgEntity(mgEntity* e, int order) : TRB_NodeBase<mgEntity>(&NIL), entityId(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0), _name(0)
 {
-  _parent = !parent ? _getRoot() : parent;
+  _parent = !e ? _getRoot() : e;
   _parent->_addchild(this);
 }
-mgEntity::mgEntity(mgEntity&& mov) : TRB_NodeBase<mgEntity>(&NIL), id(mov.id), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)),
+mgEntity::mgEntity(mgEntity&& mov) : TRB_NodeBase<mgEntity>(&NIL), entityId(mov.entityId), graphcomponents(mov.graphcomponents), _componentlist(std::move(mov._componentlist)),
 childhint(mov.childhint), _parent(mov._parent), _order(mov._order), _children(mov._children), _first(mov._first), _last(mov._last), _name(mov._name)
 {
   if(_parent)
@@ -27,7 +28,7 @@ childhint(mov.childhint), _parent(mov._parent), _order(mov._order), _children(mo
   }
   mov.graphcomponents = 0;
   mov.childhint = 0;
-  mov.id = 0;
+  mov.entityId = 0;
   mov._children = 0;
   mov._first = 0;
   mov._last = 0;
@@ -64,6 +65,8 @@ mgEntity::~mgEntity()
   if(_parent)
     _parent->_removechild(this);
 }
+void* mgEntity::operator new(std::size_t sz) { assert(sz == sizeof(mgEntity)); return EntityAlloc.Alloc(1); }
+void mgEntity::operator delete(void* ptr, std::size_t sz) { EntityAlloc.Dealloc(ptr); }
 
 mgEntity* mgEntity::_getRoot()
 {
@@ -72,15 +75,15 @@ mgEntity* mgEntity::_getRoot()
   return 0;
 }
 
-void mgEntity::SetParent(mgEntity* parent)
+void mgEntity::SetParent(mgEntity* e)
 {
-  if(parent == _parent)
+  if(e == _parent)
     return;
   if(_parent)
     _parent->_removechild(this);
   if(this != _getRoot())
   {
-    _parent = !parent ? _getRoot() : parent;
+    _parent = !e ? _getRoot() : e;
     _parent->_addchild(this);
     _propagateIDs();
   }

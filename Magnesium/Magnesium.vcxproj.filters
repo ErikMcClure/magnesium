@@ -104,6 +104,12 @@
     <ClInclude Include="..\include\magnesium\mgConsole.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="SCML.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Magnesium\mgTimeline.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Magnesium.rc">

@@ -8,7 +8,7 @@
 
 namespace magnesium {
   struct mgLogicComponent : mgComponent<mgLogicComponent, false, bss::ARRAY_MOVE> {
-    explicit mgLogicComponent(mgEntity* e = 0) : mgComponent(e) {}
+    explicit mgLogicComponent(mgEntity* e = 0) : mgComponent(e), onlogic(0) {}
     void (*onlogic)(mgEntity&);
   };
 

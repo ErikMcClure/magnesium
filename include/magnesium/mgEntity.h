@@ -8,6 +8,7 @@
 #include "bss-util/Map.h"
 #include "bss-util/CompactArray.h"
 #include "bss-util/TRBTree.h"
+#include "bss-util/BlockAllocMT.h"
 
 namespace magnesium {
   typedef unsigned short ComponentID;
@@ -82,11 +83,13 @@ namespace magnesium {
       return bss::Slice<const std::pair<ComponentID, size_t>>(_componentlist.begin(), _componentlist.Length());
     }
 
-    size_t id;
+    size_t entityId;
     size_t childhint; // Bitfield of scenegraph components our children might have
     size_t graphcomponents;
 
     static inline char Comp(const mgEntity& l, const mgEntity& r) { char c = SGNCOMPARE(l._order, r._order); return !c ? SGNCOMPARE(&l, &r) : c; }
+    static void* operator new(std::size_t sz);
+    static void operator delete(void* ptr, std::size_t sz);
 
   protected:
     explicit mgEntity(bool isNIL);
@@ -128,6 +131,7 @@ namespace magnesium {
     template<EventID ID, typename R, typename... Args>
     friend struct EventDef;
     static mgEntity NIL;
+    static bss::LocklessBlockAlloc<mgEntity> EntityAlloc;
   };
 
   template<int I>

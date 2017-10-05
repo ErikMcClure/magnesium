@@ -75,7 +75,8 @@ bool mgSystemManager::RemoveSystem(SystemID id)
 }
 SystemID mgSystemManager::RemoveSystem(mgSystemBase* system)
 {
-  if(!system) return false;
+  if(!system)
+    return (SystemID)~0;
   system->_manager = 0;
   size_t index = _systems.Get(system);
   if(index >= _systems.Length())

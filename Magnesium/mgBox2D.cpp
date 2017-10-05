@@ -10,7 +10,7 @@ using namespace magnesium;
 Box2DSystem* Box2DSystem::_instance = 0;
 static_assert(!std::is_polymorphic<b2Component>::value, "Components shouldn't have a vtable");
 
-b2Component::b2Component(b2Component&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rp(mov._rp), _rc(mov._rc)
+b2Component::b2Component(b2Component&& mov) : mgComponent(std::move(mov)), _body(mov._body), _userdata(mov._body), _rp(mov._rp), _rc(mov._rc), _oldangle(0)
 { 
   mov._body = 0;
   mov._userdata = 0;

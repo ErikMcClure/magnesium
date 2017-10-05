@@ -11,7 +11,7 @@
 #include "mgLua.h"
 #include "mgConsole.h"
 #include "Box2D/Box2D.h"
-#include "planeshader/psPass.h"
+#include "planeshader/psLayer.h"
 #include "bss-util/RefCounter.h"
 #include "feathergui/fgTextbox.h"
 
@@ -32,11 +32,11 @@ float mgclamp(float x, float min, float max) { return bssclamp(x, min, max); }
 void LoadMap(psTex* map, psTileset* tileset, mgEntity* object, psTex* key)
 {
   psVeciu dim = map->GetRawDim();
-  DYNARRAY(psTile, tiles, dim.x*dim.y);
+  VARARRAY(psTile, tiles, dim.x*dim.y);
   memset(tiles, 0, sizeof(psTile)*dim.x*dim.y);
 
   psVeciu keydim = key->GetRawDim();
-  DYNARRAY(psColor32, keys, keydim.x*keydim.y);
+  VARARRAY(psColor32, keys, keydim.x*keydim.y);
   auto pixels = key->LockPixels(LOCK_READ);
   for(uint32_t j = 0; j < keydim.y; ++j)
     for(uint32_t i = 0; i < keydim.x; ++i)
