@@ -170,14 +170,8 @@ int LuaSystem::lua_Print(lua_State *L) {
 SystemID LuaSystem::RegisterSystem(void(*process)(), int priority, const char* name)
 {
   size_t i = _systems.AddConstruct(process, name, mgSystemManager::GenerateSystemID(), priority);
-  _manager->AddSystemState(&_systems[i]);
+  _manager->AddSystem(&_systems[i]);
   return _systems[i].ID();
-}
-mgSystemBase::mgMessageResult LuaSystem::MessageSystem(const char* name, ptrdiff_t m, void* p)
-{
-  if(mgSystemBase* sys = mgEngine::Instance()->GetSystem(name))
-    return sys->Message(m, p);
-  return mgMessageResult{ 0 };
 }
 mgComponentCounter* LuaSystem::GetEntityComponent(mgEntity* e, const char* component)
 {

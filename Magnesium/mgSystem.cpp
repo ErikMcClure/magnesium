@@ -1,11 +1,9 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in Magnesium.h
 
-#include "mgSystem.h"
+#include "mgSystemManager.h"
 
 using namespace magnesium;
-
-SystemID mgSystemManager::sysid = 0;
 
 mgSystemBase::mgSystemBase(int priority) : _priority(priority), _manager(0)
 {
@@ -53,85 +51,17 @@ mgSystemComplex& mgSystemComplex::operator=(mgSystemComplex&& mov)
   return *this;
 }
 
-mgSystemManager::mgSystemManager()
-{
-}
-mgSystemManager::~mgSystemManager()
-{
-  for(auto& s : _systems)
-    s.first->_manager = 0;
-}
-void mgSystemManager::AddSystem(mgSystemBase* system, SystemID id)
-{
-  _systems.Insert(system, id);
-  _systemhash.Insert(id, system);
-  if(const char* name = system->GetName())
-    _systemname.Insert(name, system);
-  system->_manager = this;
-}
-bool mgSystemManager::RemoveSystem(SystemID id)
-{
-  return RemoveSystem(_systemhash.Get(id)) != (SystemID)~0;
-}
-SystemID mgSystemManager::RemoveSystem(mgSystemBase* system)
-{
-  if(!system)
-    return (SystemID)~0;
-  system->_manager = 0;
-  size_t index = _systems.Get(system);
-  if(index >= _systems.Length())
-    return (SystemID)~0;
-
-  SystemID id = _systems[index];
-  _systemhash.Remove(_systems[index]);
-  _systems.RemoveIndex(index);
-  return id;
-}
-mgSystemBase::mgMessageResult mgSystemManager::MessageSystem(SystemID id, ptrdiff_t m, void* p)
-{
-  mgSystemBase* system = _systemhash.Get(id);
-  return (!system) ? mgSystemBase::mgMessageResult{ 0 } : system->Message(m, p);
-}
-mgSystemBase* mgSystemManager::GetSystem(SystemID id) const
-{
-  return _systemhash[id];
-} 
-mgSystemBase* mgSystemManager::GetSystem(const char* name) const
-{
-  return _systemname[name];
-}
-
-void mgSystemManager::Process()
-{
-  for(auto& s : _systems)
-  {
-    mgRefCounter::GrabAll();
-    s.first->Process();
-    RunDeferred();
-    mgRefCounter::DropAll();
-  }
-}
-void mgSystemManager::RunDeferred()
-{
-  while(_defer.size() > 0)
-  {
-    _defer.back()();
-    _defer.pop_back();
-  }
-}
-
-mgSystemState::mgSystemState(void(*process)(), const char* name, SystemID id, int priority, mgMessageResult(*message)(ptrdiff_t m, void* p)) : 
-  mgSystemBase(priority), _process(process), _name(name), _id(id), _message(message)
+mgSystemState::mgSystemState(void(*process)(), const char* name, SystemID id, int priority) : 
+  mgSystemBase(priority), _process(process), _name(name), _id(id)
 {}
 mgSystemState::mgSystemState(mgSystemState&& mov) : mgSystemBase(std::move(mov)), _process(mov._process), _name(mov._name),
-  _id(mov._id), _message(mov._message) 
+  _id(mov._id) 
 {}
 mgSystemState& mgSystemState::operator=(mgSystemState&& mov)
 {
   _process = mov._process;
   _name = mov._name;
   const_cast<SystemID&>(_id) = mov._id;
-  _message = mov._message;
   mgSystemBase::operator=(std::move(mov));
   return *this;
 }

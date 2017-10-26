@@ -9,58 +9,9 @@
 #include "lua.hpp"
 
 namespace magnesium {
-  template<class T, int N>
-  struct LuaStack;
-
-  template<class T> // Integers
-  struct LuaStack<T, 1>
-  {
-    static inline void Push(lua_State *L, T i) { lua_pushinteger(L, static_cast<lua_Integer>(i)); }
-    static inline T Pop(lua_State *L) { T r = (T)lua_tointeger(L, -1); lua_pop(L, 1); return r; }
-  };
-  template<class T> // Pointers
-  struct LuaStack<T, 2>
-  {
-    static inline void Push(lua_State *L, T p) { lua_pushlightuserdata(L, (void*)p); }
-    static inline T Pop(lua_State *L) { T r = (T)lua_touserdata(L, -1); lua_pop(L, 1); return r; }
-  };
-  template<class T> // Floats
-  struct LuaStack<T, 3>
-  {
-    static inline void Push(lua_State *L, T n) { lua_pushnumber(L, static_cast<lua_Number>(n)); }
-    static inline T Pop(lua_State *L) { T r = static_cast<T>(lua_tonumber(L, -1)); lua_pop(L, 1); return r; }
-  };
-  template<> // Strings
-  struct LuaStack<std::string, 0>
-  {
-    static inline void Push(lua_State *L, std::string s) { lua_pushlstring(L, s.c_str(), s.size()); }
-    static inline std::string Pop(lua_State *L) { size_t sz; const char* s = lua_tolstring(L, -1, &sz); std::string r(s, sz); lua_pop(L, 1); return r; }
-  };
-  template<> // Strings
-  struct LuaStack<bss::Str, 0>
-  {
-    static inline void Push(lua_State *L, bss::Str s) { lua_pushlstring(L, s.c_str(), s.size()); }
-    static inline bss::Str Pop(lua_State *L) { size_t sz; const char* s = lua_tolstring(L, -1, &sz); bss::Str r(s, sz); lua_pop(L, 1); return r; }
-  };
-  template<> // Boolean
-  struct LuaStack<bool, 1>
-  {
-    static inline void Push(lua_State *L, bool b) { lua_pushboolean(L, b); }
-    static inline bool Pop(lua_State *L) { bool r = lua_toboolean(L, -1); lua_pop(L, 1); return r; }
-  };
-  template<> // Void return type
-  struct LuaStack<void, 0> { static inline void Pop(lua_State *L) { } };
-
   // A system that initializes and registers the Lua scripting system
   class MG_DLLEXPORT LuaSystem : public mgSystemBase
   {
-    template<typename T>
-    struct LS : std::integral_constant<int, 
-      std::is_integral<T>::value + 
-      (std::is_pointer<T>::value * 2) + 
-      (std::is_floating_point<T>::value * 3)>
-    {};
-
   public:
     LuaSystem(int priority = 0);
     ~LuaSystem();
@@ -85,29 +36,80 @@ namespace magnesium {
     virtual const char* GetName() const override { return "Lua"; }
 
     static const int CHUNKSIZE = (1 << 16);
-    static mgMessageResult MessageSystem(const char* name, ptrdiff_t m, void* p);
     static mgComponentCounter* GetEntityComponent(mgEntity* e, const char* component);
 
-    struct Process {
+    struct ProcessEvent {
       template<EventID ID, typename R, typename... Args>
       BSS_FORCEINLINE static void F(lua_State* L, mgEntity* e)
       {
-        LuaStack<R, LS<R>::value>::Push(L, Event<ID>::Send(e, (LuaStack<Args, LS<Args>::value>::Pop(L))...));
+        if constexpr(std::is_void<R>::value)
+          Event<ID>::Send(e, (LuaPop<Args>(L))...);
+        else
+          LuaPush<R>(L, Event<ID>::Send(e, (LuaPop<Args>(L))...));
       }
     };
-    struct ProcessVoid {
+    struct ProcessMessage {
       template<EventID ID, typename R, typename... Args>
-      BSS_FORCEINLINE static void F(lua_State* L, mgEntity* e)
+      BSS_FORCEINLINE static void F(lua_State* L, mgSystemManager* m)
       {
-        Event<ID>::Send(e, (LuaStack<Args, LS<Args>::value>::Pop(L))...);
+        if constexpr(std::is_void<R>::value)
+          Message<ID>::Send(m, (LuaPop<Args>(L))...);
+        else
+          LuaPush<R>(L, Message<ID>::Send(m, (LuaPop<Args>(L))...));
       }
     };
+
+    template<typename T>
+    inline static void LuaPush(lua_State *L, const T& v)
+    {
+      if constexpr(std::is_same<T, bool>::value)
+        lua_pushboolean(L, v);
+      else if constexpr(std::is_base_of<std::string, T>::value)
+        lua_pushlstring(L, v.c_str(), v.size());
+      else if constexpr(std::is_same<typename std::remove_const<T>::type, char*>::value)
+        lua_pushstring(L, v);
+      else if constexpr(std::is_integral<T>::value || std::is_enum<T>::value)
+        lua_pushinteger(L, static_cast<lua_Integer>(v));
+      else if constexpr(std::is_pointer<T>::value || std::is_member_pointer<T>::value)
+        lua_pushlightuserdata(L, (void*)v);
+      else if constexpr(std::is_floating_point<T>::value)
+        lua_pushnumber(L, static_cast<lua_Number>(v));
+    }
+
+    template<typename T>
+    inline static T LuaPop(lua_State *L)
+    {
+      if constexpr(std::is_base_of<std::string, T>::value)
+      {
+        size_t sz;
+        const char* s = lua_tolstring(L, -1, &sz);
+        T r(s, sz);
+        lua_pop(L, 1); 
+        return r;
+      }
+      else
+      {
+        T r;
+
+        if constexpr(std::is_same<T, bool>::value)
+          r = lua_toboolean(L, -1);
+        else if constexpr(std::is_integral<T>::value || std::is_enum<T>::value)
+          r = static_cast<T>(lua_tointeger(L, -1));
+        else if constexpr(std::is_pointer<T>::value || std::is_member_pointer<T>::value)
+          r = (T)lua_touserdata(L, -1);
+        else if constexpr(std::is_floating_point<T>::value)
+          r = static_cast<T>(lua_tonumber(L, -1));
+
+        lua_pop(L, 1); 
+        return r;
+      }
+    }
 
   protected:
     template<typename R, int N, typename Arg, typename... Args>
     inline R _callLua(const char* function, Arg arg, Args... args)
     {
-      LuaStack<Arg, LS<Arg>::value>::Push(_l, arg);
+      LuaPush<Arg>(_l, arg);
       return _callLua<R, N, Args...>(function, args...);
     }
     template<typename R, int N>
@@ -115,7 +117,8 @@ namespace magnesium {
     {
       assert(!FPUsingle());
       lua_call(_l, N, std::is_void<R>::value ? 0 : 1);
-      return LuaStack<R, LS<R>::value>::Pop(_l);
+      if constexpr(!std::is_void<R>::value)
+        return LuaPop<R>(_l);
     }
     const char* _getError();
     void _popError();

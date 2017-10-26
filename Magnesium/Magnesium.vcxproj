@@ -422,6 +422,7 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClCompile Include="mgPlaneshader.cpp" />
     <ClCompile Include="mgRefCounter.cpp" />
     <ClCompile Include="mgSystem.cpp" />
+    <ClCompile Include="mgSystemManager.cpp" />
     <ClCompile Include="mgTinyOAL.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -438,6 +439,7 @@ xcopy "..\include\magnesium\*.h" "$(VcpkgRoot)include\magnesium" /c /y /q /i /s<
     <ClInclude Include="..\include\magnesium\mgPlaneshader.h" />
     <ClInclude Include="..\include\magnesium\mgRefCounter.h" />
     <ClInclude Include="..\include\magnesium\mgSystem.h" />
+    <ClInclude Include="..\include\magnesium\mgSystemManager.h" />
     <ClInclude Include="..\include\Magnesium\mgTimeline.h" />
     <ClInclude Include="..\include\magnesium\mgTinyOAL.h" />
     <ClInclude Include="..\include\magnesium\mg_dec.h" />
