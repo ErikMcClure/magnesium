@@ -56,6 +56,7 @@ namespace magnesium {
     virtual EntityIterator GetEntities() const = 0;
     virtual mgEntity** GetEntity(size_t index) = 0;
     virtual mgComponentCounter* GetBase(size_t index) = 0;
+    virtual size_t GetLength() const = 0;
     virtual void FlushBuffer() = 0;
 
     static mgComponentStoreBase* GetStore(ComponentID id);
@@ -97,6 +98,7 @@ namespace magnesium {
     BSS_FORCEINLINE T* end() noexcept { return _store.end(); }
     virtual mgEntity** GetEntity(size_t index) override { return (index < _store.Length()) ? &_store[index].entity : nullptr; }
     virtual mgComponentCounter* GetBase(size_t index) override { return (index < _store.Length()) ? &_store[index] : nullptr; }
+    virtual size_t GetLength() const override { return _store.Length(); }
     virtual EntityIterator GetEntities() const override // By getting the address of the entity, this will work no matter what the inheritance structure of T is
     {
       return EntityIterator(const_cast<mgEntity**>(&_store.begin()->entity), _store.Length(), sizeof(T));

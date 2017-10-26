@@ -4,7 +4,7 @@
 #ifndef __ENGINE_H__MG__
 #define __ENGINE_H__MG__
 
-#include "mgSystem.h"
+#include "mgSystemManager.h"
 #include "bss-util/HighPrecisionTimer.h"
 #include "bss-util/Logger.h"
 

@@ -148,7 +148,7 @@ namespace magnesium {
     template<void(mgEntity::*F)(Args...)>
     BSS_FORCEINLINE static void Hook(mgEntity* e) { e->_registerHook(ID, reinterpret_cast<void(mgEntity::*)()>(F)); }
     template<typename T, typename... Inner>
-    BSS_FORCEINLINE static void Transfer(Inner... inner) { T::F<ID, R, Args...>(inner...); }
+    BSS_FORCEINLINE static auto Transfer(Inner... inner) { return T::F<ID, R, Args...>(inner...); }
 
   protected:
     template<typename T, R(T::*F)(Args...)>

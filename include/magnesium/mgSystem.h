@@ -5,27 +5,21 @@
 #define __SYSTEM_H__MG__
 
 #include "mgComponent.h"
+#include "bss-util/ArraySort.h"
 
 namespace magnesium {
   typedef unsigned short SystemID;
+  typedef int MessageID;
 
   // A basic system implementation, doesn't iterate over anything
   class MG_DLLEXPORT mgSystemBase
   {
   public:
-    union mgMessageResult {
-      size_t u;
-      ptrdiff_t i;
-      void* p;
-      float f;
-    };
-
     explicit mgSystemBase(int priority = 0);
     mgSystemBase(mgSystemBase&& mov);
     virtual ~mgSystemBase();
     virtual void Process() = 0;
     virtual const char* GetName() const { return 0; }
-    virtual mgMessageResult Message(ptrdiff_t m, void* p) { return mgMessageResult{ 0 }; }
 
     mgSystemBase& operator=(mgSystemBase&& mov);
 
@@ -33,29 +27,32 @@ namespace magnesium {
 
   protected:
     friend class mgSystemManager;
+    template<MessageID ID, typename R, typename... Args>
+    friend struct MessageDef;
+
+    virtual void _register() {}
 
     const int _priority;
     mgSystemManager* _manager;
+
+  private:
+    bss::ArraySort<MessageID> _activemsgs; // Managed by mgSystemManager
   };
 
   // This state is usually used for scripts, because it stores an arbitrary system processing state and doesn't use a hardcoded type ID
   class MG_DLLEXPORT mgSystemState : public mgSystemBase
   {
   public:
-    mgSystemState() : _id(0), _name(0), _process(0), _message(0) {}
-    explicit mgSystemState(void(*process)(), const char* name, SystemID id, int priority = 0, mgMessageResult(*message)(ptrdiff_t m, void* p) = DefaultMessageResult);
+    mgSystemState() : _id(0), _name(0), _process(0) {}
+    explicit mgSystemState(void(*process)(), const char* name, SystemID id, int priority = 0);
     mgSystemState(mgSystemState&& mov);
     virtual const char* GetName() const override { return _name; }
-    virtual mgMessageResult Message(ptrdiff_t m, void* p) override { return _message(m, p); }
     virtual void Process() { _process(); }
     SystemID ID() const { return _id; }
     mgSystemState& operator=(mgSystemState&& mov);
 
-    static inline mgMessageResult DefaultMessageResult(ptrdiff_t m, void* p) { return mgMessageResult{ 0 }; }
-
   protected:
     void(*_process)();
-    mgMessageResult(*_message)(ptrdiff_t m, void* p);
     const char* _name;
     const SystemID _id;
   };
@@ -164,47 +161,6 @@ namespace magnesium {
     mgSystem(mgSystem&& mov) : mgSystemBase(std::move(mov)) {}
 
     mgSystem& operator=(mgSystem&& mov) { mgSystemBase::operator=(std::move(mov)); return *this; }
-  };
-
-  class MG_DLLEXPORT mgSystemManager
-  {
-  public:
-    mgSystemManager();
-    ~mgSystemManager();
-    template<class T>
-    inline void AddSystem(T* system) { AddSystem(system, GetSystemID<T>()); }
-    void AddSystem(mgSystemBase* system, SystemID id);
-    inline void AddSystemState(mgSystemState* system) { AddSystem(system, system->ID()); }
-    template<class T>
-    inline bool RemoveSystem() { return RemoveSystem(GetSystemID<T>()); }
-    bool RemoveSystem(SystemID id);
-    SystemID RemoveSystem(mgSystemBase* system);
-    template<class T>
-    inline T* GetSystem() const { return static_cast<T*>(GetSystem(GetSystemID<T>())); }
-    mgSystemBase* GetSystem(SystemID id) const;
-    mgSystemBase* GetSystem(const char* name) const;
-    inline bss::Slice<std::pair<mgSystemBase*, SystemID>> GetSystems() const { return _systems.GetSlice(); }
-    template<class T>
-    inline mgSystemBase::mgMessageResult MessageSystem(ptrdiff_t m, void* p) { return MessageSystem(GetSystemID<T>(), m, p); }
-    mgSystemBase::mgMessageResult MessageSystem(SystemID id, ptrdiff_t m, void* p);
-    void Process();
-    template<typename F>
-    inline void Defer(F && f) { _defer.push_back(std::forward<F>(f)); }
-    void RunDeferred();
-
-    inline static char SortSystem(mgSystemBase* const& l, mgSystemBase* const& r) { char ret = SGNCOMPARE(l->_priority, r->_priority); return !ret ? SGNCOMPARE(l, r) : ret; }
-
-    template<class T>
-    static SystemID GetSystemID() { static SystemID value = sysid++; return value; }
-    static SystemID GenerateSystemID() { return sysid++; }
-
-  protected:
-    static SystemID sysid;
-
-    bss::Map<mgSystemBase*, SystemID, &SortSystem> _systems;
-    bss::Hash<SystemID, mgSystemBase*> _systemhash;
-    bss::Hash<const char*, mgSystemBase*> _systemname;
-    std::vector<std::function<void()>> _defer;
   };
 }
 

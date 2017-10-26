@@ -6,6 +6,7 @@
 
 #include "mgBox2D.h"
 #include "mgPlaneshader.h"
+#include "mgSystemManager.h"
 
 namespace magnesium {
 #pragma warning(push)

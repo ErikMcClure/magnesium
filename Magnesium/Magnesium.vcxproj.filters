@@ -57,6 +57,9 @@
     <ClCompile Include="mgConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mgSystemManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\magnesium\mgComponent.h">
@@ -108,6 +111,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Magnesium\mgTimeline.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\magnesium\mgSystemManager.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
