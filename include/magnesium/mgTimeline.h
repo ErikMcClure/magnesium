@@ -11,10 +11,10 @@
 #include "bss-util/Variant.h"
 
 namespace magnesium {
-  typedef bss::AniDataSmooth<bss::Vector<float, 3>> PositionAniData;
-  typedef bss::AniDataSmooth<float> RotationAniData;
-  typedef bss::AniDataSmooth<bss::Vector<float, 2>> PivotAniData;
-  typedef bss::AniDataSmooth<bss::Vector<float, 2>> ScaleAniData;
+  typedef bss::AniDataSmooth<bss::Vector<float, 3>, bss::AniLinearData<bss::Vector<float, 3>>, bss::ARRAY_CONSTRUCT> PositionAniData;
+  typedef bss::AniDataSmooth<float, bss::AniLinearData<float>, bss::ARRAY_CONSTRUCT> RotationAniData;
+  typedef bss::AniDataSmooth<bss::Vector<float, 2>, bss::AniLinearData<bss::Vector<float, 2>>, bss::ARRAY_CONSTRUCT, 1> PivotAniData;
+  typedef bss::AniDataSmooth<bss::Vector<float, 2>, bss::AniLinearData<bss::Vector<float, 2>>, bss::ARRAY_CONSTRUCT> ScaleAniData;
 
   // Stores all animations 
   template<typename... Args>
@@ -31,7 +31,7 @@ namespace magnesium {
     };
 
     // Stores the timeline execution state. This state cannot be copied because it is bound to specific instances - a copy constructor must be created in a derived class.
-    struct State
+    struct MG_DLLEXPORT State
     {
       State(State&& mov) : _cur(mov._cur), _time(mov._time), _timeline(mov._timeline), _states(std::move(mov._states)) { mov._timeline = 0; }
       explicit State(mgTimeline<Args...>* timeline) : _cur(0), _time(0.0), _timeline(timeline) {}
@@ -70,14 +70,13 @@ namespace magnesium {
         return _time < length;
       }
 
-      template<class T>
-      bool Bind(T* src, size_t id)
+      template<class T> // T here is the AniState specialization to use
+      T* Bind(typename T::Ty* src, size_t id)
       {
-        AniDef* def = _timeline->GetDef(id);
+        const AniDef* def = _timeline->GetDef(id);
         if(!def)
-          return false;
-        _bind<T, Args...>(src, def);
-        return true;
+          return 0;
+        return _bind<T, Args...>(src, def);
       }
 
       inline State& operator=(State&& mov)
@@ -91,15 +90,8 @@ namespace magnesium {
         return *this;
       }
 
-      inline State& operator=(const State& copy)
-      {
-        _states = copy._states;
-        _cur = copy._cur;
-        _time = copy._time;
-        _timeline = copy._timeline;
-      }
-
       inline mgTimeline<Args...>* GetTimeline() const { return _timeline; }
+      inline void SetTimeline(mgTimeline<Args...>* timeline) { _timeline = timeline; }
 
     protected:
       void _wipe()
@@ -107,46 +99,48 @@ namespace magnesium {
         for(auto& s : _states)
         {
           s.first->~AniStateBase();
-          _timeline->_anistatealloc.Dealloc(s.first);
+          _timeline->_anistatealloc.deallocate<void>(s.first);
         }
       }
       template<class T>
-      void _bindFrom(T* src, AniDef* def)
+      T* _bindFrom(typename T::Ty* src, const AniDef* def)
       {
         assert(def != 0);
-        _bind<T, Args...>(src, def);
+        return _bind<T, Args...>(src, def);
       }
-      template<class T, class U, class... Ux>
-      void _bind(T* src, AniDef* def)
+      template<class T, class U, class... Ux> // T here is an AniState type
+      T* _bind(typename T::Ty* src, const AniDef* def)
       {
-        typedef U::template State<T> STATE;
         if(def->Animation.is<U>())
         {
-          STATE* p = _timeline->_anistatealloc.AllocT<STATE>(1);
-          new (p) STATE(src, def->Animation.get<U>());
+          T* p = _timeline->_anistatealloc.allocate<T>(1);
+          new (p) T(src, &def->Animation.get<U>());
           _states.Add({ p, def });
+          return p;
         }
         else if constexpr(sizeof...(Ux) > 0)
-          _bind<T, Ux...>(src, def);
+          return _bind<T, Ux...>(src, def);
         else
+        {
           assert(false);
+          return 0;
+        }
       }
 
       size_t _cur;
       double _time;
       mgTimeline<Args...>* _timeline;
-      bss::DynArray<std::pair<bss::AniStateBase*, AniDef*>> _states;
+      bss::DynArray<std::pair<bss::AniStateBase*, const AniDef*>> _states;
     };
 
-    mgTimeline() : _length(-1.0) {}
-    ~mgTimeline()
+    mgTimeline() : _length(-1.0), _loop(-1.0) {}
+    mgTimeline(mgTimeline&& mov) : _idmap(std::move(mov._idmap)), _timeline(std::move(mov._timeline)),
+      _anistatealloc(std::move(mov._anistatealloc)), _length(mov._length), _loop(mov._loop)
     {
-      for(auto ani : _timeline)
-      {
-        ani->~AniDef();
-        _defalloc.Dealloc(ani);
-      }
+      mov._length = -1.0;
+      mov._loop = -1.0;
     }
+    ~mgTimeline() {}
     inline void SetLength(double length = -1.0) { _length = length; }
     inline double GetLength() const { return _length < 0.0 ? _calc() : _length; }
     inline void SetLoop(double loop = 0.0) { _loop = loop; }
@@ -154,53 +148,62 @@ namespace magnesium {
     template<class T>
     inline void AddAnimation(double time, size_t id, T& animation)
     {
-      AniDef* def = _defalloc.Alloc();
-      new (def) AniDef(time, animation);
-      _idmap.Insert(id, def);
+      AniDef* def = new AniDef(time, animation);
+      _idmap.Insert(id, std::unique_ptr<AniDef>(def));
       _timeline.Insert(def);
     }
     inline bool RemoveAnimation(size_t id)
     {
       if(AniDef* def = _idmap[id])
       {
-        _idmap.Remove(id);
         for(int i = 0; i < _timeline.Length(); ++i)
           if(_timeline[i] == def)
           {
             _timeline.Remove(i);
             break;
           }
-        def->~AniDef();
-        _defalloc.Dealloc(def);
+        _idmap.Remove(id);
         return true;
       }
       return false;
     }
     const AniDef* GetDef(size_t id) { return _idmap[id]; }
 
-    static char CompAniDef(AniDef* const& l, AniDef* const& r) { return SGNCOMPARE(l->time, r->time); }
+    static char CompAniDef(AniDef* const& l, AniDef* const& r) { return SGNCOMPARE(l->Time, r->Time); }
+
+    inline mgTimeline& operator=(mgTimeline&& mov)
+    {
+      _idmap = std::move(mov._idmap);
+      _timeline = std::move(mov._timeline);
+      _anistatealloc = std::move(mov._anistatealloc);
+      _length = mov._length;
+      _loop = mov._loop;
+      mov._length = -1.0;
+      mov._loop = -1.0;
+      return *this;
+    }
 
   protected:
-    inline double _calc() { !_timeline.Length() ? 0.0 : (_timeline.Back()->time + _timeline.Back()->animation.convertP<bss::AnimationBase>()->GetLength()); }
+    inline double _calc() const { return !_timeline.Length() ? 0.0 : (_timeline.Back()->Time + _timeline.Back()->Animation.convertP<bss::AnimationBase>()->GetLength()); }
 
-    bss::Hash<size_t, AniDef*> _idmap;
+    bss::Hash<size_t, std::unique_ptr<AniDef>, false, bss::ARRAY_MOVE> _idmap;
     bss::ArraySort<AniDef*, &CompAniDef> _timeline;
     double _length;
-    bss::BlockAlloc<AniDef> _defalloc;
-    bss::BlockAllocSize<bss::max_sizeof<typename Args::template State<bss::AniStateBase>...>::value, bss::max_alignof<typename Args::template State<bss::AniStateBase>...>::value> _anistatealloc;
+    double _loop;
+    bss::BlockPolicySize<bss::max_args(Args::STATESIZE...), bss::max_args(Args::STATEALIGN...)> _anistatealloc;
   };
-  
-  // Given a list of concrete types, mgEffect instantiates an mgTimeline by constructing a set of images and binding them to the timeline
+
+  // Given a list of AniState objects, mgEffect instantiates an mgTimeline by constructing the corresponding concrete types and binding them to the timeline
   template<typename T, typename... Args>
   class MG_DLLEXPORT mgEffect : public T::State
   {
     typedef typename T::State BASE;
 
     template<typename U, typename... Ux>
-    BSS_FORCEINLINE void _bindvar(bss::Variant<Args...>& v, typename T::AniDef* def)
+    BSS_FORCEINLINE void _bindvar(bss::Variant<typename Args::Ty...>& v, typename const T::AniDef* def)
     {
       if(v.is<U>())
-        _bindFrom<U>(&v.get<U>(), def);
+        _bindFrom<U>(&v.get<typename U::Ty>(), def);
       else if constexpr(sizeof...(Ux) > 0)
         _bindvar<Ux...>(v, def);
       else
@@ -215,15 +218,16 @@ namespace magnesium {
       _time = copy._time;
       _states.SetCapacity(copy._states.Length());
       for(size_t i = 0; i < _instances.Length(); ++i)
-        _bindvar<Args...>(i, copy._states[i].second);
+        _bindvar<Args...>(_instances[i], copy._states[i].second);
     }
     explicit mgEffect(T* timeline) : BASE(timeline) {}
     template<typename U, typename... X>
-    BSS_FORCEINLINE void Add(size_t id, X... args)
+    BSS_FORCEINLINE U* Add(size_t id, X... args)
     {
-      _instances.AddConstruct<U>(U(args...));
-      Bind<U>(&_instances.Back().Get<U>(), id);
+      _instances.AddConstruct<typename U::Ty>(typename U::Ty(args...));
+      return Bind<U>(&_instances.Back().get<typename U::Ty>(), id);
     }
+    BSS_FORCEINLINE bss::Variant<typename Args::Ty...>& operator[](size_t index) { return _instances[index]; }
 
     mgEffect& operator=(const mgEffect& copy)
     {
@@ -234,7 +238,7 @@ namespace magnesium {
       _timeline = copy._timeline;
       _states.SetCapacity(copy._states.Length());
       for(size_t i = 0; i < _instances.Length(); ++i)
-        _bindvar<Args...>(i, copy._states[i].second);
+        _bindvar<Args...>(_instances[i], copy._states[i].second);
       return *this;
     }
 
@@ -246,7 +250,7 @@ namespace magnesium {
     }
 
   protected:
-    bss::DynArray<bss::Variant<Args...>> _instances;
+    bss::DynArray<bss::Variant<typename Args::Ty...>> _instances;
   };
 }
 

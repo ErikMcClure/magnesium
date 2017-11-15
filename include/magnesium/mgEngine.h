@@ -7,6 +7,8 @@
 #include "mgSystemManager.h"
 #include "bss-util/HighPrecisionTimer.h"
 #include "bss-util/Logger.h"
+#include "bss-util/BlockAllocMT.h"
+#include "bss-util/CacheAlloc.h"
 
 #define MGLOG(level,...) mgEngine::Instance()->Log(__FILE__,__LINE__,(level),__VA_ARGS__)
 #define MGLOGF(level,format,...) mgEngine::Instance()->LogFormat(__FILE__,__LINE__,(level),format,__VA_ARGS__)
