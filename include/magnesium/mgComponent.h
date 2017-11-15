@@ -7,29 +7,34 @@
 #include "mgEntity.h"
 
 namespace magnesium {
-  template<typename... Components>
-  struct mgEntity_AddComponents { inline static void f(mgEntity* e) {} };
   template<typename Component, typename... Components>
-  struct mgEntity_AddComponents<Component, Components...> { inline static void f(mgEntity* e) { e->Add<Component>(); mgEntity_AddComponents<Components...>::f(e); } };
-  template<typename... Components>
-  struct mgEntity_RemoveComponents { inline static void f(mgEntity* e) {} };
+  inline void mgEntity_AddComponents(mgEntity* e) 
+  { 
+    e->Add<Component>();
+    if constexpr(sizeof...(Components) > 0)
+      mgEntity_AddComponents<Components...>(e); 
+  }
   template<typename Component, typename... Components>
-  struct mgEntity_RemoveComponents<Component, Components...> { inline static void f(mgEntity* e) { e->Remove<Component>(); mgEntity_AddComponents<Components...>::f(e); } };
-
-  template<typename... Components>
-  struct mgEntityT : mgEntity { mgEntityT() : mgEntity() { mgEntity_AddComponents<Components...>::f(this); } virtual void DestroyThis() { delete this; } };
+  inline void mgEntity_RemoveComponents(mgEntity* e)
+  { 
+    e->Remove<Component>(); 
+    if constexpr(sizeof...(Components) > 0)
+      mgEntity_RemoveComponents<Components...>(e);
+  }
 
   class MG_DLLEXPORT mgComponentStoreBase
   {
   public:
     template<typename T>
-    struct BSS_COMPILER_DLLEXPORT MagnesiumAllocPolicy {
-      typedef T* pointer;
+    struct BSS_COMPILER_DLLEXPORT MagnesiumDLL {
       typedef T value_type;
-      template<typename U> struct rebind { typedef MagnesiumAllocPolicy<U> other; };
+      typedef void policy_type;
+      template<class U> using rebind = MagnesiumDLL<U>;
+      MagnesiumDLL() = default;
+      template <class U> constexpr MagnesiumDLL(const MagnesiumDLL<U>&) noexcept {}
 
-      inline static pointer allocate(size_t cnt, const pointer p = nullptr) noexcept { return reinterpret_cast<pointer>(mgComponentStoreBase::dllrealloc(p, cnt * sizeof(T))); }
-      inline static void deallocate(pointer p, size_t = 0) noexcept { mgComponentStoreBase::dllfree(p); }
+      inline T* allocate(size_t cnt, T* p = nullptr, size_t old = 0) noexcept { return reinterpret_cast<T*>(mgComponentStoreBase::dllrealloc(p, cnt * sizeof(T))); }
+      inline void deallocate(T* p, size_t sz = 0) noexcept { mgComponentStoreBase::dllfree(p); }
     };
 
     struct EntityIterator : public std::iterator<std::bidirectional_iterator_tag, mgEntity*> {
@@ -86,7 +91,7 @@ namespace magnesium {
       static_assert(sizeof(D) == sizeof(T), "Illegal alternative constructor");
       static_assert(std::is_base_of<T, D>::value, "Must be derived from T");
       assert(mgComponentRef<T>::Counter() <= 0);
-      size_t index = reinterpret_cast<bss::DynArray<D, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<D>>&>(_store).AddConstruct(p); // sneak in substitute constructor
+      size_t index = reinterpret_cast<bss::DynArray<D, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumDLL<D>>&>(_store).AddConstruct(p); // sneak in substitute constructor
       assert(_store.Back().entity == p);
       p->ComponentListInsert(_id, T::GraphID(), index);
       return index;
@@ -142,16 +147,17 @@ namespace magnesium {
       _store.RemoveLast();
       return true;
     }
-    bss::DynArray<T, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumAllocPolicy<T>> _store;
-    bss::DynArray<size_t, size_t, bss::ARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumAllocPolicy<size_t>> _buf; // Buffered deletes
+    bss::DynArray<T, size_t, ArrayType, typename mgComponentStoreBase::MagnesiumDLL<T>> _store;
+    bss::DynArray<size_t, size_t, bss::ARRAY_SIMPLE, typename mgComponentStoreBase::MagnesiumDLL<size_t>> _buf; // Buffered deletes
   };
 
   template<typename T, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE, typename... ImpliedComponents>
   struct mgComponent : mgComponentCounter
   {
     typedef T TYPE;
+    static const int IMPLIED = sizeof...(ImpliedComponents);
 
-    explicit mgComponent(mgEntity* e) : entity(e) { mgEntity_AddComponents<ImpliedComponents...>::f(e); }
+    explicit mgComponent(mgEntity* e) : entity(e) { if constexpr(sizeof...(ImpliedComponents) > 0) mgEntity_AddComponents<ImpliedComponents...>(e); }
     mgComponent(const mgComponent& copy) : entity(copy.entity) {}
     mgComponent(mgComponent&& copy) : entity(copy.entity) {}
     mgComponent& operator=(const mgComponent& copy) { entity = copy.entity; return *this; }
@@ -162,7 +168,7 @@ namespace magnesium {
     static ComponentID ID() { static ComponentID value = curID++; return value; }
     static ComponentID GraphID() { static ComponentID value = SCENEGRAPH ? ((curGraphID <<= 1) >> 1) : 0; return value; }
     static mgComponentStore<T, ArrayType>& Store() { static mgComponentStore<T, ArrayType> store; return store; }
-    static void RemoveImplied(mgEntity* e) { mgEntity_RemoveComponents<ImpliedComponents...>::f(e); }
+    static void RemoveImplied(mgEntity* e) { if constexpr(sizeof...(ImpliedComponents) > 0) mgEntity_RemoveComponents<ImpliedComponents...>(e); }
   };
 
   template<typename T, bool SCENEGRAPH = false, bss::ARRAY_TYPE ArrayType = bss::ARRAY_SIMPLE>
@@ -178,6 +184,26 @@ namespace magnesium {
   {
     explicit mgComponentInheritBind(mgEntity* e = 0) : mgComponentInherit(e, &CastComponent) {}
     static T* CastComponent(mgEntity* e) { return static_cast<T*>(e->Get<D>()); }
+  };
+
+
+  template<int A, int... Ax>
+  struct add_variadic { static constexpr size_t value = A + add_variadic<Ax...>::value; };
+
+  template<int A>
+  struct add_variadic<A> { static constexpr size_t value = A; };
+
+  template<typename... Components>
+  struct mgEntityT : mgEntity
+  {
+    static const int NUMCOMPONENTS = sizeof...(Components)+add_variadic<Components::IMPLIED...>::value;
+
+    explicit mgEntityT(mgEntity* parent = nullptr, int order = 0) : mgEntity(parent, order, NUMCOMPONENTS)
+    {
+      if constexpr(sizeof...(Components) > 0)
+        mgEntity_AddComponents<Components...>(this);
+    }
+    virtual void DestroyThis() { delete this; }
   };
 
   MG_DLLEXPORT ComponentID GetComponentID(const char* name);

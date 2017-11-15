@@ -8,11 +8,30 @@
 #include "bss-util/Map.h"
 #include "bss-util/CompactArray.h"
 #include "bss-util/TRBTree.h"
+#include "bss-util/CacheAlloc.h"
 #include "bss-util/BlockAllocMT.h"
 
 namespace magnesium {
   typedef unsigned short ComponentID;
   typedef int EventID;
+
+  struct MG_DLLEXPORT MagnesiumAllocatorBase {
+    static bss::CachePolicy<char> GeneralAlloc;
+    void* allocate(size_t cnt, void* p = nullptr, size_t old = 0);
+    void deallocate(void* p, size_t sz = 0);
+  };
+
+  template<typename T>
+  struct BSS_COMPILER_DLLEXPORT MagnesiumAllocator : MagnesiumAllocatorBase {
+    typedef T value_type;
+    typedef void policy_type;
+    template<class U> using rebind = MagnesiumAllocator<U>;
+    MagnesiumAllocator() = default;
+    template <class U> constexpr MagnesiumAllocator(const MagnesiumAllocator<U>&) noexcept {}
+
+    inline T* allocate(size_t cnt, T* p = nullptr, size_t old = 0) noexcept { return reinterpret_cast<T*>(MagnesiumAllocatorBase::allocate(cnt * sizeof(T), p, old * sizeof(T))); }
+    inline void deallocate(T* p, size_t sz = 0) noexcept { MagnesiumAllocatorBase::deallocate(p, sz * sizeof(T)); }
+  };
 
 #ifdef BSS_DEBUG
   template<class T> // This is a debug tracking class that ensures you never add or remove a component
@@ -40,7 +59,7 @@ namespace magnesium {
 
   struct MG_DLLEXPORT mgEntity : public mgRefCounter, public bss::internal::TRB_NodeBase<mgEntity>
   {
-    explicit mgEntity(mgEntity* parent = 0, int order = 0);
+    explicit mgEntity(mgEntity* parent = 0, int order = 0, ComponentID hint = 1);
     mgEntity(mgEntity&& mov);
     virtual ~mgEntity();
     void ComponentListInsert(ComponentID id, ComponentID graphid, size_t);
@@ -51,7 +70,7 @@ namespace magnesium {
     inline COMPONENT_REF(T::template TYPE) Get() 
     { 
       ComponentID index = _componentlist.Get(T::ID()); 
-      return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist[index]); 
+      return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist(index));
     }
     template<class T> // Adds a component of type T to this entity if it doesn't already exist
     inline COMPONENT_REF(T::template TYPE) Add() 
@@ -67,7 +86,7 @@ namespace magnesium {
       if(index != (ComponentID)~0)
       {
         T::RemoveImplied(this);
-        return T::Store().Remove(_componentlist[index]);
+        return T::Store().Remove(_componentlist(index));
       }
       return false;
     }
@@ -79,8 +98,8 @@ namespace magnesium {
     void SetOrder(int order);
     const char* GetName() const { return _name; }
     void SetName(const char* name) { _name = name; }
-    inline bss::Slice<const std::pair<ComponentID, size_t>> GetComponents() const {
-      return bss::Slice<const std::pair<ComponentID, size_t>>(_componentlist.begin(), _componentlist.Length());
+    inline bss::Slice<const std::tuple<ComponentID, size_t>> GetComponents() const {
+      return bss::Slice<const std::tuple<ComponentID, size_t>>(_componentlist.begin(), _componentlist.Length());
     }
 
     size_t entityId;
@@ -114,12 +133,12 @@ namespace magnesium {
       assert(f != 0);
       return f(base, args...);
     }
-
+    
     mgEntity* _getRoot();
 
-    bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
-    bss::Hash<EventID, std::pair<ComponentID, void(*)()>> _eventlist;
-    bss::Hash<EventID, void(mgEntity::*)()> _hooklist;
+    bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID, bss::ARRAY_SIMPLE, MagnesiumAllocator<std::tuple<ComponentID, size_t>>> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
+    bss::Hash<EventID, std::pair<ComponentID, void(*)()>, false, bss::ARRAY_SIMPLE, MagnesiumAllocator<char>> _eventlist;
+    bss::Hash<EventID, void(mgEntity::*)(), false, bss::ARRAY_SIMPLE, MagnesiumAllocator<char>> _hooklist;
     mgEntity* _parent;
     mgEntity* _first;
     mgEntity* _last;
@@ -131,7 +150,7 @@ namespace magnesium {
     template<EventID ID, typename R, typename... Args>
     friend struct EventDef;
     static mgEntity NIL;
-    static bss::LocklessBlockAlloc<mgEntity> EntityAlloc;
+    static bss::LocklessBlockPolicy<mgEntity> EntityAlloc;
   };
 
   template<int I>

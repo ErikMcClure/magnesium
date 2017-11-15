@@ -6,6 +6,8 @@
 *.aps
 *.VC.db
 *.log
+*.h.gch
+*.pch
 /bin/
 /bin32/
 /lib/

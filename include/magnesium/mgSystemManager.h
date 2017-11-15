@@ -23,7 +23,7 @@ namespace magnesium {
     inline T* GetSystem() const { return static_cast<T*>(GetSystem(GetSystemID<T>())); }
     mgSystemBase* GetSystem(SystemID id) const;
     mgSystemBase* GetSystem(const char* name) const;
-    inline bss::Slice<std::pair<mgSystemBase*, SystemID>> GetSystems() const { return _systems.GetSlice(); }
+    inline bss::Slice<std::tuple<mgSystemBase*, SystemID>> GetSystems() const { return _systems.GetSlice(); }
     void Process();
     template<typename F>
     inline void Defer(F && f) { _defer.push_back(std::forward<F>(f)); }

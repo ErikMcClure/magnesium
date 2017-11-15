@@ -19,6 +19,9 @@
 #define MG_DLLEXPORT BSS_COMPILER_DLLIMPORT
 #endif
 
+#ifdef BSS_DEBUG
+
+#endif
 #endif
 
 #endif

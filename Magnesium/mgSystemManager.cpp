@@ -13,8 +13,8 @@ mgSystemManager::mgSystemManager()
 }
 mgSystemManager::~mgSystemManager()
 {
-  for(auto& s : _systems)
-    s.first->_manager = 0;
+  for(auto [k, v] : _systems)
+    k->_manager = 0;
 }
 void mgSystemManager::AddSystem(mgSystemBase* system, SystemID id)
 {
@@ -38,8 +38,8 @@ SystemID mgSystemManager::RemoveSystem(mgSystemBase* system)
   if(index >= _systems.Length())
     return (SystemID)~0;
 
-  SystemID id = _systems[index];
-  _systemhash.Remove(_systems[index]);
+  auto [sys, id] = _systems[index];
+  _systemhash.Remove(id);
   _systems.RemoveIndex(index);
 
   for(auto i : system->_activemsgs)
@@ -59,10 +59,10 @@ mgSystemBase* mgSystemManager::GetSystem(const char* name) const
 
 void mgSystemManager::Process()
 {
-  for(auto& s : _systems)
+  for(auto [k, v] : _systems)
   {
     mgRefCounter::GrabAll();
-    s.first->Process();
+    k->Process();
     RunDeferred();
     mgRefCounter::DropAll();
   }

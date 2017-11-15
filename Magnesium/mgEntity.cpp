@@ -7,13 +7,18 @@
 using namespace magnesium;
 using namespace bss;
 
+bss::CachePolicy<char> MagnesiumAllocatorBase::GeneralAlloc;
+void* MagnesiumAllocatorBase::allocate(size_t cnt, void* p, size_t old) { return GeneralAlloc.allocate(cnt, reinterpret_cast<char*>(p), old); }
+void MagnesiumAllocatorBase::deallocate(void* p, size_t sz) { GeneralAlloc.deallocate(reinterpret_cast<char*>(p), sz); }
+
 mgEntity mgEntity::NIL(true);
-bss::LocklessBlockAlloc<mgEntity> mgEntity::EntityAlloc;
+bss::LocklessBlockPolicy<mgEntity> mgEntity::EntityAlloc(32);
 
 mgEntity::mgEntity(bool isNIL) : TRB_NodeBase<mgEntity>(&NIL, !isNIL), entityId(0), graphcomponents(0), childhint(0), _order(0), _children(&NIL), _first(0), _last(0), _parent(0), _name(0)
 {
 }
-mgEntity::mgEntity(mgEntity* e, int order) : TRB_NodeBase<mgEntity>(&NIL), entityId(0), graphcomponents(0), childhint(0), _order(order), _children(&NIL), _first(0), _last(0), _name(0)
+mgEntity::mgEntity(mgEntity* e, int order, ComponentID hint) : TRB_NodeBase<mgEntity>(&NIL), entityId(0), graphcomponents(0), childhint(0), _componentlist(hint),
+  _order(order), _children(&NIL), _first(0), _last(0), _name(0)
 {
   _parent = !e ? _getRoot() : e;
   _parent->_addchild(this);
@@ -39,8 +44,8 @@ childhint(mov.childhint), _parent(mov._parent), _order(mov._order), _children(mo
     cur->_parent = this;
     cur = cur->next;
   }
-  for(auto& iter : _componentlist)
-    *mgComponentStoreBase::GetStore(iter.first)->GetEntity(iter.second) = this;
+  for(auto[id, index] : _componentlist)
+    *mgComponentStoreBase::GetStore(id)->GetEntity(index) = this;
 }
 mgEntity::~mgEntity()
 {
@@ -60,13 +65,13 @@ mgEntity::~mgEntity()
         MGLOGF(1, "Child {0} leaked because there was no parent to fall back to!", cur);
     }
   }
-  for(const auto& pair : _componentlist)
-    mgComponentStoreBase::RemoveComponent(pair.first, pair.second);
+  for(auto[id, index] : _componentlist)
+    mgComponentStoreBase::RemoveComponent(id, index);
   if(_parent)
     _parent->_removechild(this);
 }
-void* mgEntity::operator new(std::size_t sz) { assert(sz == sizeof(mgEntity)); return EntityAlloc.Alloc(1); }
-void mgEntity::operator delete(void* ptr, std::size_t sz) { EntityAlloc.Dealloc(ptr); }
+void* mgEntity::operator new(std::size_t sz) { assert(sz == sizeof(mgEntity)); assert(mgEngine::Instance()); return EntityAlloc.allocate(1); }
+void mgEntity::operator delete(void* ptr, std::size_t sz) { EntityAlloc.deallocate((mgEntity*)ptr, 1); }
 
 mgEntity* mgEntity::_getRoot()
 {
@@ -114,12 +119,12 @@ void mgEntity::ComponentListRemove(ComponentID id, ComponentID graphid)
 }
 size_t& mgEntity::ComponentListGet(ComponentID id)
 {
-  return _componentlist[_componentlist.Get(id)];
+  return _componentlist(_componentlist.Get(id));
 }
 mgComponentCounter* mgEntity::GetByID(ComponentID id)
 {
   ComponentID index = _componentlist.Get(id);
-  return index == (ComponentID)~0 ? nullptr : mgComponentStoreBase::GetComponent(id, _componentlist[index]);
+  return index == (ComponentID)~0 ? nullptr : mgComponentStoreBase::GetComponent(id, _componentlist(index));
 }
 
 void mgEntity::_propagateIDs()
@@ -136,6 +141,7 @@ void mgEntity::_addchild(mgEntity* child)
 {
   assert(child->_parent == this);
   TRB_NodeBase<mgEntity>::InsertNode<&mgEntity::Comp>(child, _children, _first, _last, &NIL);
+  assert(child->_parent == this);
 }
 void mgEntity::_removechild(mgEntity* child)
 {
