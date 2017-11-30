@@ -30,7 +30,7 @@ namespace magnesium {
       float pivot[2];
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<File>(
           bss::GenPair("id", id),
@@ -52,7 +52,7 @@ namespace magnesium {
       bss::DynArray<File> files;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Folder>(
           bss::GenPair("id", id),
@@ -72,7 +72,7 @@ namespace magnesium {
       int tarFile;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<MapInstruction>(
           bss::GenPair("folder", folder),
@@ -90,7 +90,7 @@ namespace magnesium {
       bss::DynArray<MapInstruction> maps;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<CharacterMap>(
           bss::GenPair("id", id),
@@ -111,7 +111,7 @@ namespace magnesium {
       int z_index;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Ref>(
           bss::GenPair("id", id),
@@ -134,7 +134,7 @@ namespace magnesium {
         bss::DynArray<Ref> objectRefs;
 
         template<typename Engine>
-        void Serialize(bss::Serializer<Engine>& e)
+        void Serialize(bss::Serializer<Engine>& e, const char*)
         {
           e.template EvaluateType<Key>(
             bss::GenPair("id", id),
@@ -148,7 +148,7 @@ namespace magnesium {
       bss::DynArray<Key> keys;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Key>(bss::GenPair("key", keys))
       }
@@ -185,7 +185,7 @@ namespace magnesium {
           int height;
 
           template<typename Engine>
-          void Serialize(bss::Serializer<Engine>& e)
+          void Serialize(bss::Serializer<Engine>& e, const char*)
           {
             e.template EvaluateType<MainlineKey>(
               bss::GenPair("x", x),
@@ -208,7 +208,7 @@ namespace magnesium {
           float pivot[2]; // Will be NaN if the default should be used
 
           template<typename Engine>
-          void Serialize(bss::Serializer<Engine>& e)
+          void Serialize(bss::Serializer<Engine>& e, const char*)
           {
             e.template EvaluateType<MainlineKey>(
               bss::GenPair("x", x),
@@ -227,7 +227,7 @@ namespace magnesium {
       };
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<MainlineKey>(
           bss::GenPair("id", id),
@@ -252,7 +252,7 @@ namespace magnesium {
       bss::DynArray<TimelineKey> keys;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Timeline>(
           bss::GenPair("id", id),
@@ -275,7 +275,7 @@ namespace magnesium {
       bss::DynArray<Timeline> timelines;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Animation>(
           bss::GenPair("id", id),
@@ -298,7 +298,7 @@ namespace magnesium {
       bss::DynArray<Animation> animations;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Entity>(
           bss::GenPair("id", id),
@@ -315,7 +315,7 @@ namespace magnesium {
       bss::DynArray<Entity> entities;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.template EvaluateType<Object>(
           bss::GenPair("folder", folders),

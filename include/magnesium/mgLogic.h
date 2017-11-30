@@ -5,6 +5,7 @@
 #define __LOGIC_H__MG__
 
 #include "mgSystem.h"
+#include <functional>
 
 namespace magnesium {
   struct mgLogicComponent : mgComponent<mgLogicComponent, false, bss::ARRAY_MOVE> {

@@ -5,6 +5,7 @@
 #define __SYSTEM_MANAGER_H__MG__
 
 #include "mgSystem.h"
+#include <functional>
 
 namespace magnesium {
   class MG_DLLEXPORT mgSystemManager
