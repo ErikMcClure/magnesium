@@ -46,7 +46,7 @@ namespace magnesium {
       ControlID keys[256];
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.EvaluateType<Bindings>(
           GenPair("deadzone", deadzone),

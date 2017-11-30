@@ -95,7 +95,7 @@ namespace magnesium {
       float ppm;
 
       template<typename Engine>
-      void Serialize(bss::Serializer<Engine>& e)
+      void Serialize(bss::Serializer<Engine>& e, const char*)
       {
         e.EvaluateType<B2INIT>(
           GenPair("gravity", gravity),

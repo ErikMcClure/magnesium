@@ -101,6 +101,7 @@ namespace magnesium {
           s.first->~AniStateBase();
           _timeline->_anistatealloc.deallocate<void>(s.first);
         }
+        _states.Clear();
       }
       template<class T>
       T* _bindFrom(typename T::Ty* src, const AniDef* def)
@@ -186,7 +187,7 @@ namespace magnesium {
   protected:
     inline double _calc() const { return !_timeline.Length() ? 0.0 : (_timeline.Back()->Time + _timeline.Back()->Animation.convertP<bss::AnimationBase>()->GetLength()); }
 
-    bss::Hash<size_t, std::unique_ptr<AniDef>, false, bss::ARRAY_MOVE> _idmap;
+    bss::Hash<size_t, std::unique_ptr<AniDef>, bss::ARRAY_MOVE> _idmap;
     bss::ArraySort<AniDef*, &CompAniDef> _timeline;
     double _length;
     double _loop;

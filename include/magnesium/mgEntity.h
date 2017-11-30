@@ -137,8 +137,8 @@ namespace magnesium {
     mgEntity* _getRoot();
 
     bss::Map<ComponentID, size_t, bss::CompT<ComponentID>, ComponentID, bss::ARRAY_SIMPLE, MagnesiumAllocator<std::tuple<ComponentID, size_t>>> _componentlist; // You can't interact with componentlist directly because it violates DLL bounderies
-    bss::Hash<EventID, std::pair<ComponentID, void(*)()>, false, bss::ARRAY_SIMPLE, MagnesiumAllocator<char>> _eventlist;
-    bss::Hash<EventID, void(mgEntity::*)(), false, bss::ARRAY_SIMPLE, MagnesiumAllocator<char>> _hooklist;
+    bss::HashIns<EventID, std::pair<ComponentID, void(*)()>, bss::ARRAY_SIMPLE, MagnesiumAllocator<char>> _eventlist;
+    bss::HashIns<EventID, void(mgEntity::*)(), bss::ARRAY_SIMPLE, MagnesiumAllocator<char>> _hooklist;
     mgEntity* _parent;
     mgEntity* _first;
     mgEntity* _last;

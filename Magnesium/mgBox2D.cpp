@@ -37,6 +37,7 @@ void b2Component::_setInterpolation()
   b2Vec2 p = _body->GetPosition();
   p *= Box2DSystem::Instance()->F_PPM;
   Event<EVENT_SETPOSITION_INTERPOLATE>::Send(entity, p.x, p.y);
+  Event<EVENT_SETROTATION>::Send(entity, _body->GetAngle());
     /*if(auto loc = entity->Get<psLocatableComponent>())
     loc->Get()->SetPosition(PlaneshaderBox2DSystem::toVec());*/
 }

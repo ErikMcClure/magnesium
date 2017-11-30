@@ -87,7 +87,6 @@ PlaneshaderBox2DSystem::~PlaneshaderBox2DSystem() {}
 void PlaneshaderBox2DSystem::Process()
 {
   SimpleIterator<PlaneshaderBox2DSystem, b2Component, float>::Gen<&PlaneshaderBox2DSystem::Iterator>(this, Box2DSystem::Instance()->GetDeltaRatio());
-
   PlaneshaderSystem::Process();
 }
 void PlaneshaderBox2DSystem::Iterator(b2Component& c, float ratio)
