@@ -23,7 +23,7 @@ void mgConsole::Load(fgElement* BSS_RESTRICT parent, fgElement* BSS_RESTRICT nex
 
 void mgConsole::Destroy()
 {
-  if(_console->message != 0)
+  if(_console->message != nullptr)
     fgText_Destroy(&_console);
   bss::bssFill(_console);
 }
@@ -99,7 +99,7 @@ void mgConsole::_writeConsole()
   if(!_lines.Length())
     return;
   assert(_offset < _lines.Length());
-  if(_console->message != 0)
+  if(_console->message != nullptr)
   {
     size_t endoffset = _offset + _maxlines;
     char* end = _offset > 0 ? (pbase() + _lines[_lines.Length() - _offset - 1]) : pptr();

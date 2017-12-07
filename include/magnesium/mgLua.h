@@ -34,6 +34,7 @@ namespace magnesium {
     inline lua_State* GetState() { return _l; }
     void WriteError(int r, const char* name);
     virtual const char* GetName() const override { return "Lua"; }
+    const char* GetError() const;
 
     static const int CHUNKSIZE = (1 << 16);
     static mgComponentCounter* GetEntityComponent(mgEntity* e, const char* component);
@@ -120,7 +121,6 @@ namespace magnesium {
       if constexpr(!std::is_void<R>::value)
         return LuaPop<R>(_l);
     }
-    const char* _getError();
     void _popError();
 
     static const char* _luaStreamReader(lua_State *L, void *data, size_t *size);

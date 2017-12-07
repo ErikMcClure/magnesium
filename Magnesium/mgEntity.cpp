@@ -98,11 +98,15 @@ void mgEntity::SetOrder(int order)
 {
   if(order != _order)
   {
-    _parent->_removechild(this);
+    bool invalid = !_parent->_checkchild(this);
+    if(invalid)
+      _parent->_removechild(this);
     _order = order;
-    _parent->_addchild(this);
+    if(invalid)
+      _parent->_addchild(this);
   }
 }
+
 void mgEntity::ComponentListInsert(ComponentID id, ComponentID graphid, size_t index)
 {
   _componentlist.Insert(id, index);
@@ -125,6 +129,15 @@ mgComponentCounter* mgEntity::GetByID(ComponentID id)
 {
   ComponentID index = _componentlist.Get(id);
   return index == (ComponentID)~0 ? nullptr : mgComponentStoreBase::GetComponent(id, _componentlist(index));
+}
+void mgEntity::Revalidate()
+{
+  if(!_parent->_checkchild(this))
+  {
+    _parent->_removechild(this);
+    _parent->_addchild(this);
+    assert(_parent->_checkchild(this));
+  }
 }
 
 void mgEntity::_propagateIDs()
@@ -149,6 +162,10 @@ void mgEntity::_removechild(mgEntity* child)
   TRB_NodeBase<mgEntity>::RemoveNode(child, _children, _first, _last, &NIL);
   if(!_first)
     childhint = 0;
+}
+bool mgEntity::_checkchild(mgEntity* child)
+{ // We have to validate the child in it's parent, because the parent owns the comparison function.
+  return child->template Validate<&mgEntity::Comp>();
 }
 void mgEntity::_registerEvent(EventID event, ComponentID id, void(*f)())
 {

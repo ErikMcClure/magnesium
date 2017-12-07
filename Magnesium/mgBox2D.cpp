@@ -255,15 +255,15 @@ void Box2DSystem::Reload()
   _world->SetContactListener(this);
   _world->SetAutoClearForces(false);
 
-  if(_debugdraw != 0)
+  if(_debugdraw != nullptr)
     _world->SetDebugDraw(_debugdraw);
 }
 
 void Box2DSystem::Unload()
 {
-  if(_world != 0)
+  if(_world != nullptr)
   {
     delete _world;
-    _world = 0;
+    _world = nullptr;
   }
 }

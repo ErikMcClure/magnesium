@@ -176,6 +176,7 @@ namespace magnesium {
   {
     explicit mgComponentInherit(mgEntity* e, T* (*f)(mgEntity* e)) : mgComponent(e), func(f) {}
     inline T* Get() { return (*func)(entity); }
+    inline const T* Get() const { return (*func)(entity); }
     T* (*func)(mgEntity* e);
   };
 

@@ -23,7 +23,7 @@ void LuaSystem::Process()
 {
 }
 
-const char* LuaSystem::_getError()
+const char* LuaSystem::GetError() const
 {
   const char* m = lua_tostring(_l, -1);
   return !m ? "[NULL]" : m;
@@ -42,25 +42,25 @@ void LuaSystem::WriteError(int r, const char* name)
   if(r == LUA_ERRSYNTAX)
   {
     if(name)
-      MGLOG(2, "Syntax error in ", name, ": ", _getError());
+      MGLOG(2, "Syntax error in ", name, ": ", GetError());
     else
-      MGLOG(2, "Syntax error: ", _getError());
+      MGLOG(2, "Syntax error: ", GetError());
     _popError();
   }
   else if(r == LUA_ERRRUN)
   {
     if(name)
-      MGLOG(2, "Runtime error in ", name, ": ", _getError());
+      MGLOG(2, "Runtime error in ", name, ": ", GetError());
     else
-      MGLOG(2, "Runtime error: ", _getError());
+      MGLOG(2, "Runtime error: ", GetError());
     _popError();
   }
   else if(!lua_isnil(_l, -1))
   {
     if(name)
-      MGLOG(2, "Error ", r, " loading (", name, "): ", _getError());
+      MGLOG(2, "Error ", r, " loading (", name, "): ", GetError());
     else
-      MGLOG(2, "Error ", r, ": ", _getError());
+      MGLOG(2, "Error ", r, ": ", GetError());
     _popError();
   }
   else if(name)
