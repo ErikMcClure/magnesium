@@ -72,6 +72,12 @@ namespace magnesium {
       ComponentID index = _componentlist.Get(T::ID()); 
       return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist(index));
     }
+    template<class T>
+    inline COMPONENT_REF(const T::template TYPE) Get() const
+    {
+      ComponentID index = _componentlist.Get(T::ID());
+      return index == (ComponentID)~0 ? nullptr : T::Store().Get(_componentlist(index));
+    }
     template<class T> // Adds a component of type T to this entity if it doesn't already exist
     inline COMPONENT_REF(T::template TYPE) Add() 
     { 
@@ -101,6 +107,7 @@ namespace magnesium {
     inline bss::Slice<const std::tuple<ComponentID, size_t>> GetComponents() const {
       return bss::Slice<const std::tuple<ComponentID, size_t>>(_componentlist.begin(), _componentlist.Length());
     }
+    void Revalidate();
 
     size_t entityId;
     size_t childhint; // Bitfield of scenegraph components our children might have
@@ -112,7 +119,8 @@ namespace magnesium {
 
   protected:
     explicit mgEntity(bool isNIL);
-    void _addchild(mgEntity* child);
+    virtual void _addchild(mgEntity* child);
+    virtual bool _checkchild(mgEntity* child);
     void _removechild(mgEntity* child);
     void _propagateIDs();
     void _registerEvent(EventID event, ComponentID id, void(*f)());

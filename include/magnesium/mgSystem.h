@@ -70,7 +70,7 @@ namespace magnesium {
     static void Iterate(mgSystemSimple* self) 
     {
       mgComponentStoreBase* store = mgComponentStoreBase::GetStore(self->_iterator);
-      if (store != 0)
+      if (store != nullptr)
       {
         auto& entities = store->GetEntities();
         store->curIteration = 0;
