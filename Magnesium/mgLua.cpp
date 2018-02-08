@@ -1,4 +1,4 @@
-// Copyright ©2017 Black Sphere Studios
+// Copyright ©2018 Black Sphere Studios
 
 #include "mgLua.h"
 #include "mgEngine.h"

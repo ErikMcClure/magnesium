@@ -106,7 +106,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>magnesium32_d.lib;bss-util32_d.lib;planeshader32_d.lib;tinyoal32_d.lib;feathergui32_d.lib;Box2D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>magnesium32_d.lib;bss-util32_d.lib;planeshader32_d.lib;tinyoal32_d.lib;feathergui32_d.lib;Box2D.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -150,7 +150,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>magnesium32.lib;bss-util32.lib;planeshader32.lib;tinyoal32.lib;feathergui32.lib;Box2D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>magnesium32.lib;bss-util32.lib;planeshader32.lib;tinyoal32.lib;feathergui32.lib;Box2D.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -183,10 +183,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LD34.rc" />
+    <ClInclude Include="ld34.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ld34.h" />
+    <ResourceCompile Include="..\blank.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

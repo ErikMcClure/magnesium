@@ -1,4 +1,4 @@
-// Copyright ©2017 Black Sphere Studios
+// Copyright ©2018 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in Magnesium.h
 
 #ifndef __COMPONENT_H__MG__
@@ -37,7 +37,13 @@ namespace magnesium {
       inline void deallocate(T* p, size_t sz = 0) noexcept { mgComponentStoreBase::dllfree(p); }
     };
 
-    struct EntityIterator : public std::iterator<std::bidirectional_iterator_tag, mgEntity*> {
+    struct EntityIterator {
+      using iterator_category = std::bidirectional_iterator_tag;
+      using value_type = mgEntity*;
+      using difference_type = ptrdiff_t;
+      using pointer = mgEntity*;
+      using reference = mgEntity*;
+
       inline EntityIterator(void* p_, size_t len_, size_t type_) : p(reinterpret_cast<uint8_t*>(p_)), end(reinterpret_cast<uint8_t*>(p_) + (len_*type_)), type(type_) {}
       inline mgEntity* operator*() const { return *reinterpret_cast<mgEntity**>(p); }
       inline EntityIterator& operator++() { p += type; return *this; } //prefix
