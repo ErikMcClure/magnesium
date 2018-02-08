@@ -3,7 +3,8 @@
 * This example runs a series of tests to ensure Magnesium is
 * working correctly
 *
-* Copyright ©2016 Black Sphere Studios
+* Copyright ©2018 Black Sphere Studios
+* For conditions of distribution and use, see copyright notice in Magnesium.h
 */
 
 #include "magnesium/mgEngine.h"
